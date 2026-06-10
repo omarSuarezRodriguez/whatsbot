@@ -1,4 +1,4 @@
-"""Lazy singleton wiring for chatbot services (mirrors app/app.py create_app)."""
+"""Lazy singleton wiring for chatbot services."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ _context: Optional[BotContext] = None
 
 
 def get_bot_context(*, start_background: bool = True) -> BotContext:
-    """Build or return cached bot services. Same wiring as legacy create_app()."""
+    """Build or return cached bot services."""
     global _context
     if _context is not None:
         return _context

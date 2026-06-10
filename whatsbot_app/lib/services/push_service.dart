@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+import '../di/app_services.dart';
 import 'api_client.dart';
 import 'message_alerts_service.dart';
 
@@ -128,22 +129,49 @@ class PushService {
     final messageId = int.tryParse(data['message_id'] ?? '') ??
         DateTime.now().millisecondsSinceEpoch;
 
-    // Si el WS ya actualizó la UI, MessageAlertsService evita duplicados.
-    unawaited(
-      messageAlerts.notifyFromPush(
-        conversationId: conversationId,
-        displayName: title,
-        preview: preview,
-        messageId: messageId,
-      ),
-    );
+    // Push implica WS caído: hidratar SQLite antes de alertar para actualizar la lista.
+    unawaited(_handleIncomingPush(
+      conversationId: conversationId,
+      displayName: title,
+      preview: preview,
+      messageId: messageId,
+    ));
   }
 
   void _onOpenFromNotification(RemoteMessage message) {
     final conversationId =
         int.tryParse(message.data['conversation_id'] ?? '');
     if (conversationId == null) return;
+    unawaited(_syncConversationFromPush(conversationId));
     messageAlerts.onOpenConversation?.call(conversationId);
+  }
+
+  Future<void> _handleIncomingPush({
+    required int conversationId,
+    required String displayName,
+    required String preview,
+    required int messageId,
+  }) async {
+    await _syncConversationFromPush(conversationId);
+    await messageAlerts.notifyFromPush(
+      conversationId: conversationId,
+      displayName: displayName,
+      preview: preview,
+      messageId: messageId,
+    );
+  }
+
+  Future<void> _syncConversationFromPush(int conversationId) async {
+    if (!AppServices.isInitialized) return;
+    try {
+      await AppServices.syncEngine.syncConversationsIncremental();
+      await AppServices.syncEngine.syncMessagesIncremental(
+        conversationId,
+        force: true,
+      );
+    } catch (_) {
+      // Degradación silenciosa: la caché local sigue disponible.
+    }
   }
 }
 

@@ -54,7 +54,7 @@ def _reply_to_response_text(reply: Reply) -> Union[str, List[str]]:
 
 def handle_incoming_message(payload: dict) -> dict:
     """
-    Procesa un mensaje entrante con la misma lógica que POST /bot en app/app.py.
+    Procesa un mensaje entrante del webhook WhatsApp (Twilio).
     No envía Twilio; solo devuelve la respuesta para la capa API/webhook.
     """
     metadata = payload.get("metadata") or {}

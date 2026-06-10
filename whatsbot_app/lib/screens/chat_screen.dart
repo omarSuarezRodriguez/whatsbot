@@ -149,14 +149,36 @@ class _ChatScreenState extends State<ChatScreen> {
     final normalized = incoming.copyWith(
       conversationId: widget.conversation.id,
     );
-    final exists = current.any(
+    final matchIndex = current.indexWhere(
       (m) =>
           m.id == normalized.id ||
           (normalized.clientUuid != null &&
               normalized.clientUuid!.isNotEmpty &&
               m.clientUuid == normalized.clientUuid),
     );
-    if (exists) return current;
+    if (matchIndex >= 0) {
+      final existing = current[matchIndex];
+      // Reemplazar optimista (id temp + pending) por confirmación del servidor.
+      final updated = existing.id <= 0 && normalized.id > 0
+          ? ChatMessage(
+              id: normalized.id,
+              conversationId: normalized.conversationId,
+              direction: normalized.direction,
+              body: normalized.body,
+              waId: normalized.waId,
+              isAdmin: normalized.isAdmin,
+              channel: normalized.channel,
+              status: normalized.status,
+              deliveredAt: normalized.deliveredAt,
+              readAt: normalized.readAt,
+              createdAt: existing.createdAt,
+              clientUuid: normalized.clientUuid ?? existing.clientUuid,
+            )
+          : normalized;
+      final merged = List<ChatMessage>.from(current)..[matchIndex] = updated;
+      merged.sort(ChatMessage.compareChronological);
+      return merged;
+    }
     final merged = [...current, normalized];
     merged.sort(ChatMessage.compareChronological);
     return merged;
@@ -252,6 +274,8 @@ class _ChatScreenState extends State<ChatScreen> {
       case 'message.new':
         final message = event.message;
         if (message == null || !_messageBelongsToChat(message)) break;
+        // Salientes del dueño: el stream SQLite ya confirma id/status tras el ack.
+        if (message.isOutgoing && message.isAdmin) break;
         setState(() {
           _displayMessages = _mergeIncomingMessage(_displayMessages, message);
         });

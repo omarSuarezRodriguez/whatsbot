@@ -69,17 +69,28 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
   Future<void> _onRealtimeEvent(RealtimeEvent event) async {
     if (!mounted) return;
 
-    if (event.type != 'message.new') return;
+    switch (event.type) {
+      case 'message.new':
+        final message = event.message;
+        if (message == null) break;
 
-    final message = event.message;
-    if (message == null) return;
-
-    final chat = await _chats.findConversationByWaId(message.waId) ??
-        await _chats.getConversation(message.conversationId);
-    if (chat != null) {
-      final resolved = message.copyWith(conversationId: chat.id);
-      final bumped = _chats.mergeConversationWithMessage(chat, resolved);
-      await _chats.upsertConversation(bumped);
+        final chat = await _chats.findConversationByWaId(message.waId) ??
+            await _chats.getConversation(message.conversationId);
+        if (chat != null) {
+          final resolved = message.copyWith(conversationId: chat.id);
+          final bumped = _chats.mergeConversationWithMessage(chat, resolved);
+          await _chats.upsertConversation(bumped);
+        }
+        break;
+      case 'conversation.updated':
+      case 'conversation.sync':
+        final conversation = event.conversation;
+        if (conversation != null) {
+          await _chats.upsertConversation(conversation);
+        }
+        break;
+      default:
+        break;
     }
     if (mounted) setState(() {});
   }

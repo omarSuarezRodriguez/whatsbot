@@ -4,7 +4,7 @@
 - `gateway.py` — **única puerta:** `handle_incoming_message(payload)`.
 - `runtime.py` — wiring de servicios (equivalente a `create_app()`).
 
-El webhook activo en producción sigue en la **raíz** (`POST /bot`) hasta Fase 4.
+El webhook activo está en FastAPI: `POST /webhook` (alias `POST /bot`) en `api/routes/whatsapp.py`.
 
 ```bash
 cd final_system
