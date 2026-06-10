@@ -29,11 +29,11 @@ void main() {
     await tearDownTestAppServices();
   });
 
-  Conversation conversation() {
+  Conversation conversation({String customerWaId = '+5491111111111'}) {
     return Conversation(
       id: 1,
       businessId: 'default',
-      customerWaId: '+5491111111111',
+      customerWaId: customerWaId,
       customerName: 'Omar Suarez',
       updatedAt: DateTime.utc(2026, 6, 5, 10),
     );
@@ -451,6 +451,160 @@ void main() {
 
       expect(find.text('Historial cacheado'), findsOneWidget);
       expect(find.text('Nuevo vía REST'), findsOneWidget);
+
+      await disposeWidgetTree(tester);
+    },
+  );
+
+  testWidgets(
+    'ChatScreen con wa_id sin + y caché precargada muestra entrante y bot en vivo',
+    (WidgetTester tester) async {
+      const omarWa = '35699155990';
+      final cached = [
+        ChatMessage(
+          id: 1,
+          conversationId: 1,
+          direction: 'incoming',
+          body: 'kmk',
+          waId: omarWa,
+          isAdmin: false,
+          channel: 'whatsapp',
+          status: 'delivered',
+          createdAt: DateTime.utc(2026, 6, 5, 10, 28),
+        ),
+        ChatMessage(
+          id: 2,
+          conversationId: 1,
+          direction: 'outgoing',
+          body: 'Respuesta automática',
+          waId: omarWa,
+          isAdmin: false,
+          channel: 'whatsapp',
+          status: 'delivered',
+          createdAt: DateTime.utc(2026, 6, 5, 10, 29),
+        ),
+      ];
+
+      await AppServices.chatRepository.upsertConversation(
+        conversation(customerWaId: omarWa),
+      );
+      await seedMessages(cached);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChatScreen(
+            conversation: conversation(customerWaId: omarWa),
+            initialMessages: cached,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('kmk'), findsOneWidget);
+      expect(find.text('jkmnl'), findsNothing);
+
+      await emitRealtimeEvent(
+        RealtimeEvent(
+          type: 'message.new',
+          message: ChatMessage(
+            id: 601,
+            conversationId: 99,
+            direction: 'incoming',
+            body: 'jkmnl',
+            waId: '+$omarWa',
+            isAdmin: false,
+            channel: 'whatsapp',
+            status: 'delivered',
+            createdAt: DateTime.utc(2026, 6, 5, 12, 40),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('jkmnl'), findsOneWidget);
+
+      await emitRealtimeEvent(
+        RealtimeEvent(
+          type: 'message.new',
+          message: ChatMessage(
+            id: 602,
+            conversationId: 99,
+            direction: 'outgoing',
+            body: 'Respuesta bot en vivo',
+            waId: omarWa,
+            isAdmin: false,
+            channel: 'whatsapp',
+            status: 'delivered',
+            createdAt: DateTime.utc(2026, 6, 5, 12, 41),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('Respuesta bot en vivo'), findsOneWidget);
+
+      await disposeWidgetTree(tester);
+    },
+  );
+
+  testWidgets(
+    'ChatScreen reconcilia tras refresh cuando llegan mensajes vía REST',
+    (WidgetTester tester) async {
+      realtimeService.debugSetConnected(true);
+
+      final cached = sampleMessages();
+      await seedMessages(cached);
+      testApi.messagesByConversation[1] = [
+        {
+          'id': 1,
+          'conversation_id': 1,
+          'direction': 'incoming',
+          'body': 'Hola desde el cliente',
+          'wa_id': '+5491111111111',
+          'is_admin': false,
+          'channel': 'whatsapp',
+          'status': 'delivered',
+          'created_at': DateTime.utc(2026, 6, 5, 10, 28).toIso8601String(),
+        },
+        {
+          'id': 2,
+          'conversation_id': 1,
+          'direction': 'outgoing',
+          'body': 'Respuesta del admin',
+          'wa_id': '+5491111111111',
+          'is_admin': true,
+          'channel': 'whatsapp',
+          'status': 'sent',
+          'created_at': DateTime.utc(2026, 6, 5, 10, 29).toIso8601String(),
+        },
+      ];
+
+      await pumpChatScreen(tester, initialMessages: cached);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Solo en SQLite tras sync'), findsNothing);
+
+      testApi.messagesByConversation[1] = [
+        ...testApi.messagesByConversation[1]!,
+        {
+          'id': 11,
+          'conversation_id': 1,
+          'direction': 'incoming',
+          'body': 'Solo en SQLite tras sync',
+          'wa_id': '+5491111111111',
+          'is_admin': false,
+          'channel': 'whatsapp',
+          'status': 'delivered',
+          'created_at': DateTime.utc(2026, 6, 5, 12, 45).toIso8601String(),
+        },
+      ];
+
+      realtimeService.debugSetConnected(false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Solo en SQLite tras sync'), findsOneWidget);
 
       await disposeWidgetTree(tester);
     },

@@ -2085,3 +2085,33 @@ Cliente: scsdv
 Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
 
 #################################################################
+################################################################
+
+Cliente: ñangas
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: lskmfd
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: ,l,l,
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################

@@ -560,3 +560,18 @@ cd whatsbot_app && flutter analyze && flutter test
 ```
 
 **Probar manual:** WS conectado → cliente escribe → burbuja <1 s en chat abierto; preview y orden en lista; al abrir chat el mensaje ya está.
+
+---
+
+## Chat: mensajes en vivo con chat abierto (FIX UI reactiva) ✅
+
+- **Causa raíz:** `_refresh` sincronizaba SQLite pero no reconciliaba `_displayMessages`; si el watch Drift o el merge WS fallaban, la UI quedaba congelada en el snapshot de apertura hasta salir y reentrar.
+- `chat_screen.dart`: `_applyStoreSnapshot` / `_reloadDisplayFromStore` — red de seguridad tras `_refresh` y `_send`; `message.new` resuelve hilo local vía `resolveForLocalStore` antes del merge; `_sameWa` compara solo dígitos (`35699155990` vs `+356…`).
+
+**Tests:** `test/screens/chat_screen_test.dart` — `wa_id sin + y caché precargada`; `reconcilia tras refresh cuando llegan mensajes vía REST`.
+
+```bash
+cd whatsbot_app && flutter test test/screens/chat_screen_test.dart && flutter analyze
+```
+
+**Probar manual:** abrir chat Omar (`35699155990`) → cliente escribe / bot responde / admin envía → burbuja al instante sin salir del chat.

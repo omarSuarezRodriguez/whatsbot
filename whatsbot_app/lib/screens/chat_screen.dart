@@ -112,12 +112,21 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onMessagesFromStore(List<ChatMessage> storeMessages) {
+    _applyStoreSnapshot(storeMessages);
+  }
+
+  void _applyStoreSnapshot(
+    List<ChatMessage> storeMessages, {
+    bool scrollIfNearBottom = true,
+  }) {
     if (!mounted) return;
 
     final previousCount = _displayMessages.length;
     final prevLastId =
         _displayMessages.isNotEmpty ? _displayMessages.last.id : null;
-    _displayMessages = _reconcileWithStore(storeMessages);
+    final next = _reconcileWithStore(storeMessages);
+    final changed = _messagesSnapshotChanged(_displayMessages, next);
+    _displayMessages = next;
 
     final hadGrowth = _displayMessages.length > previousCount ||
         (_displayMessages.isNotEmpty && _displayMessages.last.id != prevLastId);
@@ -126,11 +135,38 @@ class _ChatScreenState extends State<ChatScreen> {
       unawaited(_persistSeen(_displayMessages));
     }
 
-    if (hadGrowth && _isNearBottom()) {
+    if (scrollIfNearBottom && hadGrowth && _isNearBottom()) {
       _scrollToBottom(animated: true);
     }
 
-    setState(() {});
+    if (changed) setState(() {});
+  }
+
+  Future<void> _reloadDisplayFromStore({bool scrollIfNearBottom = false}) async {
+    if (!mounted) return;
+    final store =
+        await _messageRepo.watchMessages(widget.conversation.id).first;
+    if (!mounted) return;
+    _applyStoreSnapshot(store, scrollIfNearBottom: scrollIfNearBottom);
+  }
+
+  bool _messagesSnapshotChanged(
+    List<ChatMessage> before,
+    List<ChatMessage> after,
+  ) {
+    if (before.length != after.length) return true;
+    for (var i = 0; i < before.length; i++) {
+      final a = before[i];
+      final b = after[i];
+      if (a.id != b.id ||
+          a.status != b.status ||
+          a.body != b.body ||
+          a.deliveredAt != b.deliveredAt ||
+          a.readAt != b.readAt) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<ChatMessage> _reconcileWithStore(List<ChatMessage> store) {
@@ -273,8 +309,10 @@ class _ChatScreenState extends State<ChatScreen> {
     switch (event.type) {
       case 'message.new':
         final message = event.message;
-        if (message == null || !_messageBelongsToChat(message)) break;
-        final hadGrowth = _mergeMessageIntoDisplay(message);
+        if (message == null) break;
+        final resolved = await _messageRepo.resolveForLocalStore(message);
+        if (!_messageBelongsToChat(resolved)) break;
+        final hadGrowth = _mergeMessageIntoDisplay(resolved);
         setState(() {});
         if (hadGrowth && _isNearBottom()) {
           _scrollToBottom(animated: true);
@@ -356,13 +394,13 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       if (!mounted) return;
       if (showLoading) setState(() => _refreshing = false);
-      final allMessages =
-          await _messageRepo.watchMessages(widget.conversation.id).first;
-      if (allMessages.isNotEmpty) {
+      await _reloadDisplayFromStore(scrollIfNearBottom: true);
+      if (!mounted) return;
+      if (_displayMessages.isNotEmpty) {
         await messageAlerts.handleChatMessages(
           conversationId: widget.conversation.id,
           displayName: widget.conversation.displayName,
-          messages: allMessages,
+          messages: _displayMessages,
         );
       }
     } catch (_) {
@@ -382,10 +420,13 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  String _waDigits(String wa) => wa.replaceAll(RegExp(r'\D'), '');
+
   bool _sameWa(String a, String b) {
-    final na = a.replaceAll(RegExp(r'[^0-9+]'), '');
-    final nb = b.replaceAll(RegExp(r'[^0-9+]'), '');
-    return na == nb || na.endsWith(nb) || nb.endsWith(na);
+    final da = _waDigits(a);
+    final db = _waDigits(b);
+    if (da.isEmpty || db.isEmpty) return false;
+    return da == db || da.endsWith(db) || db.endsWith(da);
   }
 
   bool _isNearBottom() {
@@ -425,6 +466,8 @@ class _ChatScreenState extends State<ChatScreen> {
         customerWaId: widget.conversation.customerWaId,
         body: text,
       );
+      if (!mounted) return;
+      await _reloadDisplayFromStore(scrollIfNearBottom: true);
       if (!mounted) return;
       _scrollToBottom(force: true);
       if (result.queued) {
