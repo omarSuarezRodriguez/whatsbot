@@ -40,7 +40,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _sending = false;
   bool _orderBusy = false;
   bool _peerTyping = false;
-  int _lastMessageCount = 0;
+  List<ChatMessage> _displayMessages = [];
+  late final Stream<List<ChatMessage>> _messagesStream;
   Timer? _typingStopTimer;
   StreamSubscription<RealtimeEvent>? _realtimeSub;
   StreamSubscription<bool>? _connectivitySub;
@@ -54,7 +55,11 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _lastMessageCount = widget.initialMessages?.length ?? 0;
+    _messagesStream = _messageRepo.watchMessages(widget.conversation.id);
+    _displayMessages = List<ChatMessage>.from(widget.initialMessages ?? []);
+    if (_displayMessages.isNotEmpty) {
+      _displayMessages.sort(ChatMessage.compareChronological);
+    }
     AppServices.syncEngine.trackOpenConversation(widget.conversation.id);
     messageAlerts.setActiveConversation(widget.conversation.id);
     _inputController.addListener(_onInputChanged);
@@ -73,9 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
     _updateWsFallbackTimer(realtimeService.isConnected);
-    _messagesSub = _messageRepo
-        .watchMessages(widget.conversation.id)
-        .listen(_onMessagesFromStore);
+    _messagesSub = _messagesStream.listen(_onMessagesFromStore);
     SchedulerBinding.instance.scheduleFrameCallback((_) {
       unawaited(_markRead());
       unawaited(_refresh(silent: true));
@@ -108,15 +111,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return _sameWa(message.waId, widget.conversation.customerWaId);
   }
 
-  void _onMessagesFromStore(List<ChatMessage> messages) {
+  void _onMessagesFromStore(List<ChatMessage> storeMessages) {
     if (!mounted) return;
 
-    final count = messages.length;
-    final hadGrowth = count > _lastMessageCount;
-    _lastMessageCount = count;
+    final previousCount = _displayMessages.length;
+    final prevLastId =
+        _displayMessages.isNotEmpty ? _displayMessages.last.id : null;
+    _displayMessages = _reconcileWithStore(storeMessages);
 
-    if (messages.isNotEmpty) {
-      unawaited(_persistSeen(messages));
+    final hadGrowth = _displayMessages.length > previousCount ||
+        (_displayMessages.isNotEmpty && _displayMessages.last.id != prevLastId);
+
+    if (_displayMessages.isNotEmpty) {
+      unawaited(_persistSeen(_displayMessages));
     }
 
     if (hadGrowth && _isNearBottom()) {
@@ -124,6 +131,94 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     setState(() {});
+  }
+
+  List<ChatMessage> _reconcileWithStore(List<ChatMessage> store) {
+    final storeIds = {for (final m in store) m.id};
+    final storeByClientUuid = <String, ChatMessage>{
+      for (final m in store)
+        if (m.clientUuid != null && m.clientUuid!.isNotEmpty) m.clientUuid!: m,
+    };
+
+    final merged = List<ChatMessage>.from(store);
+    for (final message in _displayMessages) {
+      if (storeIds.contains(message.id)) continue;
+      if (message.clientUuid != null &&
+          message.clientUuid!.isNotEmpty &&
+          storeByClientUuid.containsKey(message.clientUuid!)) {
+        continue;
+      }
+      if (_messageBelongsToChat(message)) {
+        merged.add(message);
+      }
+    }
+
+    merged.sort(ChatMessage.compareChronological);
+    return merged;
+  }
+
+  bool _mergeMessageIntoDisplay(ChatMessage incoming) {
+    final local = incoming.copyWith(conversationId: widget.conversation.id);
+
+    if (incoming.clientUuid != null && incoming.clientUuid!.isNotEmpty) {
+      final idx = _displayMessages.indexWhere(
+        (m) => m.clientUuid == incoming.clientUuid,
+      );
+      if (idx >= 0) {
+        final wasPending = _displayMessages[idx].status == 'pending';
+        _displayMessages[idx] =
+            _mergeMessageFields(_displayMessages[idx], local);
+        _sortDisplayMessages();
+        return wasPending || _displayMessages[idx].id != incoming.id;
+      }
+    }
+
+    final byId = _displayMessages.indexWhere((m) => m.id == incoming.id);
+    if (byId >= 0) {
+      _displayMessages[byId] =
+          _mergeMessageFields(_displayMessages[byId], local);
+      _sortDisplayMessages();
+      return false;
+    }
+
+    _displayMessages.add(local);
+    _sortDisplayMessages();
+    return true;
+  }
+
+  ChatMessage _mergeMessageFields(ChatMessage existing, ChatMessage incoming) {
+    return ChatMessage(
+      id: incoming.id,
+      conversationId: widget.conversation.id,
+      direction: incoming.direction,
+      body: incoming.body,
+      waId: incoming.waId,
+      isAdmin: incoming.isAdmin,
+      channel: incoming.channel,
+      status: incoming.status,
+      deliveredAt: incoming.deliveredAt ?? existing.deliveredAt,
+      readAt: incoming.readAt ?? existing.readAt,
+      createdAt: incoming.createdAt,
+      clientUuid: incoming.clientUuid ?? existing.clientUuid,
+    );
+  }
+
+  void _applyStatusUpdate(RealtimeEvent event) {
+    final messageId = event.messageId;
+    if (messageId == null) return;
+
+    final idx = _displayMessages.indexWhere((m) => m.id == messageId);
+    if (idx < 0) return;
+
+    _displayMessages[idx] = _displayMessages[idx].copyWith(
+      status: event.status ?? _displayMessages[idx].status,
+      deliveredAt: event.deliveredAt ?? _displayMessages[idx].deliveredAt,
+      readAt: event.readAt ?? _displayMessages[idx].readAt,
+    );
+  }
+
+  void _sortDisplayMessages() {
+    _displayMessages.sort(ChatMessage.compareChronological);
   }
 
   Future<void> _markConversationSeenOnExit() async {
@@ -179,12 +274,21 @@ class _ChatScreenState extends State<ChatScreen> {
       case 'message.new':
         final message = event.message;
         if (message == null || !_messageBelongsToChat(message)) break;
+        final hadGrowth = _mergeMessageIntoDisplay(message);
+        setState(() {});
+        if (hadGrowth && _isNearBottom()) {
+          _scrollToBottom(animated: true);
+        }
         unawaited(_refresh(silent: true, force: true));
         if (!message.isOutgoing) {
           unawaited(_markRead());
         }
         break;
       case 'message.status':
+        _applyStatusUpdate(event);
+        setState(() {});
+        unawaited(_refresh(silent: true, force: true));
+        break;
       case 'conversation.updated':
       case 'conversation.sync':
         unawaited(_refresh(silent: true, force: true));
@@ -409,39 +513,29 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Container(
               color: WhatsAppTheme.chatBackground,
-              child: StreamBuilder<List<ChatMessage>>(
-                stream: _messageRepo.watchMessages(widget.conversation.id),
-                initialData: widget.initialMessages ?? const [],
-                builder: (context, snapshot) {
-                  final messages = snapshot.data ?? const [];
-                  final showSpinner = messages.isEmpty && _refreshing;
-
-                  if (showSpinner) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  return ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: messages.length + typingOffset,
-                    itemBuilder: (_, i) {
-                      if (_peerTyping && i == 0) {
-                        return const TypingIndicator();
-                      }
-                      final messageIndex =
-                          messages.length - 1 - (i - typingOffset);
-                      final message = messages[messageIndex];
-                      return MessageBubble(
-                        key: ValueKey(
-                          message.clientUuid ?? 'msg-${message.id}',
-                        ),
-                        message: message,
-                      );
-                    },
-                  );
-                },
-              ),
+              child: _displayMessages.isEmpty && _refreshing
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: _displayMessages.length + typingOffset,
+                      itemBuilder: (_, i) {
+                        if (_peerTyping && i == 0) {
+                          return const TypingIndicator();
+                        }
+                        final messageIndex = _displayMessages.length -
+                            1 -
+                            (i - typingOffset);
+                        final message = _displayMessages[messageIndex];
+                        return MessageBubble(
+                          key: ValueKey(
+                            message.clientUuid ?? 'msg-${message.id}',
+                          ),
+                          message: message,
+                        );
+                      },
+                    ),
             ),
           ),
           Material(

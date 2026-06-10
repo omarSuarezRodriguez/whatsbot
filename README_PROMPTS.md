@@ -1,4 +1,4 @@
-## v1.2 - Notificaciones totalmente funcionales
+## v1.3
 
 
 
@@ -153,3 +153,140 @@ Haz hot restart (R en la terminal, no r) y prueba de nuevo.
 
 
 ##############################
+## v1.3
+
+
+
+## prompt ##
+
+
+Quiero que analices un problema específico en mi app de chat (WhatsBot).
+
+Necesito que generes un prompt técnico detallado para solucionar lo siguiente:
+
+Cuando entro a un chat, los mensajes no se actualizan automáticamente.
+No se actualizan ni los mensajes entrantes ni los salientes en tiempo real.
+El problema está SOLO en la capa de mensajería del chat (UI/real-time rendering).
+NO quiero que modifiques autenticación, backend, base de datos, arquitectura general ni lógica de negocio.
+SOLO debes enfocarte en la parte visual o de actualización en tiempo real del chat (streaming de mensajes, state management del chat UI, listeners, subscriptions, etc.).
+Debe proponer una solución sin romper el resto del sistema.
+
+IMPORTANTE: NO TOQUES CODIGO NI EDITES PROYECTO, SOLO DAME UN PROMPT PARA PONERTE PARA QUE HAGAS LO QUE QUIERO
+
+
+
+
+## resp cursor ## (prompt para poner en cursor)
+
+## Objetivo
+
+Corregir la actualización en tiempo real de mensajes DENTRO de un chat abierto en WhatsBot (Flutter).
+Problema: al entrar a un chat, los mensajes NO se actualizan automáticamente — ni entrantes ni salientes en vivo.
+El usuario debe ver burbujas nuevas al instante (como WhatsApp) sin salir y reentrar al chat.
+
+## Alcance ESTRICTO (no negociable)
+
+✅ SÍ tocar:
+- Capa UI / state management del chat abierto
+- Suscripciones, listeners, streaming de mensajes hacia la UI
+- Render en tiempo real (ListView, burbujas, ticks de estado)
+- Tests de widget del chat (`chat_screen_test.dart`)
+
+❌ NO tocar:
+- Autenticación / login / JWT
+- Backend Python / FastAPI / WebSocket server
+- Esquema de base de datos / migraciones
+- `SyncEngine`, `MessageRepository`, `ChatRepository` (salvo lectura para entender el flujo)
+- `push_service.dart`, `chats_list_screen.dart` (salvo que sea imprescindible y justificado)
+- Arquitectura general ni lógica de negocio (envío, dedup, cola offline, etc.)
+
+Asume que la persistencia SQLite y el WS ya funcionan. El bug es de RENDERIZADO / REACTIVIDAD UI.
+
+## Contexto del flujo actual (para no romper nada)
+
+1. `RealtimeService.emitAfterPersist()` persiste en SQLite vía `SyncEngine.handleRealtimeEvent()` ANTES de emitir el evento a listeners UI.
+2. `ChatScreen` hoy tiene DOS caminos paralelos hacia la UI:
+   - `_messagesSub` → `watchMessages(conversationId).listen(_onMessagesFromStore)` → `setState()`
+   - `StreamBuilder` en `build()` con `stream: _messageRepo.watchMessages(...)` e `initialData: widget.initialMessages`
+3. `ChatsListScreen._openChat()` pasa `initialMessages` precargados desde SQLite (caché no vacía en uso real).
+4. `_onRealtimeEvent()` en `message.new` / `message.status` solo llama `_refresh(silent: true, force: true)` (sync REST), NO actualiza la lista visible directamente.
+5. La guía interna (`docs/INCREMENTAL_GUIDE.md` v1.17/v1.24) documentaba `_displayMessages` + merge inmediato del payload WS + reconciliación por `clientUuid`, pero el `chat_screen.dart` actual ya NO tiene eso — regresión probable.
+
+## Hipótesis de causa raíz (priorizadas)
+
+### A) Anti-patrón StreamBuilder + initialData stale (ALTA probabilidad)
+- `watchMessages()` se invoca en cada `build()`, creando un stream NUEVO en cada `setState()`.
+- `initialData: widget.initialMessages` es inmutable (snapshot al abrir el chat).
+- Cada rebuild puede resetear visualmente al caché viejo hasta que el nuevo stream emita; en carreras o dedup sin escritura DB, la UI queda congelada en `initialMessages`.
+- Los tests usan `initialMessages: const []` y pasan; en producción casi siempre hay caché → el bug no se reproduce en CI.
+
+### B) Doble suscripción que se pisa (MEDIA)
+- `_messagesSub` dispara `setState()` en cada cambio Drift.
+- Eso fuerza rebuild del `StreamBuilder`, que cancela/resuscribe streams → thrashing y posible pérdida de frames intermedios.
+
+### C) Dependencia exclusiva de `_refresh()` ante WS (MEDIA)
+- Si SQLite ya tiene el mensaje (persistEvent) pero `upsertMessageDeduped` no escribe (dedup), Drift no re-emite.
+- `_refresh()` tampoco provoca cambio DB → UI nunca se entera.
+- Falta merge inmediato en capa UI (como documentaba v1.17).
+
+### D) Mensajes salientes optimistas / ticks (MEDIA-BAJA, sub-síntoma)
+- Tras enviar, la burbuja optimista (`status: pending`) debe reconciliarse con confirmación (`sent`/`delivered`) vía stream o merge por `clientUuid`.
+- Si la UI no reacciona al stream, el reloj ⏱ puede quedar pegado (incidencia previa v1.1/v1.2).
+
+## Solución esperada (implementar)
+
+Refactorizar SOLO `chat_screen.dart` hacia un patrón de fuente única de verdad para la UI:
+
+### 1. Un solo listener Drift (cachear stream en initState)
+```dart
+late final Stream<List<ChatMessage>> _messagesStream;
+
+@override
+void initState() {
+  super.initState();
+  _messagesStream = _messageRepo.watchMessages(widget.conversation.id);
+  _messagesSub = _messagesStream.listen(_onMessagesFromStore);
+  // seed inicial UNA vez:
+  _displayMessages = widget.initialMessages ?? [];
+}
+
+
+
+## resp cursor ##
+
+## Corrección aplicada
+
+El bug venía del anti-patrón **StreamBuilder + `initialData` stale** combinado con doble suscripción a Drift. En cada `setState()` se recreaba el stream y la UI volvía al snapshot de `initialMessages` (caché al abrir el chat), quedando congelada en producción.
+
+### Cambios en `chat_screen.dart`
+
+1. **Fuente única de verdad:** `_displayMessages`, sembrada una sola vez con `initialMessages` en `initState`.
+2. **Stream cacheado:** `_messagesStream` se crea una vez; un solo listener en `_messagesSub`.
+3. **Sin `StreamBuilder`:** el `ListView` renderiza directamente `_displayMessages`.
+4. **Reconciliación con SQLite:** `_reconcileWithStore()` mantiene optimistas pendientes y fusiona por `clientUuid`.
+5. **Merge inmediato WS (v1.17/v1.24):**
+   - `message.new` → `_mergeMessageIntoDisplay()` antes del `_refresh` REST
+   - `message.status` → `_applyStatusUpdate()` para ticks en vivo
+
+### Tests nuevos (regresión)
+
+- **Con caché precargada + WS:** mensaje nuevo visible sin reabrir el chat.
+- **Con caché precargada + Drift:** actualización al escribir en SQLite sin reabrir.
+
+**14/14 tests pasan** en `chat_screen_test.dart`.
+
+### Validación manual sugerida
+
+1. Abrir un chat con historial → enviar mensaje → la burbuja aparece al instante y el tick se actualiza.
+2. Recibir mensaje entrante con el chat abierto → burbuja nueva sin salir/reentrar.
+3. Volver a la lista y reabrir → historial intacto (sin duplicados).
+
+
+
+
+
+################################################
+
+
+
+

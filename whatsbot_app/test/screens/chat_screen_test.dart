@@ -225,6 +225,75 @@ void main() {
   );
 
   testWidgets(
+    'ChatScreen con initialMessages en caché muestra mensaje nuevo en vivo (regresión StreamBuilder)',
+    (WidgetTester tester) async {
+      final cached = sampleMessages();
+      await seedMessages(cached);
+
+      await pumpChatScreen(tester, initialMessages: cached);
+
+      expect(find.text('Respuesta del admin'), findsOneWidget);
+      expect(find.text('Llegó con caché precargada'), findsNothing);
+
+      await emitRealtimeEvent(
+        RealtimeEvent(
+          type: 'message.new',
+          message: ChatMessage(
+            id: 502,
+            conversationId: 1,
+            direction: 'incoming',
+            body: 'Llegó con caché precargada',
+            waId: '+5491111111111',
+            isAdmin: false,
+            channel: 'whatsapp',
+            status: 'delivered',
+            createdAt: DateTime.utc(2026, 6, 5, 12, 31),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('Hola desde el cliente'), findsOneWidget);
+      expect(find.text('Respuesta del admin'), findsOneWidget);
+      expect(find.text('Llegó con caché precargada'), findsOneWidget);
+
+      await disposeWidgetTree(tester);
+    },
+  );
+
+  testWidgets(
+    'ChatScreen con initialMessages actualiza al cambiar SQLite sin reabrir',
+    (WidgetTester tester) async {
+      final cached = sampleMessages();
+      await seedMessages(cached);
+
+      await pumpChatScreen(tester, initialMessages: cached);
+      expect(find.text('Actualizado por Drift'), findsNothing);
+
+      await AppServices.messageRepository.upsertMessage(
+        ChatMessage(
+          id: 503,
+          conversationId: 1,
+          direction: 'incoming',
+          body: 'Actualizado por Drift',
+          waId: '+5491111111111',
+          isAdmin: false,
+          channel: 'whatsapp',
+          status: 'delivered',
+          createdAt: DateTime.utc(2026, 6, 5, 12, 32),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('Actualizado por Drift'), findsOneWidget);
+
+      await disposeWidgetTree(tester);
+    },
+  );
+
+  testWidgets(
     'ChatScreen reemplaza burbuja optimista por confirmada vía clientUuid (v1.24)',
     (WidgetTester tester) async {
       await pumpChatScreen(tester, initialMessages: const []);

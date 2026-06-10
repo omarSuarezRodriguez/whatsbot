@@ -1966,3 +1966,122 @@ Cliente: aascasc
 Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Pizzas*
+• Pizza Hawaiana — $12.50
+• Pizza Margarita — $11.00
+
+*Hamburguesas*
+• Hamburguesa Clásica — $9.50
+
+*Bebidas*
+• Coca Cola — $2.50
+• Agua Mineral — $1.50
+
+*Ensaladas*
+• Ensalada César — $8.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: ko
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: kiki
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: keke
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: mensaje 1
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: mensaje 1
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: kmk
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: kmk
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: jkmnl
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: scsdv
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
