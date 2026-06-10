@@ -74,19 +74,25 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
         final message = event.message;
         if (message == null) break;
 
-        final chat = await _chats.findConversationByWaId(message.waId) ??
-            await _chats.getConversation(message.conversationId);
+        final resolved =
+            await AppServices.messageRepository.resolveForLocalStore(message);
+        final chat = await _chats.getConversation(resolved.conversationId) ??
+            await _chats.findConversationByWaId(resolved.waId);
         if (chat != null) {
-          final resolved = message.copyWith(conversationId: chat.id);
-          final bumped = _chats.mergeConversationWithMessage(chat, resolved);
-          await _chats.upsertConversation(bumped);
+          await _chats.bumpConversationFromMessage(chat, resolved);
+          if (!resolved.isOutgoing) {
+            await messageAlerts.handleRealtimeMessage(
+              conversation: chat,
+              message: resolved,
+            );
+          }
         }
         break;
       case 'conversation.updated':
       case 'conversation.sync':
         final conversation = event.conversation;
         if (conversation != null) {
-          await _chats.upsertConversation(conversation);
+          await _chats.upsertConversationFromServer(conversation);
         }
         break;
       default:
@@ -96,6 +102,10 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
   }
 
   Future<void> _openChat(Conversation chat) async {
+    messageAlerts.markConversationSeen(
+      chat.id,
+      at: chat.lastMessageAt ?? DateTime.now(),
+    );
     final initial =
         await AppServices.messageRepository.getCachedMessages(chat.id);
     if (!mounted) return;
@@ -117,6 +127,11 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
       chat = await _chats.getConversation(conversationId);
     }
     if (chat == null || !mounted) return;
+
+    messageAlerts.markConversationSeen(
+      chat.id,
+      at: chat.lastMessageAt ?? DateTime.now(),
+    );
 
     final nav = navigatorKey.currentState;
     if (nav == null) return;

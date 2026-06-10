@@ -41,7 +41,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _orderBusy = false;
   bool _peerTyping = false;
   int _lastMessageCount = 0;
-  List<ChatMessage> _displayMessages = [];
   Timer? _typingStopTimer;
   StreamSubscription<RealtimeEvent>? _realtimeSub;
   StreamSubscription<bool>? _connectivitySub;
@@ -55,8 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _displayMessages = List<ChatMessage>.from(widget.initialMessages ?? []);
-    _lastMessageCount = _displayMessages.length;
+    _lastMessageCount = widget.initialMessages?.length ?? 0;
     AppServices.syncEngine.trackOpenConversation(widget.conversation.id);
     messageAlerts.setActiveConversation(widget.conversation.id);
     _inputController.addListener(_onInputChanged);
@@ -77,17 +75,10 @@ class _ChatScreenState extends State<ChatScreen> {
     _updateWsFallbackTimer(realtimeService.isConnected);
     _messagesSub = _messageRepo
         .watchMessages(widget.conversation.id)
-        .listen((messages) {
-      if (!mounted) return;
-      setState(
-        () => _displayMessages = _reconcileMessagesFromStore(messages),
-      );
-      _onMessagesUpdated(_displayMessages);
-    });
+        .listen(_onMessagesFromStore);
     SchedulerBinding.instance.scheduleFrameCallback((_) {
       unawaited(_markRead());
       unawaited(_refresh(silent: true));
-      unawaited(_fetchMissingMessagesIfNeeded());
     });
   }
 
@@ -112,106 +103,27 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  DateTime? _latestActivityAt(List<ChatMessage> messages) {
-    if (messages.isNotEmpty) {
-      return messages
-          .map((m) => m.createdAt)
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-    }
-    return widget.conversation.lastMessageAt;
-  }
-
-  DateTime? _latestMessageAt(List<ChatMessage> messages) {
-    if (messages.isEmpty) return null;
-    return messages
-        .map((m) => m.createdAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
-  }
-
-  bool _conversationHasNewerActivity(Conversation conversation) {
-    final lastAt = conversation.lastMessageAt;
-    if (lastAt == null) return false;
-    final latest = _latestMessageAt(_displayMessages);
-    return latest == null || lastAt.isAfter(latest);
-  }
-
   bool _messageBelongsToChat(ChatMessage message) {
     if (message.conversationId == widget.conversation.id) return true;
     return _sameWa(message.waId, widget.conversation.customerWaId);
   }
 
-  /// SQLite puede emitir vacío un instante al reemplazar id temporal → id servidor.
-  /// También conserva mensajes confirmados en memoria hasta que Drift los refleje.
-  List<ChatMessage> _mergeIncomingMessage(
-    List<ChatMessage> current,
-    ChatMessage incoming,
-  ) {
-    final normalized = incoming.copyWith(
-      conversationId: widget.conversation.id,
-    );
-    final matchIndex = current.indexWhere(
-      (m) =>
-          m.id == normalized.id ||
-          (normalized.clientUuid != null &&
-              normalized.clientUuid!.isNotEmpty &&
-              m.clientUuid == normalized.clientUuid),
-    );
-    if (matchIndex >= 0) {
-      final existing = current[matchIndex];
-      // Reemplazar optimista (id temp + pending) por confirmación del servidor.
-      final updated = existing.id <= 0 && normalized.id > 0
-          ? ChatMessage(
-              id: normalized.id,
-              conversationId: normalized.conversationId,
-              direction: normalized.direction,
-              body: normalized.body,
-              waId: normalized.waId,
-              isAdmin: normalized.isAdmin,
-              channel: normalized.channel,
-              status: normalized.status,
-              deliveredAt: normalized.deliveredAt,
-              readAt: normalized.readAt,
-              createdAt: existing.createdAt,
-              clientUuid: normalized.clientUuid ?? existing.clientUuid,
-            )
-          : normalized;
-      final merged = List<ChatMessage>.from(current)..[matchIndex] = updated;
-      merged.sort(ChatMessage.compareChronological);
-      return merged;
-    }
-    final merged = [...current, normalized];
-    merged.sort(ChatMessage.compareChronological);
-    return merged;
-  }
+  void _onMessagesFromStore(List<ChatMessage> messages) {
+    if (!mounted) return;
 
-  List<ChatMessage> _reconcileMessagesFromStore(List<ChatMessage> store) {
-    final merged = List<ChatMessage>.from(store);
-    for (final local in _displayMessages) {
-      final exists = store.any(
-        (m) =>
-            m.id == local.id ||
-            (local.clientUuid != null &&
-                local.clientUuid!.isNotEmpty &&
-                m.clientUuid == local.clientUuid),
-      );
-      if (!exists) merged.add(local);
-    }
-    merged.sort(ChatMessage.compareChronological);
-    return merged;
-  }
+    final count = messages.length;
+    final hadGrowth = count > _lastMessageCount;
+    _lastMessageCount = count;
 
-  Future<void> _fetchMissingMessagesIfNeeded({Conversation? conversation}) async {
-    if (!connectivityService.isOnline) return;
-    final conv = conversation ??
-        await _chats.getConversation(widget.conversation.id) ??
-        widget.conversation;
-    if (!_conversationHasNewerActivity(conv)) return;
-    try {
-      await _messageRepo.refreshFromApi(
-        widget.conversation.id,
-        incremental: true,
-      );
-    } catch (_) {}
+    if (messages.isNotEmpty) {
+      unawaited(_persistSeen(messages));
+    }
+
+    if (hadGrowth && _isNearBottom()) {
+      _scrollToBottom(animated: true);
+    }
+
+    setState(() {});
   }
 
   Future<void> _markConversationSeenOnExit() async {
@@ -227,26 +139,19 @@ class _ChatScreenState extends State<ChatScreen> {
     await _chats.markSeen(widget.conversation.id, lastAt);
   }
 
+  DateTime? _latestActivityAt(List<ChatMessage> messages) {
+    if (messages.isNotEmpty) {
+      return messages
+          .map((m) => m.createdAt)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+    }
+    return widget.conversation.lastMessageAt;
+  }
+
   Future<void> _markRead() async {
     try {
       await apiClient.markConversationRead(widget.conversation.id);
     } catch (_) {}
-  }
-
-  void _onMessagesUpdated(List<ChatMessage> messages) {
-    if (!mounted) return;
-
-    final count = messages.length;
-    final hadGrowth = count > _lastMessageCount;
-    _lastMessageCount = count;
-
-    if (messages.isNotEmpty) {
-      unawaited(_persistSeen(messages));
-    }
-
-    if (hadGrowth && _isNearBottom()) {
-      _scrollToBottom(animated: true);
-    }
   }
 
   void _onInputChanged() {
@@ -274,26 +179,15 @@ class _ChatScreenState extends State<ChatScreen> {
       case 'message.new':
         final message = event.message;
         if (message == null || !_messageBelongsToChat(message)) break;
-        // Salientes del dueño: el stream SQLite ya confirma id/status tras el ack.
-        if (message.isOutgoing && message.isAdmin) break;
-        setState(() {
-          _displayMessages = _mergeIncomingMessage(_displayMessages, message);
-        });
-        _onMessagesUpdated(_displayMessages);
-        unawaited(_markRead());
+        unawaited(_refresh(silent: true, force: true));
+        if (!message.isOutgoing) {
+          unawaited(_markRead());
+        }
         break;
+      case 'message.status':
       case 'conversation.updated':
       case 'conversation.sync':
-        final conversation = event.conversation;
-        if (conversation != null &&
-            (conversation.id == widget.conversation.id ||
-                _sameWa(
-                  conversation.customerWaId,
-                  widget.conversation.customerWaId,
-                )) &&
-            _conversationHasNewerActivity(conversation)) {
-          unawaited(_fetchMissingMessagesIfNeeded(conversation: conversation));
-        }
+        unawaited(_refresh(silent: true, force: true));
         break;
       case 'order.pending':
         final order = event.order;
@@ -422,7 +316,6 @@ class _ChatScreenState extends State<ChatScreen> {
       isTyping: false,
     );
     try {
-      // WhatsApp-style: escribir en SQLite → Drift stream actualiza la UI al instante.
       final result = await _messageRepo.sendMessage(
         conversationId: widget.conversation.id,
         customerWaId: widget.conversation.customerWaId,
@@ -483,8 +376,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = _displayMessages;
-    final showSpinner = messages.isEmpty && _refreshing;
     final typingOffset = _peerTyping ? 1 : 0;
 
     return Scaffold(
@@ -518,28 +409,39 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Container(
               color: WhatsAppTheme.chatBackground,
-              child: showSpinner
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      controller: _scrollController,
-                      reverse: true,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: messages.length + typingOffset,
-                      itemBuilder: (_, i) {
-                        if (_peerTyping && i == 0) {
-                          return const TypingIndicator();
-                        }
-                        final messageIndex =
-                            messages.length - 1 - (i - typingOffset);
-                        final message = messages[messageIndex];
-                        return MessageBubble(
-                          key: ValueKey(
-                            message.clientUuid ?? 'msg-${message.id}',
-                          ),
-                          message: message,
-                        );
-                      },
-                    ),
+              child: StreamBuilder<List<ChatMessage>>(
+                stream: _messageRepo.watchMessages(widget.conversation.id),
+                initialData: widget.initialMessages ?? const [],
+                builder: (context, snapshot) {
+                  final messages = snapshot.data ?? const [];
+                  final showSpinner = messages.isEmpty && _refreshing;
+
+                  if (showSpinner) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: messages.length + typingOffset,
+                    itemBuilder: (_, i) {
+                      if (_peerTyping && i == 0) {
+                        return const TypingIndicator();
+                      }
+                      final messageIndex =
+                          messages.length - 1 - (i - typingOffset);
+                      final message = messages[messageIndex];
+                      return MessageBubble(
+                        key: ValueKey(
+                          message.clientUuid ?? 'msg-${message.id}',
+                        ),
+                        message: message,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
           Material(

@@ -24,6 +24,7 @@ class MessageAlertsService {
       FlutterLocalNotificationsPlugin();
   final AudioPlayer _player = AudioPlayer();
   final Set<int> _notifiedMessageIds = {};
+  final Set<int> _unreadConversationIds = {};
   final Map<int, int> _maxMessageIdByConversation = {};
   final Map<int, DateTime?> _lastMessageAtByConversation = {};
   bool _ready = false;
@@ -37,6 +38,8 @@ class MessageAlertsService {
   int? get activeConversationId => _activeConversationId;
 
   bool isConversationUnread(Conversation conversation) {
+    if (_unreadConversationIds.contains(conversation.id)) return true;
+
     final lastAt = conversation.lastMessageAt;
     if (lastAt == null) return false;
     if (_activeConversationId == conversation.id && _appInForeground) {
@@ -72,9 +75,10 @@ class MessageAlertsService {
         _channelId,
         _channelName,
         description: 'Avisos de mensajes nuevos de clientes',
-        importance: Importance.high,
+        importance: Importance.max,
         playSound: true,
         enableVibration: true,
+        showBadge: true,
         sound: RawResourceAndroidNotificationSound('incoming_message'),
       ),
     );
@@ -104,11 +108,17 @@ class MessageAlertsService {
   }
 
   void markConversationSeen(int conversationId, {DateTime? at}) {
+    _unreadConversationIds.remove(conversationId);
     final when = at ?? DateTime.now();
     _lastSeenAtByConversation[conversationId] = when;
     if (AppServices.isInitialized) {
       unawaited(AppServices.chatRepository.markSeen(conversationId, when));
     }
+  }
+
+  void markConversationUnread(int conversationId) {
+    if (_activeConversationId == conversationId && _appInForeground) return;
+    _unreadConversationIds.add(conversationId);
   }
 
   Future<void> notifyFromPush({
@@ -139,6 +149,8 @@ class MessageAlertsService {
     if (conversation.lastMessageAt != null) {
       _lastMessageAtByConversation[conversationId] = conversation.lastMessageAt;
     }
+
+    markConversationUnread(conversationId);
 
     await _notifyIncoming(
       conversationId: conversationId,
@@ -183,6 +195,7 @@ class MessageAlertsService {
     _maxMessageIdByConversation[conversationId] = maxId;
 
     for (final message in incoming) {
+      markConversationUnread(conversationId);
       await _notifyIncoming(
         conversationId: conversationId,
         displayName: displayName,
@@ -238,6 +251,7 @@ class MessageAlertsService {
           continue;
         }
         _maxMessageIdByConversation[conv.id] = latest.id;
+        markConversationUnread(conv.id);
         await _notifyIncoming(
           conversationId: conv.id,
           displayName: conv.displayName,
@@ -253,6 +267,7 @@ class MessageAlertsService {
   void seedFromLogin() {
     _seeded = false;
     _notifiedMessageIds.clear();
+    _unreadConversationIds.clear();
     _maxMessageIdByConversation.clear();
     _lastMessageAtByConversation.clear();
     _lastSeenAtByConversation.clear();
@@ -283,10 +298,12 @@ class MessageAlertsService {
         _activeConversationId == null ||
         _activeConversationId != conversationId;
 
-    await _playIncomingSound();
     await HapticFeedback.mediumImpact();
 
-    if (!showBanner) return;
+    if (!showBanner) {
+      await _playIncomingSound();
+      return;
+    }
 
     final body = preview.length > 120 ? '${preview.substring(0, 117)}...' : preview;
     await _notifications.show(
@@ -298,15 +315,29 @@ class MessageAlertsService {
           _channelId,
           _channelName,
           channelDescription: 'Avisos de mensajes nuevos de clientes',
-          importance: Importance.high,
+          importance: Importance.max,
           priority: Priority.high,
           ticker: 'Mensaje nuevo',
           icon: '@mipmap/ic_launcher',
           playSound: true,
           enableVibration: true,
           sound: const RawResourceAndroidNotificationSound('incoming_message'),
-          styleInformation: BigTextStyleInformation(body),
+          styleInformation: MessagingStyleInformation(
+            Person(name: displayName),
+            groupConversation: false,
+            conversationTitle: displayName,
+            messages: [
+              Message(
+                body,
+                DateTime.now(),
+                Person(name: displayName),
+              ),
+            ],
+          ),
           category: AndroidNotificationCategory.message,
+          visibility: NotificationVisibility.public,
+          autoCancel: true,
+          onlyAlertOnce: false,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

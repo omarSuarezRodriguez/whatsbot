@@ -1,4 +1,4 @@
-## v1.1
+## v1.2 - Notificaciones totalmente funcionales
 
 
 
@@ -125,3 +125,31 @@ Chat: envía un mensaje como humano → el reloj debe pasar a ✓ en cuanto conf
 
 
 #######################################################
+## v1.2
+
+## prompt 
+
+la notificación funciona por un camino, pero la UI depende de otro que no siempre se ejecuta. eso lo solucionaste? solo dime
+
+
+## resp cursor ##
+
+Encontré por qué seguía igual:
+
+Tu log dice: PushService: Firebase no configurado. La notificación no viene de FCM, viene del WebSocket + MessageAlertsService (sonido local). El arreglo anterior de push no aplicaba en tu dispositivo.
+
+El bug real de la lista: al llegar un mensaje por WS, mergeWithLocal bloqueaba la actualización del preview si ya habías enviado un mensaje optimista (timestamp local más reciente). Sonaba la alerta, pero SQLite no actualizaba la fila del chat.
+
+El bug de tus mensajes con reloj: _reconcileMessagesFromStore volvía a meter el mensaje pending aunque ya existía confirmado en SQLite.
+
+Qué cambié ahora
+bumpConversationFromMessage — actualiza la lista directo, sin pasar por mergeWithLocal.
+_reconcileMessagesFromStore — no reinserta optimistas ya confirmados.
+Tras enviar — fuerza lectura desde SQLite.
+message.status — refresca ticks de entregado/leído.
+Haz hot restart (R en la terminal, no r) y prueba de nuevo.
+
+
+
+
+##############################
