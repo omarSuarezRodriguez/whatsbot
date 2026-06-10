@@ -1,0 +1,1049 @@
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: que tal como estás
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Todo vientos
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: bacanería
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: kedeke
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: gyjtyj
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Cómo de qué o qué
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: No
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Bebidas*
+• cocacola — $3.00
+
+*Pizzas*
+• Hawaiana — $125.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Bebidas*
+• cocacola — $3.00
+
+*Pizzas*
+• Hawaiana — $125.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Que hay para comer?
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: No
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Bebidas*
+• cocacola — $3.00
+
+*Pizzas*
+• Hawaiana — $125.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Qué más hay para comer?
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: Una Coca-Cola y dos pizzas hawaianas
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: cocacola x1. Actualicé: Hawaiana x2.
+
+• 1 x cocacola — $3.00
+• 2 x Hawaiana — $250.00
+
+*Total: $253.00*
+
+
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Si
+
+
+-------------------------------
+
+Chatbot: ¡Excelente!
+
+¿Cómo prefieres recibir tu pedido?
+
+1. *Domicilio*
+2. *Recoger en tienda*
+
+Responde con el número o escribe *domicilio* / *recoger*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: Pedido *ORD-12202C61* registrado correctamente.
+Total: *$253.00*
+Estado: *pendiente* (esperando confirmación del restaurante)
+
+
+
+Gracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.
+
+Si necesitas algo más, escribe *menu*, *pedido* o *reservar*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Bebidas*
+• Coca-Cola — $5000.00
+
+*Hamburguesas*
+• Hamburguesa de carne — $12500.00
+• Hamburguesa de pollo — $10000.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: No
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Bebidas*
+• Coca-Cola — $5000.00
+
+*Hamburguesas*
+• Hamburguesa de carne — $12500.00
+• Hamburguesa de pollo — $10000.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Quiero dos cocacolas tres hamburguesas de carne y dos de pollo
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Coca-Cola x2. Actualicé: Hamburguesa de carne x3. Actualicé: Hamburguesa de pollo x2.
+
+• 2 x Coca-Cola — $10000.00
+• 3 x Hamburguesa de carne — $37500.00
+• 2 x Hamburguesa de pollo — $20000.00
+
+*Total: $67500.00*
+
+
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Si
+
+
+-------------------------------
+
+Chatbot: ¡Excelente!
+
+¿Cómo prefieres recibir tu pedido?
+
+1. *Domicilio*
+2. *Recoger en tienda*
+
+Responde con el número o escribe *domicilio* / *recoger*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: Indícame la dirección de entrega a domicilio.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 B. Guaimaral
+
+
+-------------------------------
+
+Chatbot: Pedido *ORD-59DEF2FE* registrado correctamente.
+Total: *$67500.00*
+Estado: *pendiente* (esperando confirmación del restaurante)
+
+
+
+Gracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.
+
+Si necesitas algo más, escribe *menu*, *pedido* o *reservar*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Bebidas*
+• Coca-Cola — $5000.00
+
+*Hamburguesas*
+• Hamburguesa de carne — $12500.00
+• Hamburguesa de pollo — $10000.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Que hay Paco me
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: No
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Bebidas*
+• Coca-Cola — $5000.00
+
+*Hamburguesas*
+• Hamburguesa de carne — $12500.00
+• Hamburguesa de pollo — $10000.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: quepanchó
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: keke
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: keeee
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: keke
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Bebidas*
+• Coca-Cola — $5000.00
+
+*Hamburguesas*
+• Hamburguesa de carne — $12500.00
+• Hamburguesa de pollo — $10000.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Kkk
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Kedekeoje
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Kedekeoke
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Ventisca
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola que tal cómo vamos
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Keoke
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: lonm
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: que pasa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: dwefe
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: (vacío)
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: (vacío)
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Kedeke
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Kerr
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ndqwdl
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: keke
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: qwdqw
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ff
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: sdf
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: adasd
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: dasdasd
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: dqwd
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: qdqwdqwd
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: qwdqwdqw
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: adasd
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Cómo keké
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Sisa
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Pues así
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: ll
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Pizzas*
+• Pizza Hawaiana — $12.50
+• Pizza Margarita — $11.00
+
+*Hamburguesas*
+• Hamburguesa Clásica — $9.50
+
+*Bebidas*
+• Coca Cola — $2.50
+• Agua Mineral — $1.50
+
+*Ensaladas*
+• Ensalada César — $8.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: jol
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################

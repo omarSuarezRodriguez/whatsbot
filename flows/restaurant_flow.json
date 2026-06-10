@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "restaurant_name": "{{restaurant_name}}",
+    "global_commands": {
+      "menu": "menu_node",
+      "pedido": "order_start",
+      "reservar": "reservation_start",
+      "inicio": "start",
+      "cancelar": "start"
+    },
+    "cancel_message": "Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.",
+    "navigation_hint": true
+  },
+  "nodes": {
+    "start": {
+      "flow": "idle",
+      "action": "welcome_customer",
+      "suppress_navigation": true,
+      "dual_message": true,
+      "message": "{{welcome_line}}",
+      "message_secondary": "¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
+      "options": {
+        "menu": "menu_node",
+        "pedido": "order_start",
+        "reservar": "reservation_start",
+        "hola": "start",
+        "buenas": "start",
+        "hey": "start"
+      }
+    },
+    "menu_node": {
+      "flow": "idle",
+      "action": "show_menu",
+      "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
+      "options": {
+        "pedido": "order_start",
+        "reservar": "reservation_start",
+        "inicio": "start"
+      }
+    },
+    "order_start": {
+      "flow": "order",
+      "message": "Perfecto, vamos con tu pedido.\n\nCuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:\n• *2 pizza hawaiana, 1 coca cola*\n• *una hamburguesa y dos aguas*\n\nTambién puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.",
+      "input_mode": "free_text",
+      "action": "capture_order",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_review": {
+      "flow": "order",
+      "action": "show_cart",
+      "message_after_action": "\n\n¿Confirmamos tu pedido?\nResponde *sí* para confirmar o *no* para modificarlo.",
+      "input_mode": "free_text",
+      "action_on_input": "handle_order_confirmation",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_modify": {
+      "flow": "order",
+      "message": "Sin problema. Dime qué quieres agregar, quitar o cambiar.\n\nEjemplo: *agrega una ensalada* o *quita la coca cola*.",
+      "input_mode": "free_text",
+      "action": "capture_order",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_delivery": {
+      "flow": "order",
+      "message": "¿Cómo prefieres recibir tu pedido?\n\n1. *Domicilio*\n2. *Recoger en tienda*\n\nResponde con el número o escribe *domicilio* / *recoger*.",
+      "input_mode": "free_text",
+      "action": "capture_delivery_type",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_address": {
+      "flow": "order",
+      "message": "{{address_prompt}}",
+      "input_mode": "free_text",
+      "action": "capture_address",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_customer_name": {
+      "flow": "order",
+      "message": "Para identificar tu pedido, ¿cuál es tu nombre?",
+      "input_mode": "free_text",
+      "action": "capture_customer_name",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "order_saved": {
+      "flow": "idle",
+      "action": "save_order",
+      "message_after_action": "\n\nGracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.\n\nSi necesitas algo más, escribe *menu*, *pedido* o *reservar*.",
+      "options": {
+        "menu": "menu_node",
+        "pedido": "order_start",
+        "reservar": "reservation_start",
+        "inicio": "start"
+      }
+    },
+    "reservation_start": {
+      "flow": "reservation",
+      "message": "Con gusto te ayudo con tu reserva.\n\n¿Para cuántas personas será?",
+      "input_mode": "free_text",
+      "action": "capture_persons",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "reservation_date": {
+      "flow": "reservation",
+      "message": "Excelente. ¿Qué fecha prefieres?\n\nFormato sugerido: *DD/MM/AAAA* (ejemplo: 15/06/2026)",
+      "input_mode": "free_text",
+      "action": "capture_date",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "reservation_time": {
+      "flow": "reservation",
+      "message": "Perfecto. ¿A qué hora te gustaría la reserva?\n\nFormato sugerido: *19:30* o *7:30 pm*",
+      "input_mode": "free_text",
+      "action": "capture_time",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "reservation_review": {
+      "flow": "reservation",
+      "action": "show_reservation_summary",
+      "message_after_action": "\n\n¿Confirmamos la reserva?\nResponde *sí* para confirmar o *no* para modificarla.",
+      "input_mode": "free_text",
+      "action_on_input": "handle_reservation_confirmation",
+      "options": {
+        "menu": "menu_node"
+      }
+    },
+    "reservation_saved": {
+      "flow": "idle",
+      "action": "save_reservation",
+      "message_after_action": "\n\nTu mesa quedó registrada. Te esperamos con gusto.\n\nSi necesitas algo más, escribe *menu*, *pedido* o *reservar*.",
+      "options": {
+        "menu": "menu_node",
+        "pedido": "order_start",
+        "reservar": "reservation_start",
+        "inicio": "start"
+      }
+    }
+  }
+}

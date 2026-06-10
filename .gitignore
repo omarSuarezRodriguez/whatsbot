@@ -1,0 +1,30 @@
+# Environment
+.env
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Secrets
+credentials/*.json
+!credentials/.gitkeep
+
+# Runtime data
+data/
+*.db
+
+# Flutter
+whatsbot_app/.dart_tool/
+whatsbot_app/build/
+whatsbot_app/.flutter-plugins-dependencies
+whatsbot_app/android/app/google-services.json
+whatsbot_app/ios/Runner/GoogleService-Info.plist
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

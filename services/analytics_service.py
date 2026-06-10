@@ -1,0 +1,1 @@
+"""Analytics — optional, post-MVP."""

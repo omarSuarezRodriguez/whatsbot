@@ -1,0 +1,47 @@
+################################################################
+
+Cliente: hola desde validate_system
+
+
+-------------------------------
+
+Chatbot: Hola *Validate E2E*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Test*
+• Plato Validate System — $7.50
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: hola desde validate_system
+
+
+-------------------------------
+
+Chatbot: Hola *Validate E2E*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Pizzas*
+• Pizza Hawaiana — $12.50
+• Pizza Margarita — $11.00
+
+*Hamburguesas*
+• Hamburguesa Clásica — $9.50
+
+*Bebidas*
+• Coca Cola — $2.50
+• Agua Mineral — $1.50
+
+*Ensaladas*
+• Ensalada César — $8.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
