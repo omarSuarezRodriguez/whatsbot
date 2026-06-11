@@ -1,4 +1,4 @@
-## v1.5 - Prompts para auditar y mejorar el sistema por Opus
+## v1.6
 
 
 
@@ -748,4 +748,550 @@ Extenso pero sin relleno. NO implementes nada: solo analiza, evalúa y propón.
 
 
 #################################################
+## v1.6
+
+## prompt ##
+
+# ROL
+Staff Engineer / arquitecto con mentalidad agentic (estilo Boris Cherny).
+Riguroso, escéptico, basado en EVIDENCIA. No afirmes nada sin cita `archivo:línea`.
+Si no está en el código: "no encontrado en el repo".
+
+# RESTRICCIONES
+SOLO lectura. NO modifiques archivos, NO generes código, NO refactorices,
+NO commits, NO cambios de config, NO comandos mutantes. Solo analiza y propón.
+
+# MÉTODO
+1) Explora árbol + puntos de arranque + manifiestos de dependencias.
+2) Mapea el sistema antes de responder.
+3) Cita evidencia en toda afirmación técnica.
+4) Marca [HECHO] / [INFERENCIA] / [SUPOSICIÓN].
+
+# ENTREGA (en este orden)
+1. ARQUITECTURA: propósito, capas y módulos clave + diagrama ASCII.
+2. FLUJO DE DATOS: entrada usuario → respuesta final (diagrama ASCII).
+3. MENSAJERÍA (máxima profundidad): qué pasa al recibir y al enviar un mensaje;
+   streams/listeners/eventos; flujo backend→UI y UI→backend (ASCII);
+   dónde se rompe la sincronización y qué es lo más frágil.
+4. ESTADO + BD: fuente de verdad, sincronización, esquema/entidades/relaciones,
+   posibles inconsistencias y problemas de rendimiento.
+5. VEREDICTO: ¿está bien hecho? Sí/Parcial/No. ¿Hay arquitecturas cruzadas,
+   capas mezcladas, acoplamientos indebidos o dependencias circulares?
+   Lista cada problema con cita, severidad (Crítica/Alta/Media/Baja) y causa raíz.
+6. RIESGOS: seguridad (authn/authz, secretos, PII), rendimiento/memoria, escala 100x.
+7. TABLA por módulo (A=Excelente … F=Crítica; en Acoplamiento bajo=A):
+   | Módulo | Cohesión | Acoplamiento | Mantenibilidad | Escalabilidad | Testabilidad | Observabilidad | Justificación |
+8. RESUMEN EJECUTIVO (≤10 líneas) + PLAN DE MEJORAS priorizado:
+   | # | Mejora | Problema que resuelve | Archivos | Esfuerzo S/M/L | Impacto A/M/B | Riesgo si no |
+   + roadmap en 3 olas (quick wins / refactors estructurales / largo plazo)
+   + "antes vs después" en ASCII de las 3 mejoras top (sin escribir código)
+   + criterios de aceptación de "proyecto terminado y robusto".
+
+# FORMATO
+Markdown con encabezados, citas `archivo:línea`, diagramas ASCII donde aclaren.
+Extenso pero sin relleno. NO implementes nada: solo analiza, evalúa y propón.
+
+
+## resp prompt ##
+
+1. ARQUITECTURA
+Propósito
+SaaS multi-negocio tipo WhatsApp: clientes escriben por WhatsApp (Twilio) → un chatbot responde automáticamente → el dueño ve/responde los chats y aprueba pedidos desde una app Flutter, sin UI web README.md:3.
+
+Capas y módulos clave
+                        ┌──────────────────────── CLIENTE WhatsApp ───────────────────────┐
+                        │                        (Twilio)                                  │
+                        └───────────────┬──────────────────────────────▲──────────────────┘
+                                        │ POST /webhook                 │ Twilio REST out
+                                        ▼                               │
+┌───────────────────────────────────── BACKEND (FastAPI, api.main:75) ─────────────────────────┐
+│                                                                                                │
+│  api/routes/        ── HTTP/WS boundary                                                        │
+│    whatsapp.py      webhook Twilio + status callback                                           │
+│    whatsbot.py      REST app (conversaciones, mensajes, pedidos, config)                       │
+│    realtime.py      WS /whatsbot/ws                                                            │
+│    auth.py          login PIN→JWT                                                              │
+│    businesses/menus/orders/sheets.py                                                           │
+│                                                                                                │
+│  services/          ── lógica de aplicación (BD SaaS)                                          │
+│    conversation_service  persistencia mensajes/chats                                           │
+│    realtime_service      hub WS en memoria + serialización eventos                             │
+│    notification_service  puente a chatbot legacy (pedidos/admin)                               │
+│    order/menu/business/push/device_token/twilio_sync/sheets_sync                               │
+│                                                                                                │
+│  chatbot/           ── MOTOR LEGACY (single-tenant injertado)                                  │
+│    gateway.py            única entrada lógica conversacional                                   │
+│    runtime.py            singleton BotContext (1 sola instancia global)                        │
+│    business_context.py   contextvars + MUTACIÓN de estado global por request                   │
+│    app/core/             flow_engine, parser, state_manager (JSON en disco)                    │
+│    app/services/         admin, order, menu, user, reservation (Google Sheets)                 │
+│                                                                                                │
+│  models/  (SQLAlchemy)   business, conversation, message, order, menu, device_token            │
+│  infrastructure/         database (engine/session), twilio_client, cache                       │
+│  config/                 settings, intents, prompts (semilla)                                  │
+└───────────────────────────────▲───────────────────────────────────────▲──────────────────────┘
+                  REST JSON / JWT │                                       │ WebSocket (eventos)
+                                  ▼                                       ▼
+┌──────────────────────────────────── APP FLUTTER (whatsbot_app) ───────────────────────────────┐
+│  main.dart → AppServices.init (di/app_services.dart)                                           │
+│  services/   api_client (HTTP) · realtime_service (WS) · push_service · message_alerts         │
+│  data/                                                                                          │
+│    local/    app_database (Drift/SQLite) + DAOs                                                 │
+│    repositories/  chat_repository · message_repository                                         │
+│    sync/     sync_engine (REST+WS → SQLite, dedup)                                             │
+│  screens/    chats_list · chat · settings · editores (menu/intents/prompts)                    │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
+Observación arquitectónica central [HECHO]: hay dos mundos de datos paralelos mal integrados:
+
+el mundo legacy del chatbot (Google Sheets + StateManager en JSON de disco, single-tenant) chatbot/runtime.py:47-92, chatbot/app/core/state_manager.py:21-26;
+el mundo SaaS (SQLAlchemy multi-negocio: conversations, messages, orders) models/*.py.
+services/notification_service.py es un puente que escribe en ambos (Sheets via admin.order_service y BD via mirror_order_to_database) services/notification_service.py:70-121. Esto es el origen de la mayoría de los riesgos (ver §4 y §5).
+
+2. FLUJO DE DATOS (entrada usuario → respuesta)
+Cliente WhatsApp
+   │  (mensaje)
+   ▼
+Twilio  ──POST form (WaId,From,Body,To,MessageSid)──►  /webhook  (whatsapp.py:45)
+                                                          │
+                              ┌───────────────────────────┤
+                              │ 1. resolve_business_id (To→business)  business_service.py:68
+                              │ 2. save_incoming_message → BD         conversation_service.py:72
+                              │    └─ commit + emit_message_saved (WS) whatsapp.py:94-96
+                              │ 3. handle_incoming_message (SINCRONO)  whatsapp.py:102 / gateway.py:55
+                              │    └─ business_scope(): muta intents GLOBALES  business_context.py:118
+                              │       └─ flow_engine.process_message → reply
+                              │ 4. save_outgoing_message → BD + emit_message_saved  whatsapp.py:121-133
+                              │ 5. deliver_reply (TwiML XML  o  Twilio REST)  twilio_client.py:65
+                              ▼
+                           Twilio ──► Cliente WhatsApp (respuesta del bot)
+   (en paralelo, eventos WS) realtime_hub.emit(business_id, event)  realtime_service.py:201
+                              │
+                              ▼
+              App Flutter (RealtimeService._onData) ─► SyncEngine.handleRealtimeEvent
+                              │ persiste en SQLite (Drift)  sync_engine.dart:38
+                              ▼
+                       UI (ChatScreen) actualiza burbujas  chat_screen.dart:306
+[HECHO] El gateway se ejecuta de forma síncrona dentro del handler async (whatsapp.py:102 no usa await; handle_incoming_message es def, no async def, gateway.py:55). Todo el trabajo del bot —incluyendo I/O bloqueante de Google Sheets y envíos Twilio REST— ocurre en el event loop, bloqueándolo (ver §6).
+
+3. MENSAJERÍA (máxima profundidad)
+3.1 Al RECIBIR un mensaje (cliente → dueño)
+Twilio POST /webhook
+  │
+  ├─[A] persistencia entrante (whatsapp.py:76-99)
+  │     save_incoming_message: status="delivered", delivered_at=now  conversation_service.py:113-114
+  │     dedup por twilio_sid  conversation_service.py:84-96
+  │     commit → emit_message_saved(business_id, msg)  whatsapp.py:95
+  │           └─ realtime_hub.emit → JSON a TODOS los sockets del business  realtime_service.py:287-313
+  │           └─ maybe_push_incoming_message: push FCM solo si ws_delivered==0  push_service.py:107
+  │
+  ├─[B] gateway → reply (síncrono)
+  │
+  └─[C] persistencia saliente (bot) + emit_message_saved  whatsapp.py:121-133
+        └─ outgoing del bot: is_admin=False → status="delivered"  conversation_service.py:208
+En Flutter: RealtimeService._onData (realtime_service.dart:192) decodifica el frame → emitAfterPersist → persistEvent = SyncEngine.handleRealtimeEvent (app_services.dart:42) → _handleMessageNew resuelve la conversación local y hace upsert dedup en SQLite (sync_engine.dart:104-119) → ChatScreen._onRealtimeEvent fusiona en _displayMessages y hace setState (chat_screen.dart:306-324).
+
+3.2 Al ENVIAR un mensaje (dueño → cliente)
+ChatScreen._send (chat_screen.dart:453)
+  │
+  ▼
+MessageRepository.sendMessage (message_repository.dart:288)
+  │  1. inserta mensaje OPTIMISTA status="pending", clientUuid=uuid.v4  (id temporal negativo)
+  │  2. encola en outbound_queue (offline-first)
+  │  3. POST /whatsbot/messages {customer_wa_id, body, client_id}
+  │        │
+  │        ▼  send_owner_message (whatsbot.py:143)
+  │        │   dedup por client_id  whatsbot.py:156-161
+  │        │   send_whatsapp_message(wa_id, body)  → twilio_sid | None   twilio_client.py:43
+  │        │   save_outgoing_message(is_admin=True): status="sent"       conversation_service.py:208
+  │        │   commit + emit_message_saved → WS message.new + message.status
+  │        ▼
+  │  4. _ackOutbound: borra fila temporal, inserta fila server, quita de cola  message_repository.dart:365
+  │        (si POST falla → SendMessageResult.queued=true, se reintenta en flushOutboundQueue)
+  ▼
+ticks: sent → delivered → read  (message_status_ticks.dart)
+3.3 Streams / listeners / eventos
+Backend → UI (push): WS realtime_hub.emit (realtime_service.py:201). Tipos: message.new, message.status, conversation.updated, order.pending, order.updated, typing.*, ping/pong, connected (realtime_service.py:69-120, realtime.py:24).
+
+UI → backend: WS solo para ping/pong/typing.* (realtime_service.dart:142-147, realtime_service.py:259-272). El envío de mensajes NO va por WS, va por REST (message_repository.dart:325). El WS es unidireccional para datos.
+
+Streams Flutter: RealtimeService.events (broadcast) y connectionState (realtime_service.dart:27-31); MessageRepository.watchMessages es un Stream de Drift sobre SQLite (message_repository.dart:37). ChatScreen se suscribe a 4 streams simultáneos (realtime, conectividad, conexión WS, mensajes de store) chat_screen.dart:66-81.
+
+3.4 Dónde se rompe la sincronización (lo más frágil)
+[HECHO — Crítico] Mutación de estado global de intents bajo concurrencia. business_scope borra y reescribe GLOBAL_COMMAND_INTENTS y los índices del parser (parser_mod._INTENT_*) como variables de módulo compartidas en cada request (business_context.py:64-114). El _intent_lock solo protege la reconstrucción del índice (business_context.py:71), pero flow_engine.process_message lee esos globals fuera del lock. Con dos webhooks concurrentes de negocios distintos, el negocio A puede resolver intents con el diccionario del negocio B, o con el snapshot restaurado a "default" por el finally de B (business_context.py:130-131). En multi-tenant esto corrompe el enrutamiento de mensajes de forma no determinista.
+
+[HECHO — Alta] Estado conversacional no scoped por negocio. StateManager indexa por wa_id en un único dict y un único archivo JSON en disco (state_manager.py:23, settings.py:64-67); get_bot_context cachea una sola instancia de FlowEngine/StateManager global (runtime.py:44-92). Dos negocios distintos comparten el carrito/flujo del mismo número de teléfono.
+
+[HECHO — Alta] Envío del dueño puede fallar en silencio. send_whatsapp_message captura cualquier excepción y devuelve None (twilio_client.py:60-62); send_owner_message guarda igualmente el mensaje con twilio_sid=None y devuelve 201 (whatsbot.py:164-179). La app marca "enviado/entregado" aunque Twilio nunca lo entregó. No hay estado failed para salientes del dueño en este camino.
+
+[HECHO — Media] Ticks de estado se congelan en local/dev. twilio_status_callback_url() devuelve None si la URL es 127.0.0.1 (settings.py:101-106), y mark_outgoing_delivered no avanza si hay twilio_sid (conversation_service.py:337). Como los mensajes del dueño SÍ llevan twilio_sid, quedan en sent indefinidamente sin callback público.
+
+[INFERENCIA — Media] Resolución de conversación por sufijo de teléfono. Tanto Flutter (_sameWa con endsWith, chat_repository.dart:31-35, message_repository.dart:60-64, chat_screen.dart:425-430) como el backend (business_service.py:87-91) emparejan números por sufijo de 10 dígitos. Dos clientes con sufijos coincidentes pueden mezclar hilos o negocios.
+
+[INFERENCIA — Media] schedule_emit se pierde fuera del event loop. order.pending se emite vía schedule_order_pending → realtime_hub.schedule_emit, que hace asyncio.get_running_loop() y, si no hay loop (p. ej. desde el scheduler de recordatorios en un thread o desde session_scope síncrono), registra debug y descarta el evento (realtime_service.py:224-233, notification_service.py:107-109). Pedidos pendientes pueden no llegar en vivo a la app.
+
+4. ESTADO + BD
+4.1 Fuentes de verdad (fragmentadas) [HECHO]
+Dato	Fuente de verdad	Evidencia
+Mensajes/Chats
+BD SaaS (conversations,messages)
+conversation_service.py, models/message.py
+Estado de conversación del bot (flujo/carrito)
+JSON en disco (StateManager)
+state_manager.py:39-46, settings.py:64
+Pedidos (confirmación legacy)
+Google Sheets (admin.order_service)
+notification_service.py:169-183
+Pedidos (vista app)
+BD orders (espejo)
+models/order.py, notification_service.py:74
+Intents/Prompts/Menú
+BD (business_intents/business_prompts) + semilla config/*
+business_service.py:197-256
+Estado de mensaje (sent/deliv/read)
+Twilio callback (cuando hay URL pública)
+conversation_service.py:296-330
+Caché local app
+SQLite Drift (whatsbot_local.db)
+app_database.dart:57-63
+Hay tres almacenes de "verdad" para pedidos (Sheets, BD orders, y estado en disco), sincronizados con escrituras best-effort envueltas en try/except que tragan errores (notification_service.py:106-121, :236-245). No hay transacción que abarque Sheets+BD: una puede quedar confirmada y la otra no.
+
+4.2 Esquema y relaciones (BD SaaS)
+businesses (id PK str, twilio_whatsapp_from UNIQUE, admin_whatsapp_number, is_default)
+   │ 1                    models/business.py:18
+   ├──< business_intents (business_id PK/FK, config_json JSON)     business.py:49
+   ├──< business_prompts (business_id PK/FK, config_json JSON)     business.py:62
+   └──< orders (business_id FK CASCADE, order_id, UNIQUE(business_id,order_id))  order.py:18
+conversations (id PK, business_id, customer_wa_id, UNIQUE(business_id,customer_wa_id))  conversation.py:17
+   │ 1
+   └──< messages (conversation_id FK CASCADE, direction, body, status,
+                  client_id UNIQUE, twilio_sid, delivered_at, read_at)  message.py:17
+device_tokens (...)  models/device_token.py   [no leído en detalle]
+Nota [HECHO]: conversations no tiene FK declarada a businesses (solo índice, conversation.py:24), mientras orders y messages sí usan FK con CASCADE.
+
+4.3 Inconsistencias y rendimiento
+[HECHO — Alta] CASCADE inerte en SQLite. Los ondelete="CASCADE" (message.py:23, order.py:27) no se aplican en SQLite salvo PRAGMA foreign_keys=ON, que no se activa (no hay event.listens_for/PRAGMA en el repo; búsqueda sin resultados). Borrar un negocio/conversación dejaría mensajes/pedidos huérfanos en SQLite.
+[HECHO — Media] Sin migraciones reales. Se usa Base.metadata.create_all (database.py:51-57) + scripts ad-hoc (scripts/migrate_*). Añadir/cambiar columnas en prod sobre datos existentes no está gestionado (no hay Alembic).
+[HECHO — Media] DATABASE_URL por defecto apunta a Postgres (settings.py:25-28) pero el README asume SQLite; si no hay Postgres y no se define .env, el arranque falla (no cae a SQLite porque el valor por defecto no está vacío, database.py:23-29).
+[INFERENCIA — Media] Carga de config por mensaje. business_scope llama load_prompts, load_menu_items, load_intents_json en cada mensaje entrante (business_context.py:122-127); probable consulta repetida a BD sin caché por request (no verifiqué business_config_loader.py).
+[HECHO — Baja] list_businesses() en bucle por cada webhook para resolver el negocio (business_service.py:85), sin índice por dígitos; O(n negocios) por mensaje.
+5. VEREDICTO
+¿Está bien hecho? PARCIAL.
+La capa Flutter (offline-first con Drift, cola saliente, dedup por client_id/clientUuid, reconexión WS con backoff/watchdog) está notablemente bien diseñada (message_repository.dart, realtime_service.dart). El backend SaaS REST es limpio y coherente. Pero el sistema es un monolito multi-tenant construido sobre un motor single-tenant que no fue refactorizado, y eso genera arquitecturas cruzadas y acoplamientos graves.
+
+Problemas (con cita, severidad y causa raíz)
+#	Problema	Sev.	Evidencia	Causa raíz
+P1
+Mutación de estado global de intents/parser por request → corrupción cross-tenant bajo concurrencia
+Crítica
+business_context.py:64-114
+Motor legacy usa globals de módulo; SaaS los reusa sin aislamiento
+P2
+PIN único global para todos los negocios: cualquiera con el PIN entra a cualquier business_id
+Crítica
+auth.py:42, settings.py:38
+No hay credencial por negocio
+P3
+Sin validación de firma Twilio en /webhook y /webhook/status
+Crítica
+whatsapp.py:45-208 (sin RequestValidator; búsqueda vacía)
+Falta capa de verificación de origen
+P4
+Gateway síncrono bloqueante (Sheets+Twilio REST) dentro del event loop async
+Alta
+whatsapp.py:102, gateway.py:55, twilio_client.py:43-62
+Lógica legacy sync injertada en FastAPI async
+P5
+Estado conversacional no aislado por negocio (un StateManager/JSON global)
+Alta
+runtime.py:44-92, state_manager.py:23, settings.py:64
+Singleton global
+P6
+Triple fuente de verdad de pedidos (Sheets/BD/disco) sin transacción atómica
+Alta
+notification_service.py:70-121,157-223
+Puente legacy↔SaaS best-effort
+P7
+Approve/Reject de pedido no valida pertenencia al negocio antes de confirmar en Sheets (orden global)
+Alta
+whatsbot.py:255-293, notification_service.py:169-183
+admin.order_service es single-tenant
+P8
+Hub WS en memoria → no escala horizontalmente; eventos se pierden entre workers
+Alta
+realtime_service.py:123-127
+Sin Redis pub/sub
+P9
+Envío del dueño falla en silencio (Twilio None ⇒ "guardado" 201)
+Alta
+twilio_client.py:60-62, whatsbot.py:164-179
+No se propaga el fallo
+P10
+CORS * + allow_credentials=True por defecto
+Media
+main.py:84-89, settings.py:17
+Default inseguro
+P11
+CASCADE inerte en SQLite (sin PRAGMA)
+Media
+message.py:23, database.py:36-39
+Falta listener PRAGMA
+P12
+Sin migraciones (create_all)
+Media
+database.py:51-57
+No hay Alembic
+P13
+Emparejamiento por sufijo de teléfono (cross-thread/tenant)
+Media
+business_service.py:87-91, chat_repository.dart:31-35
+Heurística frágil
+P14
+schedule_emit descarta eventos fuera del loop
+Media
+realtime_service.py:224-233
+Mezcla sync/async
+P15
+Ticks de estado congelados sin URL pública
+Baja
+settings.py:101-106
+Dependencia de callback externo
+Dependencias circulares / capas mezcladas [HECHO]: imports diferidos dentro de funciones para romper ciclos en runtime (realtime_service.py:293-294,200-201, notification_service.py:30,85-86,107, twilio_client.py:56). Es un code smell de acoplamiento circular entre services ↔ chatbot.runtime ↔ realtime. Además api/routes/whatsbot.py orquesta lógica de negocio (debería estar en services), y services/notification_service.py accede a infra HTTP del bot legacy: las capas API/servicio/dominio están difuminadas.
+
+6. RIESGOS
+Seguridad (authn/authz, secretos, PII)
+[Crítico] Autorización multi-tenant rota: PIN único (P2). El JWT lleva business_id (auth.py:47) pero cualquiera obtiene un token válido para cualquier negocio con el único PIN.
+[Crítico] Webhook sin autenticar (P3): terceros pueden inyectar mensajes entrantes falsos, disparar respuestas del bot y envíos Twilio (coste $), o falsear estados (/webhook/status).
+[Alto] Secretos: JWT_SECRET_KEY por defecto vacío (settings.py:34) → tokens inutilizables (503) o, si se pone algo débil, falsificables (HS256). PIN por defecto changeme (settings.py:38). passlib[bcrypt] está en requirements.txt:13 pero no se usa para el PIN (comparación en texto plano, auth.py:42).
+[Alto] PII: números de teléfono, nombres y contenido de mensajes se replican en Sheets, BD servidor, SQLite del dispositivo y payloads push FCM (push_service.py:123-131) sin cifrado en reposo ni política de retención (solo poda local a 500 msgs/chat, message_repository.dart:49). El body del mensaje viaja en la notification del push.
+[Medio] CORS abierto con credenciales (P10).
+Rendimiento / memoria
+[Alto] Event loop bloqueado (P4): cada webhook bloquea el loop durante I/O de Sheets/Twilio; bajo carga, la latencia de TODAS las conexiones (incluido WS) se degrada.
+[Medio] Contención del _intent_lock global (P1): serializa el procesamiento de mensajes entre negocios.
+[Medio] Hub WS en memoria (P8): los sockets viven en el proceso; con varios workers uvicorn, un evento solo llega a los clientes del worker que lo emitió.
+Escala 100x
+[Bloqueante] Hub WS en memoria + estado en JSON de disco + globals mutables → no soporta múltiples instancias ni workers. Para 100x se requiere: Redis/pub-sub para WS, estado de conversación en BD/Redis por (business_id, wa_id), y eliminación de los globals del parser.
+Sheets como fuente de verdad de pedidos tiene límites de cuota de la API de Google que se saturarían mucho antes de 100x.
+Resolución de negocio O(n) por webhook (P13/business_service.py:85).
+7. TABLA POR MÓDULO
+(A=Excelente … F=Crítica; Acoplamiento: bajo=A)
+
+Módulo	Cohesión	Acoplamiento	Mantenibilidad	Escalabilidad	Testabilidad	Observabilidad	Justificación
+api/routes (whatsbot/whatsapp)
+B
+C
+B
+C
+B
+C
+Limpio pero orquesta negocio y mezcla emisión WS (whatsbot.py:255-293)
+api/middleware/auth
+B
+A
+B
+B
+B
+C
+JWT correcto, pero PIN plano y secret vacío por defecto auth.py:42,settings.py:34
+services/conversation_service
+A
+B
+A
+B
+A
+C
+Bien factorizado, dedup e idempotencia sólidos conversation_service.py:84-170
+services/realtime_service (hub)
+B
+C
+B
+D
+C
+C
+En memoria, mezcla sync/async realtime_service.py:123,224
+services/notification_service
+C
+D
+C
+D
+C
+C
+Puente legacy/SaaS, 3 fuentes de verdad, imports diferidos :70-223
+chatbot/business_context
+C
+F
+D
+F
+D
+C
+Muta globals por request :64-114
+chatbot/runtime + state_manager
+B
+D
+C
+F
+C
+C
+Singleton + estado en disco, single-tenant runtime.py:44,state_manager.py:23
+infrastructure/database
+B
+A
+B
+B
+B
+C
+Sin migraciones ni PRAGMA FK :36-57
+models (SQLAlchemy)
+A
+A
+A
+B
+A
+n/a
+Esquema claro; FK CASCADE inerte en SQLite
+Flutter data/ (repos+sync+drift)
+A
+B
+A
+B
+A
+B
+Offline-first robusto, dedup, cursores message_repository.dart
+Flutter services/realtime_service
+A
+B
+A
+B
+B
+B
+Reconexión/keepalive/watchdog bien hechos realtime_service.dart
+Flutter screens/chat_screen
+C
+C
+C
+B
+C
+C
+God-widget: 4 streams + merge manual + estado UI chat_screen.dart:35-86
+8. RESUMEN EJECUTIVO + PLAN
+Resumen ejecutivo (≤10 líneas)
+App Flutter de calidad alta (offline-first, dedup, reconexión); backend REST/WS coherente.
+El sistema es un monolito multi-tenant sobre un motor de chatbot single-tenant sin refactor.
+Bloqueantes de seguridad: PIN global único (P2), webhook Twilio sin firma (P3), JWT_SECRET_KEY vacío y PIN changeme por defecto.
+Bloqueante de correctitud multi-tenant: mutación de estado global de intents por request (P1) + estado de conversación global (P5).
+Bloqueante de escala: hub WS en memoria + estado en disco → no escala a >1 instancia (P8).
+Integridad de pedidos repartida en Sheets/BD/disco sin atomicidad (P6/P7).
+El gateway síncrono bloquea el event loop (P4) y los envíos del dueño fallan en silencio (P9).
+Veredicto: PARCIAL — apto para una demo single-tenant; no listo para producción multi-negocio.
+Plan de mejoras priorizado
+#	Mejora	Problema que resuelve	Archivos	Esfuerzo	Impacto	Riesgo si no
+1
+Validar firma Twilio (RequestValidator)
+P3
+api/routes/whatsapp.py, nuevo middleware
+S
+A
+Inyección/spoof, coste Twilio
+2
+Credencial por negocio (PIN/hash bcrypt en businesses)
+P2
+models/business.py, auth.py, business_service.py
+M
+A
+Acceso cruzado a datos de otros negocios
+3
+Exigir JWT_SECRET_KEY fuerte y fallar si vacío/changeme
+secretos
+settings.py, auth.py
+S
+A
+Tokens falsificables
+4
+Aislar intents/parser por request (sin globals; índice por negocio)
+P1
+chatbot/business_context.py, app/core/parser.py
+L
+A
+Respuestas erróneas cross-tenant
+5
+Estado de conversación por (business_id, wa_id) en BD/Redis
+P5
+state_manager.py, runtime.py
+L
+A
+Carritos/flows mezclados
+6
+Mover gateway a ejecución no bloqueante (async/threadpool)
+P4
+whatsapp.py, gateway.py
+M
+A
+Degradación bajo carga
+7
+Hub WS sobre Redis pub/sub
+P8
+services/realtime_service.py
+M
+A
+No escala / eventos perdidos
+8
+Unificar pedidos en BD como fuente de verdad; Sheets como espejo opcional
+P6/P7
+notification_service.py, order_service.py
+L
+A
+Pedidos inconsistentes
+9
+Propagar fallo de envío (estado failed + reintento)
+P9
+twilio_client.py, whatsbot.py, app
+M
+M
+Dueño cree que respondió y no
+10
+CORS restringido + PRAGMA FK + Alembic
+P10/P11/P12
+main.py, database.py, migraciones
+M
+M
+Datos huérfanos / drift de esquema
+Roadmap en 3 olas
+OLA 1 — Quick wins / seguridad (días)          OLA 2 — Refactors estructurales (semanas)      OLA 3 — Largo plazo (escala)
+[#1 firma Twilio]                              [#4 aislar intents por request]                [#7 Redis pub/sub WS]
+[#3 secret/PIN fuerte + fail-fast]             [#5 estado conversación en BD/Redis]           [#8 pedidos unificados en BD]
+[#10a CORS restringido]                        [#6 gateway no bloqueante]                     observabilidad (trazas/métricas)
+[#10b PRAGMA foreign_keys]                     [#2 credencial por negocio]                    multi-worker + LB + health WS
+[#9a marcar 'failed' visible]                  [#10c Alembic migraciones]                     retención/cifrado PII
+"Antes vs Después" (top 3, sin código)
+Top 1 — Intents multi-tenant (P1)
+
+ANTES (global mutable, race):                  DESPUÉS (aislado por request):
+ request A ─┐                                   request A ──► resolver(intents_A)  (param/contextvar inmutable)
+            ├─► GLOBAL_COMMAND_INTENTS  ◄─┐     request B ──► resolver(intents_B)
+ request B ─┘     (parser_mod._INTENT_*)  │     (sin estado de módulo compartido; sin lock global)
+        finally → restore "default" ──────┘
+Top 2 — Autorización por negocio (P2/P3)
+
+ANTES:                                          DESPUÉS:
+ owner ──PIN único──► /auth/login (cualquier    owner ──PIN_negocio(bcrypt)──► /auth/login (verifica
+            business_id)                                   credencial de ESE negocio)
+ Twilio ──(sin firma)──► /webhook (abierto)     Twilio ──X-Twilio-Signature──► /webhook (verificada o 403)
+Top 3 — Realtime y verdad de pedidos (P6/P8)
+
+ANTES:                                          DESPUÉS:
+ webhook ─► hub WS (RAM proc. único)            webhook ─► Redis pub/sub ─► todos los workers ─► WS
+ pedido ─► Sheets + BD + disco (best-effort)    pedido ─► BD (fuente única, transaccional)
+                                                          └─► Sheets espejo async idempotente
+Criterios de aceptación ("proyecto terminado y robusto")
+Seguridad: firma Twilio verificada (rechazo 403 en firma inválida); credencial por negocio (hash bcrypt); JWT_SECRET_KEY obligatorio (arranque falla si vacío/ejemplo); CORS con allowlist; tests de aislamiento que prueben que el negocio A no accede a datos de B.
+Correctitud multi-tenant: sin estado de módulo mutable; estado de conversación scoped por (business_id, wa_id); prueba de concurrencia (≥2 negocios en paralelo) sin cruce de intents/carritos.
+Mensajería: envío del dueño con estados sent→delivered→read y failed visible + reintentos; entrega WS verificada en multi-worker; sin pérdida de order.pending.
+Datos: una única fuente de verdad por entidad; migraciones Alembic versionadas; integridad referencial efectiva (FK activas); política de retención/borrado de PII documentada.
+Escala: API stateless reproducible en N instancias detrás de LB con WS sobre Redis; prueba de carga objetivo (p. ej. 100x mensajes/min) sin degradar latencia del loop.
+Calidad: chat_screen desacoplado (lógica de merge fuera del widget); cobertura de tests sobre gateway concurrente, sync engine y webhook firmado.
+
+
+
+#################################################
+
+
 
