@@ -1,4 +1,4 @@
-## v1.7 - Plan para mejorar el sistema, hecho por Opus 4.8 (claude)
+## v1.7.. - Plan para mejorar el sistema, hecho por Opus 4.8 (claude)
 
 
 
@@ -1539,6 +1539,7 @@ Criterios de aceptacion: una sola fuente de verdad por entidad (BD), sin codigo 
 
 
 ####################################################################################
+.
 
 
 
