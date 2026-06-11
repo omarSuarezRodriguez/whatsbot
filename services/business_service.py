@@ -1,7 +1,7 @@
 """
-Business (tenant) operations — Fase 5.
+Business (tenant) operations.
 
-Entrada: .env legacy, config/intents.py, config/prompts.py.
+Entrada: .env, config/intents.py, config/prompts.py.
 Salida: filas en businesses + business_intents + business_prompts.
 """
 
@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import bcrypt as _bcrypt
 from sqlalchemy.orm import Session
 
 from config import intents as default_intents
@@ -19,19 +20,45 @@ from config.settings import (
     DEFAULT_BUSINESS_ID,
     DEFAULT_BUSINESS_NAME,
     TWILIO_WHATSAPP_FROM,
+    WHATSBOT_OWNER_PIN,
 )
-from config.sheets_config import GOOGLE_SHEETS_ENABLED, GOOGLE_SPREADSHEET_ID
 from models.business import Business, BusinessIntentConfig, BusinessPromptConfig
 
 logger = logging.getLogger(__name__)
 
+# --------------------------------------------------------------------------- #
+# PIN helpers (bcrypt directly — avoids passlib/bcrypt>=4 compat issues)      #
+# --------------------------------------------------------------------------- #
+
+def hash_pin(plain: str) -> str:
+    return _bcrypt.hashpw(plain.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_pin(plain: str, hashed: str) -> bool:
+    try:
+        return _bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
+
+
+def set_business_pin(db: Session, business_id: str, plain_pin: str) -> bool:
+    biz = get_business(db, business_id)
+    if biz is None:
+        return False
+    biz.pin_hash = hash_pin(plain_pin)
+    db.flush()
+    return True
+
+
+# --------------------------------------------------------------------------- #
+# Helpers                                                                      #
+# --------------------------------------------------------------------------- #
 
 def _normalize_whatsapp(value: str) -> str:
     return "".join(ch for ch in (value or "").strip() if ch.isdigit())
 
 
 def serialize_global_command_intents() -> dict[str, Any]:
-    """Copy legacy GLOBAL_COMMAND_INTENTS to JSON-safe dict."""
     out: dict[str, Any] = {}
     for command, spec in default_intents.GLOBAL_COMMAND_INTENTS.items():
         phrases = spec.get("phrases", ())
@@ -49,6 +76,10 @@ def serialize_global_command_intents() -> dict[str, Any]:
 def serialize_default_prompts() -> dict[str, str]:
     return dict(default_prompts.DEFAULT_PROMPTS)
 
+
+# --------------------------------------------------------------------------- #
+# Queries                                                                      #
+# --------------------------------------------------------------------------- #
 
 def get_business(db: Session, business_id: str) -> Business | None:
     return db.query(Business).filter(Business.id == business_id).one_or_none()
@@ -71,10 +102,7 @@ def resolve_business_id_for_webhook(
     to_number: str = "",
     from_number: str = "",
 ) -> str:
-    """
-    Map Twilio webhook To (bot line) → business.id.
-    Fallback: default business (legacy single-tenant).
-    """
+    """Map Twilio webhook To (bot line) → business.id.  Exact match first."""
     candidates = [to_number, from_number]
     for raw in candidates:
         if not raw:
@@ -84,9 +112,19 @@ def resolve_business_id_for_webhook(
             continue
         for biz in list_businesses(db):
             bot_digits = _normalize_whatsapp(biz.twilio_whatsapp_from)
+            if bot_digits and digits == bot_digits:
+                return biz.id
+    # Fallback: suffix match (sandbox numbers may differ)
+    for raw in candidates:
+        if not raw:
+            continue
+        digits = _normalize_whatsapp(raw)
+        if not digits:
+            continue
+        for biz in list_businesses(db):
+            bot_digits = _normalize_whatsapp(biz.twilio_whatsapp_from)
             if bot_digits and (
-                digits == bot_digits
-                or digits.endswith(bot_digits[-10:])
+                digits.endswith(bot_digits[-10:])
                 or bot_digits.endswith(digits[-10:])
             ):
                 return biz.id
@@ -95,6 +133,10 @@ def resolve_business_id_for_webhook(
         return default.id
     return DEFAULT_BUSINESS_ID
 
+
+# --------------------------------------------------------------------------- #
+# Mutations                                                                    #
+# --------------------------------------------------------------------------- #
 
 def _seed_config_rows(db: Session, business: Business) -> None:
     intents_data = serialize_global_command_intents()
@@ -106,12 +148,7 @@ def _seed_config_rows(db: Session, business: Business) -> None:
         .one_or_none()
     )
     if intents_row is None:
-        db.add(
-            BusinessIntentConfig(
-                business_id=business.id,
-                config_json=intents_data,
-            )
-        )
+        db.add(BusinessIntentConfig(business_id=business.id, config_json=intents_data))
     else:
         intents_row.config_json = intents_data
 
@@ -121,12 +158,7 @@ def _seed_config_rows(db: Session, business: Business) -> None:
         .one_or_none()
     )
     if prompts_row is None:
-        db.add(
-            BusinessPromptConfig(
-                business_id=business.id,
-                config_json=prompts_data,
-            )
-        )
+        db.add(BusinessPromptConfig(business_id=business.id, config_json=prompts_data))
     else:
         prompts_row.config_json = prompts_data
 
@@ -138,8 +170,7 @@ def create_business(
     name: str,
     twilio_whatsapp_from: str,
     admin_whatsapp_number: str = "",
-    google_spreadsheet_id: str | None = None,
-    sheets_enabled: bool = False,
+    pin: str | None = None,
     is_default: bool = False,
     seed_from_config: bool = True,
 ) -> Business:
@@ -152,8 +183,7 @@ def create_business(
         name=name,
         twilio_whatsapp_from=twilio_whatsapp_from.strip(),
         admin_whatsapp_number=admin_whatsapp_number.strip(),
-        google_spreadsheet_id=google_spreadsheet_id,
-        sheets_enabled=sheets_enabled,
+        pin_hash=hash_pin(pin) if pin else None,
         is_default=is_default,
     )
     db.add(biz)
@@ -165,10 +195,7 @@ def create_business(
 
 
 def ensure_default_business(db: Session) -> Business:
-    """
-    Negocio default = comportamiento legacy (.env + config/* semilla).
-    Idempotente: actualiza Twilio/admin si ya existe.
-    """
+    """Negocio default — idempotente; seed desde .env."""
     biz = get_business(db, DEFAULT_BUSINESS_ID)
     if biz is None:
         biz = create_business(
@@ -177,8 +204,7 @@ def ensure_default_business(db: Session) -> Business:
             name=DEFAULT_BUSINESS_NAME,
             twilio_whatsapp_from=TWILIO_WHATSAPP_FROM,
             admin_whatsapp_number=ADMIN_WHATSAPP_NUMBER,
-            google_spreadsheet_id=GOOGLE_SPREADSHEET_ID or None,
-            sheets_enabled=GOOGLE_SHEETS_ENABLED,
+            pin=WHATSBOT_OWNER_PIN if WHATSBOT_OWNER_PIN else None,
             is_default=True,
             seed_from_config=True,
         )
@@ -186,11 +212,12 @@ def ensure_default_business(db: Session) -> Business:
         biz.name = DEFAULT_BUSINESS_NAME
         biz.twilio_whatsapp_from = TWILIO_WHATSAPP_FROM
         biz.admin_whatsapp_number = ADMIN_WHATSAPP_NUMBER
-        biz.google_spreadsheet_id = GOOGLE_SPREADSHEET_ID or None
-        biz.sheets_enabled = GOOGLE_SHEETS_ENABLED
         biz.is_default = True
+        # Only set pin_hash on first boot (don't override if owner changed it)
+        if biz.pin_hash is None and WHATSBOT_OWNER_PIN:
+            biz.pin_hash = hash_pin(WHATSBOT_OWNER_PIN)
         _seed_config_rows(db, biz)
-        logger.info("Updated default business %s from legacy .env", biz.id)
+        logger.info("Updated default business %s from .env", biz.id)
     return biz
 
 
@@ -221,7 +248,6 @@ def set_business_intents(
     business_id: str,
     config_json: dict[str, Any],
 ) -> dict[str, Any]:
-    """Persist intents editados desde app Flutter."""
     row = (
         db.query(BusinessIntentConfig)
         .filter(BusinessIntentConfig.business_id == business_id)
@@ -241,7 +267,6 @@ def set_business_prompts(
     business_id: str,
     config_json: dict[str, str],
 ) -> dict[str, str]:
-    """Persist textos del bot editados desde app Flutter."""
     row = (
         db.query(BusinessPromptConfig)
         .filter(BusinessPromptConfig.business_id == business_id)

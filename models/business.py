@@ -22,8 +22,8 @@ class Business(Base):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     twilio_whatsapp_from: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     admin_whatsapp_number: Mapped[str] = mapped_column(String(64), default="", nullable=False)
-    google_spreadsheet_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    sheets_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Per-business bcrypt-hashed PIN for the owner login
+    pin_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False

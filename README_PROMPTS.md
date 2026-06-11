@@ -1,4 +1,4 @@
-## v1.7.. - Plan para mejorar el sistema, hecho por Opus 4.8 (claude)
+## v1.8
 
 
 
@@ -1539,7 +1539,71 @@ Criterios de aceptacion: una sola fuente de verdad por entidad (BD), sin codigo 
 
 
 ####################################################################################
-.
+## v1.8
+
+WhatsBot — Plan completo implementado
+OLA 1 — Fuente de verdad única (sin Google Sheets)
+Eliminados todos los archivos Sheets: google_sheets.py, sheets_sync_service.py, api/routes/sheets.py, config/sheets_config.py
+chatbot/app/integrations/db_store.py — reemplaza GoogleSheetsClient con interfaz compatible hacia la BD
+chatbot/runtime.py — cableado a DBStore en lugar de Sheets client
+Todos los servicios del bot (menu_service, order_service, user_service, reservation_service, blocked_users_cache, admin_service) actualizados a DBStore
+models/customer.py — añadidas columnas phone, notes, blocked, last_order_items, updated_at
+models/reservation.py — nueva tabla reservations
+infrastructure/database.py — PRAGMA foreign_keys=ON para SQLite; FK real en conversations
+Alembic inicializado con migración 001_db_only_multi_tenant.py (idempotente)
+notification_service.py — approve_order_from_app / reject_order_from_app 100% BD
+requirements.txt — eliminado gspread
+OLA 2 — Correctitud multi-tenant
+StateManager — clave business_id:wa_id automática via contextvar (sin cambios en FlowEngine)
+business_context.py — reescrito sin mutación de globals; intent index en contextvar + LRU cache por negocio (_build_intent_index_for_business)
+parser.py — _get_intent_index() consulta contextvar primero; 4 sites actualizados
+flow_engine.py — _render() y _build_node_context() usan nombre del negocio por tenant via contextvar
+business_service.py — resolución de negocio por twilio_whatsapp_from exacta (suffix fallback separado)
+OLA 3 — Seguridad
+Twilio signature validation en /webhook (gated por TWILIO_VALIDATE_SIGNATURE=true)
+Webhook non-blocking via run_in_threadpool (FastAPI)
+auth.py — login con PIN bcrypt por negocio (no global)
+api/middleware/auth.py — require_superadmin + fail-fast en JWT_SECRET_KEY débil
+Rutas protegidas: /businesses, /menus, /orders, /whatsbot/customers requieren JWT + tenant-scope
+CORS — allow_credentials=True solo si allowlist explícita, no con *
+OLA 4 — Escala horizontal
+infrastructure/cache.py — cliente Redis async con publish_event / subscribe_ws_events
+RealtimeHub.emit() — publica a Redis + entrega local; workers adicionales reciben via pub/sub
+api/routes/realtime.py — task de suscripción Redis por WS connection
+OLA 5 — App Flutter tipo WhatsApp Business
+models/customer.dart — modelo Customer completo
+services/api_client.dart — métodos CRUD: getCustomers, createCustomer, updateCustomer, deleteCustomer
+screens/customers_list_screen.dart — lista con búsqueda en tiempo real, swipe-to-delete
+screens/customer_editor_screen.dart — formulario crear/editar con toggle bloqueado
+screens/orders_list_screen.dart — lista pedidos con aprobar/rechazar inline
+screens/main_shell.dart — shell de navegación (5 tabs: Chats | Pedidos | Clientes | Catálogo | Ajustes)
+main.dart — usa MainShell tras login exitoso
+OLA 6 — Validación
+scripts/validate_system.py — flujo de pedido actualizado a BD (sin Sheets)
+alembic/ — configurado con env.py apuntando a DATABASE_URL del .env
+87 archivos Python con sintaxis limpia validada; E2E de BD funcional
+The background scan completed. Only non-issue references remain:
+
+chatbot/app/integrations/db_store.py — a docstring mention (already fixed)
+scripts/validate_system.py — already updated to use DB instead of Sheets
+tests/test_order_confirmation_flow.py — an old test file that still imports the deleted google_sheets module
+venv/ packages — gspread is still installed in the virtual environment (expected; it just won't be used)
+Let me fix the old test file:
+
+"""
+Flujo confirmación admin legacy (Fase 6).
+Flujo confirmación admin (DB-backed, sin Sheets).
+The background scan found no blocking issues. The only remaining Sheets references are:
+
+venv/ — gspread is still installed in the virtual environment, but no longer imported by any application code. You can run pip uninstall gspread google-auth to remove it from the environment
+The test file has been updated (no more GoogleSheetsClient imports)
+The system is fully clean of Sheets dependencies at the code level.
+
+
+
+
+###################################################3
+
 
 
 

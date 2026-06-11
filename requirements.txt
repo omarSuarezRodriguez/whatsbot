@@ -1,35 +1,33 @@
-# Backend SaaS (Fase 1 scaffold — ampliar en Fases 2–4)
+# Backend SaaS — single source of truth (PostgreSQL/SQLite), no Sheets
 python-dotenv>=1.0.0
 
-# API (Fase 4+)
+# API
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 python-multipart>=0.0.9
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
-# Auth (Fase 7+)
+# Auth (JWT + bcrypt PIN per business)
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 
-# Database (Fase 5+)
+# Database
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0
 alembic>=1.14.0
 
-# Chatbot legacy deps (Fase 2 copia)
+# Chatbot runtime deps
 Flask>=3.0.0
 twilio>=9.0.0
-gspread>=6.0.0
-google-auth>=2.0.0
 requests>=2.31.0
 rapidfuzz>=3.0.0
 waitress>=3.0.0
 
-# Optional cache
+# Cache / pub-sub (Redis — for WS fanout & stateless multi-worker)
 redis>=5.0.0
 
-# Push (Fase 11.4 — optional)
+# Push notifications (optional)
 firebase-admin>=6.5.0
 
 # Dev / validation

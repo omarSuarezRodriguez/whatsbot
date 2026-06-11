@@ -1,4 +1,4 @@
-"""Pydantic schemas for REST API (Fase 5)."""
+"""Pydantic schemas for REST API."""
 
 from __future__ import annotations
 
@@ -13,8 +13,6 @@ class BusinessOut(BaseModel):
     name: str
     twilio_whatsapp_from: str
     admin_whatsapp_number: str
-    google_spreadsheet_id: str | None
-    sheets_enabled: bool
     is_default: bool
     created_at: datetime
 
@@ -26,8 +24,7 @@ class BusinessCreate(BaseModel):
     name: str
     twilio_whatsapp_from: str
     admin_whatsapp_number: str = ""
-    google_spreadsheet_id: str | None = None
-    sheets_enabled: bool = False
+    pin: str | None = None
     is_default: bool = False
 
 
@@ -90,8 +87,41 @@ class OrderCreate(BaseModel):
     delivery_type: str = ""
 
 
-# --- WhatsBot app (Fase 7) ---
+# --------------------------------------------------------------------------- #
+# Customers                                                                    #
+# --------------------------------------------------------------------------- #
 
+class CustomerOut(BaseModel):
+    id: int
+    business_id: str
+    wa_id: str
+    name: str | None
+    phone: str | None
+    notes: str | None
+    blocked: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CustomerCreate(BaseModel):
+    wa_id: str = Field(..., min_length=5, max_length=32)
+    name: str | None = None
+    phone: str | None = None
+    notes: str | None = None
+
+
+class CustomerUpdate(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+    notes: str | None = None
+    blocked: bool | None = None
+
+
+# --------------------------------------------------------------------------- #
+# WhatsBot app (chats + realtime)                                              #
+# --------------------------------------------------------------------------- #
 
 class ConversationOut(BaseModel):
     id: int
@@ -144,7 +174,6 @@ class BusinessMeOut(BaseModel):
     name: str
     twilio_whatsapp_from: str
     admin_whatsapp_number: str
-    sheets_enabled: bool
 
     model_config = {"from_attributes": True}
 
@@ -171,36 +200,3 @@ class MenuAppOut(BaseModel):
 
 class MenuAppUpdate(BaseModel):
     items: list[dict[str, Any]]
-
-
-# --- Google Sheets optional mirror (Fase 8) ---
-
-
-class SheetsStatusOut(BaseModel):
-    global_enabled: bool
-    business_enabled: bool
-    active: bool
-    spreadsheet_id: str | None
-    sheets_connected: bool
-    cache: dict[str, Any] = Field(default_factory=dict)
-
-
-class SheetsSettingsUpdate(BaseModel):
-    sheets_enabled: bool
-    google_spreadsheet_id: str | None = None
-
-
-class SheetsSyncResult(BaseModel):
-    ok: bool
-    skipped: bool = False
-    message: str = ""
-    items_synced: int | None = None
-    orders_synced: int | None = None
-    errors: int | None = None
-
-
-class SheetsSyncAllOut(BaseModel):
-    ok: bool
-    skipped: bool = False
-    menu: SheetsSyncResult
-    orders: SheetsSyncResult

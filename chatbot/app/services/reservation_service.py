@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from datetime import date, time
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple
 
-from app.integrations.google_sheets import GoogleSheetsClient
+if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
 
 
 class ReservationService:
-    def __init__(self, sheets: GoogleSheetsClient) -> None:
-        self.sheets = sheets
+    def __init__(self, store: "DBStore") -> None:
+        self.sheets = store  # attr name kept for internal compatibility
 
     def save_reservation(
         self,

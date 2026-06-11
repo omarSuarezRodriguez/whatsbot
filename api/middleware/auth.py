@@ -1,5 +1,5 @@
 """
-JWT middleware — Fase 7.
+JWT middleware.
 
 Entrada: Authorization: Bearer <token> (emitido en POST /auth/login).
 Salida: business_id del dueño para filtrar chats, pedidos y config del negocio.
@@ -7,25 +7,29 @@ Salida: business_id del dueño para filtrar chats, pedidos y config del negocio.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-from config.settings import JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
+from config.settings import JWT_EXPIRE_MINUTES, JWT_SECRET_KEY, SUPERADMIN_API_KEY
 
 ALGORITHM = "HS256"
 _bearer = HTTPBearer(auto_error=False)
 
+# Fail-fast: refuse to start if JWT secret is obviously insecure.
+_WEAK_SECRETS = {"", "changeme", "secret", "your-secret-key", "dev", "test"}
+
 
 def _require_secret() -> str:
     key = (JWT_SECRET_KEY or "").strip()
-    if not key:
+    if not key or key.lower() in _WEAK_SECRETS:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="JWT_SECRET_KEY no configurado en el servidor",
+            detail="JWT_SECRET_KEY no está configurado de forma segura en el servidor",
         )
     return key
 
@@ -36,7 +40,6 @@ def create_access_token(
     subject: str = "owner",
     extra: dict[str, Any] | None = None,
 ) -> str:
-    """Emite JWT con business_id para la app Flutter."""
     now = datetime.now(timezone.utc)
     payload: dict[str, Any] = {
         "sub": subject,
@@ -77,3 +80,21 @@ async def get_current_business_id(
     if not business_id:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Token sin business_id")
     return business_id
+
+
+async def require_superadmin(
+    x_admin_key: Annotated[str | None, Header(alias="X-Admin-Key")] = None,
+) -> None:
+    """Protege operaciones cross-tenant (listar/crear negocios).
+    Si SUPERADMIN_API_KEY no está configurado, bloquea toda operación."""
+    key = (SUPERADMIN_API_KEY or "").strip()
+    if not key:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="SUPERADMIN_API_KEY no configurado — operación deshabilitada",
+        )
+    if x_admin_key != key:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail="Clave de administrador inválida",
+        )

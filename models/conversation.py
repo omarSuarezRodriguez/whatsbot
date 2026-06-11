@@ -1,10 +1,10 @@
-"""Conversation thread per customer WhatsApp line (MVP Fase 4)."""
+"""Conversation thread per customer WhatsApp line."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.database import Base
@@ -21,7 +21,12 @@ class Conversation(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    business_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    business_id: Mapped[str] = mapped_column(
+        String(64),
+        ForeignKey("businesses.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
     customer_wa_id: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     customer_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     last_message_preview: Mapped[str | None] = mapped_column(Text, nullable=True)

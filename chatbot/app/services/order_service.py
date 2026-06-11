@@ -1,37 +1,25 @@
+"""OrderService — DB-backed, multi-tenant (via DBStore)."""
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-from app.config import DATA_DIR
 from app.core.parser import OrderParser
-from app.integrations.google_sheets import GoogleSheetsClient
 from app.services.menu_service import MenuService
 
-_MENU_CACHE_PATH = DATA_DIR / "menu_cache.json"
+if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
 
 
 class OrderService:
-    def __init__(self, sheets: GoogleSheetsClient, menu_service: MenuService) -> None:
-        self.sheets = sheets
+    def __init__(self, store: "DBStore", menu_service: MenuService) -> None:
+        self.sheets = store  # attr name kept for internal compatibility
         self.menu_service = menu_service
-        self._cached_parser: Optional[OrderParser] = None
-        self._parser_menu_mtime: float = -1.0
-
-    @staticmethod
-    def _menu_cache_mtime() -> float:
-        if not _MENU_CACHE_PATH.exists():
-            return 0.0
-        return _MENU_CACHE_PATH.stat().st_mtime
 
     def _parser(self) -> OrderParser:
-        mtime = self._menu_cache_mtime()
-        if self._cached_parser is not None and self._parser_menu_mtime == mtime:
-            return self._cached_parser
+        """Always build fresh from current DB menu (multi-tenant, no stale cache)."""
         menu = self.menu_service.get_available_menu()
-        self._cached_parser = OrderParser(menu)
-        self._parser_menu_mtime = mtime
-        return self._cached_parser
+        return OrderParser(menu)
 
     def parse_order_text(
         self,

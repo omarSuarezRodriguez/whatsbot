@@ -1,8 +1,8 @@
 """
-JWT auth — Fase 7.
+JWT auth.
 
-Entrada: business_id + PIN del dueño (WHATSBOT_OWNER_PIN en .env).
-Salida: access_token JWT con business_id para rutas /whatsbot/*.
+POST /auth/login → { business_id, pin } → access_token JWT.
+PIN se valida contra el hash bcrypt almacenado en businesses.pin_hash.
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from api.middleware.auth import create_access_token
-from config.settings import WHATSBOT_OWNER_PIN
 from infrastructure.database import get_db
 from services import business_service as biz_svc
 
@@ -33,17 +32,12 @@ class LoginResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
-    """
-    Login dueño para app Flutter.
-
-    Entrada: { business_id, pin }.
-    Salida: JWT Bearer (claim business_id).
-    """
-    if body.pin != WHATSBOT_OWNER_PIN:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="PIN incorrecto")
+    """Login del dueño desde la app Flutter.  Valida PIN por negocio (bcrypt)."""
     biz = biz_svc.get_business(db, body.business_id)
     if not biz:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Negocio no encontrado")
+    if not biz.pin_hash or not biz_svc.verify_pin(body.pin, biz.pin_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="PIN incorrecto")
     token = create_access_token(business_id=biz.id, subject="owner")
     return LoginResponse(
         access_token=token,

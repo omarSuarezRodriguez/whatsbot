@@ -1,4 +1,4 @@
-"""Thread-safe per-user state with optional disk persistence."""
+"""Thread-safe per-(business, user) state with optional disk persistence."""
 
 from __future__ import annotations
 
@@ -111,20 +111,35 @@ class StateManager:
             "data": data_copy,
         }
 
+    @staticmethod
+    def _resolve_key(wa_id: str) -> str:
+        """Scope state by (business_id, wa_id) to prevent cross-tenant leakage."""
+        try:
+            from chatbot.business_context import get_active_business_id
+
+            bid = get_active_business_id()
+        except Exception:
+            bid = None
+        if bid:
+            return f"{bid}:{wa_id}"
+        return wa_id
+
     def get(self, wa_id: str) -> Dict[str, Any]:
+        key = self._resolve_key(wa_id)
         with self._lock:
-            if wa_id not in self._states:
-                self._states[wa_id] = deepcopy(DEFAULT_STATE)
-            return self._snapshot_state(self._states[wa_id])
+            if key not in self._states:
+                self._states[key] = deepcopy(DEFAULT_STATE)
+            return self._snapshot_state(self._states[key])
 
     def update(self, wa_id: str, **kwargs: Any) -> Dict[str, Any]:
+        key = self._resolve_key(wa_id)
         with self._lock:
-            if wa_id not in self._states:
-                self._states[wa_id] = deepcopy(DEFAULT_STATE)
-            previous = self._snapshot_state(self._states[wa_id])
-            self._states[wa_id].update(kwargs)
-            current = self._states[wa_id]
-            self._persist_if_changed(wa_id, previous, current)
+            if key not in self._states:
+                self._states[key] = deepcopy(DEFAULT_STATE)
+            previous = self._snapshot_state(self._states[key])
+            self._states[key].update(kwargs)
+            current = self._states[key]
+            self._persist_if_changed(key, previous, current)
             return self._snapshot_state(current)
 
     def set_step(self, wa_id: str, step: str, flow: Optional[str] = None) -> Dict[str, Any]:
@@ -137,25 +152,27 @@ class StateManager:
         return self.update(wa_id, data=data)
 
     def patch_data(self, wa_id: str, **fields: Any) -> Dict[str, Any]:
+        key = self._resolve_key(wa_id)
         with self._lock:
-            if wa_id not in self._states:
-                self._states[wa_id] = deepcopy(DEFAULT_STATE)
-            previous = self._snapshot_state(self._states[wa_id])
-            merged = {**self._states[wa_id].get("data", {}), **fields}
-            self._states[wa_id]["data"] = merged
-            current = self._states[wa_id]
-            self._persist_if_changed(wa_id, previous, current)
+            if key not in self._states:
+                self._states[key] = deepcopy(DEFAULT_STATE)
+            previous = self._snapshot_state(self._states[key])
+            merged = {**self._states[key].get("data", {}), **fields}
+            self._states[key]["data"] = merged
+            current = self._states[key]
+            self._persist_if_changed(key, previous, current)
             return self._snapshot_state(current)
 
     def reset(self, wa_id: str) -> Dict[str, Any]:
+        key = self._resolve_key(wa_id)
         with self._lock:
-            raw_previous = self._states.get(wa_id)
+            raw_previous = self._states.get(key)
             previous = (
                 self._snapshot_state(raw_previous) if raw_previous is not None else None
             )
             new_state = deepcopy(DEFAULT_STATE)
-            self._states[wa_id] = new_state
-            self._persist_if_changed(wa_id, previous, new_state)
+            self._states[key] = new_state
+            self._persist_if_changed(key, previous, new_state)
             return self._snapshot_state(new_state)
 
     def cancel(self, wa_id: str) -> Dict[str, Any]:

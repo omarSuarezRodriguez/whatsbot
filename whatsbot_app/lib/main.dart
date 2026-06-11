@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'di/app_services.dart';
-import 'screens/chats_list_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/main_shell.dart';
 import 'services/api_client.dart';
 import 'services/message_alerts_service.dart';
 import 'services/push_service.dart';
@@ -66,7 +66,7 @@ class _SplashGateState extends State<SplashGate> {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => apiClient.isLoggedIn
-            ? const ChatsListScreen()
+            ? const MainShell()
             : const LoginScreen(),
       ),
     );

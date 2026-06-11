@@ -685,6 +685,24 @@ _INTENT_HINT_RE = re.compile(
     re.IGNORECASE,
 )
 
+# ---------------------------------------------------------------------------
+# Per-request (contextvar) intent index — set by business_context.business_scope
+# to avoid mutating globals under concurrent requests.
+# ---------------------------------------------------------------------------
+import contextvars as _cv
+
+_active_intent_index: _cv.ContextVar[
+    "tuple | None"
+] = _cv.ContextVar("intent_index", default=None)
+
+
+def _get_intent_index() -> "tuple":
+    """Return the per-request intent index (contextvar) or fall back to module globals."""
+    idx = _active_intent_index.get(None)
+    if idx is not None:
+        return idx
+    return (_INTENT_PHRASES_BY_LEN, _INTENT_TOKEN_TO_COMMAND, _INTENT_ALL_TOKENS, _INTENT_HINT_RE)
+
 
 class NaturalLanguagePreprocessor:
     """Fast, regex-only canonicalization for conversational WhatsApp input."""
@@ -750,7 +768,7 @@ class UserIntentClassifier:
 
     @staticmethod
     def _content_tokens(text: str) -> List[str]:
-        intent_keep = _INTENT_ALL_TOKENS
+        _, _, intent_keep, _ = _get_intent_index()
         return [
             token
             for token in TextNormalizer.basic(text).split()
@@ -827,10 +845,11 @@ class UserIntentClassifier:
                 "has_products": product_signal,
             }
 
+        _phrases, _tok2cmd, _all_tokens, _hint_re = _get_intent_index()
         words = basic.split()
         if len(words) == 1:
             single = _strip_accents(words[0])
-            cmd = _accept_command(_INTENT_TOKEN_TO_COMMAND.get(single))
+            cmd = _accept_command(_tok2cmd.get(single))
             if cmd:
                 return {
                     "command": cmd,
@@ -842,10 +861,10 @@ class UserIntentClassifier:
         run_phrases = (
             not product_signal
             or len(words) <= 8
-            or bool(_INTENT_HINT_RE.search(basic))
+            or bool(_hint_re.search(basic))
         )
         if run_phrases:
-            for command, phrase_key in _INTENT_PHRASES_BY_LEN:
+            for command, phrase_key in _phrases:
                 if phrase_key in basic:
                     cmd = _accept_command(command)
                     if not cmd:
@@ -861,8 +880,8 @@ class UserIntentClassifier:
         if best_score < 0.96:
             for word in words:
                 key = _strip_accents(word)
-                if key in _INTENT_TOKEN_TO_COMMAND:
-                    cmd = _accept_command(_INTENT_TOKEN_TO_COMMAND[key])
+                if key in _tok2cmd:
+                    cmd = _accept_command(_tok2cmd[key])
                     if not cmd:
                         continue
                     if cmd == "menu" and "principal" in words:

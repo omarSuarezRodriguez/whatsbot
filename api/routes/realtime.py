@@ -48,6 +48,12 @@ async def whatsbot_websocket(
 
     await realtime_hub.connect(business_id, websocket)
     heartbeat = asyncio.create_task(run_heartbeat(websocket, business_id))
+
+    # Subscribe to Redis pub/sub for this business (delivers events from other workers)
+    redis_task = asyncio.create_task(
+        _redis_subscriber(business_id, websocket)
+    )
+
     try:
         while True:
             raw = await websocket.receive_text()
@@ -58,8 +64,31 @@ async def whatsbot_websocket(
         logger.debug("WS error business=%s", business_id, exc_info=True)
     finally:
         heartbeat.cancel()
-        try:
-            await heartbeat
-        except asyncio.CancelledError:
-            pass
+        redis_task.cancel()
+        for task in (heartbeat, redis_task):
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
         await realtime_hub.disconnect(business_id, websocket)
+
+
+async def _redis_subscriber(business_id: str, websocket: WebSocket) -> None:
+    """Receive events published by other workers and deliver to local socket."""
+    try:
+        from infrastructure.cache import subscribe_ws_events
+
+        gen = subscribe_ws_events(business_id)
+        if gen is None:
+            return  # Redis disabled
+        import json
+
+        async for event in gen:
+            try:
+                await websocket.send_text(json.dumps(event, default=str))
+            except Exception:
+                break
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        logger.debug("Redis subscriber error business=%s", business_id, exc_info=True)

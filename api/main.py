@@ -1,8 +1,7 @@
 """
-FastAPI application entry (Fase 4).
+FastAPI application entry.
 
 Arranque:
-  cd final_system
   python -m api.main
 
 Webhook Twilio:
@@ -19,7 +18,6 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# final_system on path
 _FS = Path(__file__).resolve().parent.parent
 if str(_FS) not in sys.path:
     sys.path.insert(0, str(_FS))
@@ -27,10 +25,10 @@ if str(_FS) not in sys.path:
 from api.routes import (  # noqa: E402
     auth,
     businesses,
+    customers,
     menus,
     orders,
     realtime,
-    sheets,
     whatsapp,
     whatsbot,
 )
@@ -76,15 +74,18 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="WhatsBot API",
         description="Backend JSON + webhook Twilio (sin UI web)",
-        version="0.9.0",
+        version="1.0.0",
         lifespan=lifespan,
     )
 
     origins = [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()]
+    allow_all = origins == ["*"] or not origins
+    # Wildcard origin + allow_credentials=True is rejected by browsers and is unsafe.
+    # Only enable credentials when an explicit origin allowlist is configured.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins if origins != ["*"] else ["*"],
-        allow_credentials=True,
+        allow_origins=["*"] if allow_all else origins,
+        allow_credentials=not allow_all,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -94,16 +95,16 @@ def create_app() -> FastAPI:
     app.include_router(realtime.router)
     app.include_router(whatsbot.router)
     app.include_router(businesses.router)
+    app.include_router(customers.router)
     app.include_router(menus.router)
     app.include_router(orders.router)
-    app.include_router(sheets.router)
 
     @app.get("/health")
     async def health():
         return {
             "status": "ok",
             "service": "whatsbot-api",
-            "version": "0.9.0",
+            "version": "1.0.0",
             "restaurant": RESTAURANT_NAME,
             "default_business_id": DEFAULT_BUSINESS_ID,
             "api_public_url": API_PUBLIC_URL,

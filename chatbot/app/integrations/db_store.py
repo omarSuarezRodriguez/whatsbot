@@ -5,8 +5,8 @@ Single source of truth = SaaS database (PostgreSQL/SQLite), scoped by the
 active ``business_id`` resolved from :mod:`chatbot.business_context`.
 
 The chatbot services (order/menu/user/reservation/blocked) call this object
-through the same method surface the legacy ``GoogleSheetsClient`` exposed, so
-their code stays intact while all reads/writes go to the multi-tenant DB.
+through the same method surface the legacy Sheets client exposed, so their
+code stays intact while all reads/writes go to the multi-tenant DB.
 """
 
 from __future__ import annotations

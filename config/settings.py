@@ -1,4 +1,4 @@
-"""Global settings loaded from final_system/.env."""
+"""Global settings loaded from .env."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Raíz autocontenida de final_system (logs, flows por defecto, etc.)
 REPO_ROOT = BASE_DIR
 load_dotenv(BASE_DIR / ".env")
 
@@ -27,15 +26,22 @@ DATABASE_URL = os.getenv(
     "postgresql://postgres:postgres@localhost:5432/whatsbot",
 )
 
-# Redis (optional)
+# Redis (optional — used for pub/sub WS fanout)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+REDIS_ENABLED = os.getenv("REDIS_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
 
-# JWT (Flutter WhatsBot)
+# JWT
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", os.getenv("SECRET_KEY", ""))
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
 SECRET_KEY = os.getenv("SECRET_KEY", JWT_SECRET_KEY)
-# PIN para login app Flutter (dueño); en prod usar valor fuerte en .env
+
+# PIN para login app Flutter — migrated to per-business pin_hash.
+# This global PIN is still used to seed the default business on first boot.
 WHATSBOT_OWNER_PIN = os.getenv("WHATSBOT_OWNER_PIN", "changeme")
+
+# Superadmin key for cross-tenant operations (create/list businesses).
+# Leave empty to disable those endpoints entirely.
+SUPERADMIN_API_KEY = os.getenv("SUPERADMIN_API_KEY", "").strip()
 
 # Branding (legacy RESTAURANT_NAME → DEFAULT_BUSINESS_NAME)
 RESTAURANT_NAME = os.getenv(
@@ -51,6 +57,10 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "").strip()
 TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "").strip()
 TWILIO_REST_WEBHOOK_REPLIES = os.getenv("TWILIO_REST_WEBHOOK_REPLIES", "0").strip()
 TWILIO_WHATSAPP_SANDBOX_NUMBER = "+14155238886"
+# Set to true to require Twilio signature validation on /webhook
+TWILIO_VALIDATE_SIGNATURE = os.getenv(
+    "TWILIO_VALIDATE_SIGNATURE", "false"
+).strip().lower() in {"1", "true", "yes", "on"}
 
 # Admin legacy
 ADMIN_WHATSAPP_NUMBER = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
@@ -58,6 +68,11 @@ ADMIN_REMINDER_INTERVAL_SECONDS = int(
     os.getenv("ADMIN_REMINDER_INTERVAL_SECONDS", "300")
 )
 ADMIN_REMINDER_MAX_SECONDS = int(os.getenv("ADMIN_REMINDER_MAX_SECONDS", "3600"))
+
+# Blocked-users cache refresh interval (bot in-memory cache over DB)
+BLOCKED_USERS_CACHE_TTL_SECONDS = int(
+    os.getenv("BLOCKED_USERS_CACHE_TTL_SECONDS", "15")
+)
 
 # Paths
 DATA_DIR = BASE_DIR / "data"
@@ -74,19 +89,13 @@ PARSER_ERROR_LOG_PATH = os.getenv(
 DEPLOY_URL = os.getenv("DEPLOY_URL", API_PUBLIC_URL).rstrip("/")
 DEPLOY_TIMEOUT = int(os.getenv("DEPLOY_TIMEOUT", "60"))
 
-# Realtime (Fase 11 — WebSocket + push)
+# Realtime (WebSocket + push)
 REALTIME_ENABLED = os.getenv("REALTIME_ENABLED", "true").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
+    "1", "true", "yes", "on",
 }
 WS_HEARTBEAT_SECONDS = int(os.getenv("WS_HEARTBEAT_SECONDS", "30"))
 FCM_ENABLED = os.getenv("FCM_ENABLED", "false").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
+    "1", "true", "yes", "on",
 }
 FCM_SERVICE_ACCOUNT_JSON_PATH = os.getenv("FCM_SERVICE_ACCOUNT_JSON_PATH", "").strip()
 FCM_SERVICE_ACCOUNT_JSON = os.getenv("FCM_SERVICE_ACCOUNT_JSON", "").strip()
@@ -99,7 +108,7 @@ def is_twilio_whatsapp_sandbox() -> bool:
 
 
 def twilio_status_callback_url() -> str | None:
-    """URL pública para status callbacks de Twilio (MessageSid → sent/delivered/read)."""
+    """Public URL for Twilio status callbacks (sent → delivered → read)."""
     base = API_PUBLIC_URL.rstrip("/")
     if not base or base.startswith("http://127.0.0.1"):
         return None
@@ -113,12 +122,3 @@ def use_rest_webhook_replies() -> bool:
     if explicit in {"1", "true", "yes", "on"}:
         return True
     return not is_twilio_whatsapp_sandbox()
-
-
-# -----------------------------------------------------------------------------
-# GUÍA RÁPIDA
-# - Entrada: variables en final_system/.env.
-# - Salida: constantes usadas por api/, services/, infrastructure/, chatbot shim.
-# - Solo secrets y URLs en .env; no hardcodear tokens aquí.
-# - Fase 3: única fuente para Twilio, admin, JWT, paths y servidor.
-# -----------------------------------------------------------------------------

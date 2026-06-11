@@ -54,9 +54,7 @@ def create_customer(
         business_id,
         wa_id=body.wa_id,
         name=body.name,
-        address=body.address,
         notes=body.notes,
-        blocked=body.blocked,
     )
     db.commit()
     return customer
@@ -78,7 +76,7 @@ def update_customer(
     return customer
 
 
-@router.delete("/{customer_id}", status_code=204)
+@router.delete("/{customer_id}", status_code=204, response_model=None)
 def delete_customer(
     customer_id: int,
     business_id: BusinessId,

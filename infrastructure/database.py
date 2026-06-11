@@ -7,10 +7,10 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from config.settings import BASE_DIR, DATABASE_URL, DATA_DIR
+from config.settings import DATABASE_URL, DATA_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,17 @@ def get_engine():
         connect_args = {}
         if url.startswith("sqlite"):
             connect_args["check_same_thread"] = False
+
         _engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True)
+
+        # Enable FK enforcement for SQLite (no-op on PostgreSQL)
+        if url.startswith("sqlite"):
+            @event.listens_for(_engine, "connect")
+            def _set_sqlite_pragma(dbapi_conn, _connection_record):
+                cursor = dbapi_conn.cursor()
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.close()
+
         _SessionLocal = sessionmaker(bind=_engine, autocommit=False, autoflush=False)
         logger.info("Database engine ready (%s)", url.split("@")[-1][:80])
     return _engine
@@ -49,7 +59,7 @@ def get_session_factory() -> sessionmaker[Session]:
 
 
 def init_db() -> None:
-    """Create tables for all registered models."""
+    """Create tables for all registered models (idempotent — safe for dev/SQLite)."""
     import models  # noqa: F401 — registers all tables
 
     engine = get_engine()

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from app.integrations.google_sheets import GoogleSheetsClient
+if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
 
 
 class UserService:
-    def __init__(self, sheets: GoogleSheetsClient) -> None:
-        self.sheets = sheets
+    def __init__(self, store: "DBStore") -> None:
+        self.sheets = store  # attr name kept for internal compatibility
 
     def touch(self, wa_id: str, name: str = "") -> None:
         self.sheets.upsert_user(wa_id=wa_id, name=name)

@@ -1,7 +1,8 @@
 """
-Shim hacia config centralizada (Fase 3).
+Shim hacia config centralizada.
 
-El chatbot importa `app.config` sin cambios; los valores viven en final_system/config/.
+El chatbot importa `app.config` sin cambios; los valores viven en config/.
+Google Sheets eliminado — toda la persistencia va a la BD.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ _FS_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_FS_ROOT) not in sys.path:
     sys.path.insert(0, str(_FS_ROOT))
 
-from config import bot_config, settings, sheets_config  # noqa: E402
+from config import bot_config, settings  # noqa: E402
 from config.intents import GLOBAL_COMMANDS  # noqa: E402
 
 BASE_DIR = settings.BASE_DIR
@@ -23,9 +24,6 @@ DATA_DIR = settings.DATA_DIR
 RESTAURANT_NAME = settings.RESTAURANT_NAME
 FLOWS_PATH = bot_config.FLOWS_PATH
 NAV_HINT = bot_config.NAV_HINT
-
-GOOGLE_SHEETS_CREDENTIALS_PATH = sheets_config.GOOGLE_SHEETS_CREDENTIALS_PATH
-GOOGLE_SPREADSHEET_ID = sheets_config.GOOGLE_SPREADSHEET_ID
 
 STATE_PERSIST_PATH = settings.STATE_PERSIST_PATH
 PARSER_ERROR_LOG_PATH = settings.PARSER_ERROR_LOG_PATH
@@ -38,15 +36,7 @@ TWILIO_WHATSAPP_SANDBOX_NUMBER = settings.TWILIO_WHATSAPP_SANDBOX_NUMBER
 
 ADMIN_REMINDER_INTERVAL_SECONDS = settings.ADMIN_REMINDER_INTERVAL_SECONDS
 ADMIN_REMINDER_MAX_SECONDS = settings.ADMIN_REMINDER_MAX_SECONDS
-
-MENU_CACHE_TTL_SECONDS = sheets_config.MENU_CACHE_TTL_SECONDS
-ORDERS_CACHE_TTL_SECONDS = sheets_config.ORDERS_CACHE_TTL_SECONDS
-BLOCKED_USERS_CACHE_TTL_SECONDS = sheets_config.BLOCKED_USERS_CACHE_TTL_SECONDS
-SHEETS_INCREMENTAL_THRESHOLD = sheets_config.SHEETS_INCREMENTAL_THRESHOLD
-SHEETS_FULL_REFRESH_INTERVAL_SECONDS = (
-    sheets_config.SHEETS_FULL_REFRESH_INTERVAL_SECONDS
-)
-SHEETS_INCREMENTAL_BATCH_SIZE = sheets_config.SHEETS_INCREMENTAL_BATCH_SIZE
+BLOCKED_USERS_CACHE_TTL_SECONDS = settings.BLOCKED_USERS_CACHE_TTL_SECONDS
 
 is_twilio_whatsapp_sandbox = settings.is_twilio_whatsapp_sandbox
 use_rest_webhook_replies = settings.use_rest_webhook_replies
@@ -59,8 +49,6 @@ __all__ = [
     "FLOWS_PATH",
     "NAV_HINT",
     "GLOBAL_COMMANDS",
-    "GOOGLE_SHEETS_CREDENTIALS_PATH",
-    "GOOGLE_SPREADSHEET_ID",
     "STATE_PERSIST_PATH",
     "PARSER_ERROR_LOG_PATH",
     "ADMIN_WHATSAPP_NUMBER",
@@ -70,12 +58,7 @@ __all__ = [
     "TWILIO_WHATSAPP_SANDBOX_NUMBER",
     "ADMIN_REMINDER_INTERVAL_SECONDS",
     "ADMIN_REMINDER_MAX_SECONDS",
-    "MENU_CACHE_TTL_SECONDS",
-    "ORDERS_CACHE_TTL_SECONDS",
     "BLOCKED_USERS_CACHE_TTL_SECONDS",
-    "SHEETS_INCREMENTAL_THRESHOLD",
-    "SHEETS_FULL_REFRESH_INTERVAL_SECONDS",
-    "SHEETS_INCREMENTAL_BATCH_SIZE",
     "is_twilio_whatsapp_sandbox",
     "use_rest_webhook_replies",
 ]

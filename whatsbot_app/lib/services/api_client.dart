@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/business.dart';
 import '../models/conversation.dart';
+import '../models/customer.dart';
 import '../models/menu_item.dart';
 import '../models/message.dart';
 import '../models/order.dart';
@@ -345,6 +346,75 @@ class ApiClient {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final saved = data['config'] as Map? ?? {};
     return saved.map((k, v) => MapEntry(k.toString(), v.toString()));
+  }
+
+  // ----------------------------------------------------------------- Customers
+
+  Future<List<Customer>> getCustomers({String? search}) async {
+    final query = search != null && search.isNotEmpty ? {'search': search} : null;
+    final response = await _withTimeout(
+      _http.get(
+        _uri('/whatsbot/customers', query),
+        headers: _authHeaders,
+      ),
+    );
+    _ensureOk(response);
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list.map((e) => Customer.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Customer> createCustomer({
+    required String waId,
+    String? name,
+    String? phone,
+    String? notes,
+  }) async {
+    final payload = <String, dynamic>{'wa_id': waId};
+    if (name != null) payload['name'] = name;
+    if (phone != null) payload['phone'] = phone;
+    if (notes != null) payload['notes'] = notes;
+    final response = await _withTimeout(
+      _http.post(
+        _uri('/whatsbot/customers'),
+        headers: _authHeaders,
+        body: jsonEncode(payload),
+      ),
+    );
+    _ensureOk(response, expected: {201, 200});
+    return Customer.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<Customer> updateCustomer(
+    int customerId, {
+    String? name,
+    String? phone,
+    String? notes,
+    bool? blocked,
+  }) async {
+    final payload = <String, dynamic>{};
+    if (name != null) payload['name'] = name;
+    if (phone != null) payload['phone'] = phone;
+    if (notes != null) payload['notes'] = notes;
+    if (blocked != null) payload['blocked'] = blocked;
+    final response = await _withTimeout(
+      _http.put(
+        _uri('/whatsbot/customers/$customerId'),
+        headers: _authHeaders,
+        body: jsonEncode(payload),
+      ),
+    );
+    _ensureOk(response);
+    return Customer.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteCustomer(int customerId) async {
+    final response = await _withTimeout(
+      _http.delete(
+        _uri('/whatsbot/customers/$customerId'),
+        headers: _authHeaders,
+      ),
+    );
+    _ensureOk(response, expected: {204, 200});
   }
 
   void _ensureOk(http.Response response, {Set<int>? expected}) {

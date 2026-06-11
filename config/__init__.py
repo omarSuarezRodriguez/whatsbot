@@ -1,11 +1,10 @@
-"""Central configuration package (5 modules + .env secrets)."""
+"""Central configuration package (4 modules + .env secrets)."""
 
-from config import bot_config, intents, prompts, settings, sheets_config
+from config import bot_config, intents, prompts, settings
 
 __all__ = [
     "bot_config",
     "intents",
     "prompts",
     "settings",
-    "sheets_config",
 ]

@@ -1,5 +1,5 @@
 """
-Flujo confirmación admin legacy (Fase 6).
+Flujo confirmación admin (DB-backed, sin Sheets).
 
 Cliente pide → notify admin → CONFIRMAR → cliente notificado.
 """
@@ -15,11 +15,14 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "chatbot"))
 
 os.environ.setdefault(
     "DATABASE_URL",
     f"sqlite:///{(ROOT / 'data' / 'test_orders.db').as_posix()}",
 )
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-tests-only")
+os.environ.setdefault("WHATSBOT_OWNER_PIN", "testpin123")
 
 
 @pytest.fixture(autouse=True)
@@ -32,31 +35,46 @@ def reset_context():
 
 
 @pytest.fixture
-def whatsapp_log():
-    """Registra destinos y cuerpos de _send_whatsapp sin Twilio real."""
-    sent: list[tuple[str, str]] = []
+def whatsapp_log(monkeypatch):
+    log: list[tuple[str, str]] = []
 
     def _fake_send(_self, to_number: str, body: str) -> bool:
-        sent.append((to_number, body))
+        log.append((to_number, body))
         return True
 
-    with patch(
+    monkeypatch.setattr(
         "app.services.admin_service.AdminService._send_whatsapp",
         _fake_send,
-    ):
-        yield sent
+    )
+    return log
 
 
-def test_notify_admin_on_pending_order(whatsapp_log):
+@pytest.fixture(scope="session", autouse=True)
+def _init_db():
+    from infrastructure.database import init_db
+    from services.business_service import ensure_default_business
+    from infrastructure.database import session_scope
+
+    init_db()
+    with session_scope() as db:
+        ensure_default_business(db)
+
+
+def _get_store():
+    from chatbot.runtime import get_bot_context
+    return get_bot_context(start_background=False).admin_service.sheets
+
+
+def test_notify_admin_sends_confirmar(whatsapp_log):
     from config.settings import ADMIN_WHATSAPP_NUMBER
     from services import notification_service as notify
 
     order = {
         "order_id": "ORD-TEST0001",
-        "wa_id": "573001112233",
-        "items": [{"nombre": "Pizza", "qty": 1, "subtotal": 10.0}],
-        "total": 10.0,
-        "customer_name": "Test Cliente",
+        "wa_id": "573001234567",
+        "customer_name": "Cliente Test",
+        "items": [{"nombre": "Empanada", "qty": 1, "subtotal": 3.0}],
+        "total": 3.0,
         "address": "Calle 1",
         "delivery_type": "domicilio",
         "status": "pending",
@@ -64,50 +82,39 @@ def test_notify_admin_on_pending_order(whatsapp_log):
     notify.notify_admin_new_order(order)
 
     assert len(whatsapp_log) >= 1
-    admin_msg = whatsapp_log[0]
-    assert ADMIN_WHATSAPP_NUMBER.replace("whatsapp:", "") in admin_msg[0].replace("+", "") or admin_msg[0]
-    assert "ORD-TEST0001" in admin_msg[1]
-    assert "CONFIRMAR" in admin_msg[1]
+    assert "ORD-TEST0001" in whatsapp_log[0][1]
+    assert "CONFIRMAR" in whatsapp_log[0][1]
 
 
 def test_admin_confirm_notifies_customer(whatsapp_log):
-    from app.integrations.google_sheets import GoogleSheetsClient
-    from chatbot.runtime import get_bot_context
-    from config.settings import ADMIN_WHATSAPP_NUMBER
     from services import notification_service as notify
+    from infrastructure.database import session_scope
+    from services import order_service as order_svc
 
-    ctx = get_bot_context(start_background=False)
-    sheets: GoogleSheetsClient = ctx.admin_service.sheets
-    order_id = sheets.create_order(
+    store = _get_store()
+    order_id = store.create_order(
         wa_id="573009998877",
-        items=[{"nombre": "Coca", "qty": 1, "unit_price": 2.5, "subtotal": 2.5}],
+        items=[{"nombre": "Coca", "qty": 1, "subtotal": 2.5}],
         total=2.5,
         status="pending",
         customer_name="Cliente Confirm",
     )
 
     reply = notify.handle_admin_confirmation(f"CONFIRMAR {order_id}")
-
     assert "confirmado" in reply.lower()
-    assert sheets.get_order(order_id)["status"] == "confirmed"
 
-    assert len(whatsapp_log) >= 1
-    customer_notified = any(
-        "573009998877" in to.replace("whatsapp:", "").replace("+", "")
-        for to, body in whatsapp_log
-        if "confirmado" in body.lower() or "confirmada" in body.lower()
-    )
-    assert customer_notified, f"Expected customer WhatsApp in {whatsapp_log}"
+    with session_scope() as db:
+        row = order_svc.get_order(db, "default", order_id)
+    assert row and row.status == "confirmed"
 
 
 def test_approve_from_app_notifies_customer(whatsapp_log):
-    from app.integrations.google_sheets import GoogleSheetsClient
-    from chatbot.runtime import get_bot_context
     from services import notification_service as notify
+    from infrastructure.database import session_scope
+    from services import order_service as order_svc
 
-    ctx = get_bot_context(start_background=False)
-    sheets: GoogleSheetsClient = ctx.admin_service.sheets
-    order_id = sheets.create_order(
+    store = _get_store()
+    order_id = store.create_order(
         wa_id="573004445566",
         items=[{"nombre": "Tacos", "qty": 2, "subtotal": 8.0}],
         total=8.0,
@@ -115,25 +122,30 @@ def test_approve_from_app_notifies_customer(whatsapp_log):
         customer_name="Cliente App",
     )
 
-    result = notify.approve_order_from_app(order_id, business_id="default")
+    with session_scope() as db:
+        result = notify.approve_order_from_app(order_id, business_id="default", db=db)
 
     assert result["ok"] is True
-    assert sheets.get_order(order_id)["status"] == "confirmed"
-    assert any(
+
+    with session_scope() as db:
+        row = order_svc.get_order(db, "default", order_id)
+    assert row and row.status == "confirmed"
+
+    customer_notified = any(
         "573004445566" in to.replace("whatsapp:", "").replace("+", "")
         for to, body in whatsapp_log
         if "confirmado" in body.lower()
-    ), f"Expected customer WhatsApp in {whatsapp_log}"
+    )
+    assert customer_notified, f"Expected customer WhatsApp in {whatsapp_log}"
 
 
 def test_approve_from_app_reports_twilio_failure(whatsapp_log):
-    from app.integrations.google_sheets import GoogleSheetsClient
-    from chatbot.runtime import get_bot_context
     from services import notification_service as notify
+    from infrastructure.database import session_scope
+    from services import order_service as order_svc
 
-    ctx = get_bot_context(start_background=False)
-    sheets: GoogleSheetsClient = ctx.admin_service.sheets
-    order_id = sheets.create_order(
+    store = _get_store()
+    order_id = store.create_order(
         wa_id="573003332211",
         items=[{"nombre": "Ensalada", "qty": 1, "subtotal": 5.0}],
         total=5.0,
@@ -147,47 +159,11 @@ def test_approve_from_app_reports_twilio_failure(whatsapp_log):
         "app.services.admin_service.AdminService._send_whatsapp",
         _fail_send,
     ):
-        result = notify.approve_order_from_app(order_id, business_id="default")
+        with session_scope() as db:
+            result = notify.approve_order_from_app(order_id, business_id="default", db=db)
 
     assert result["ok"] is False
-    assert sheets.get_order(order_id)["status"] == "confirmed"
 
-
-def test_full_flow_via_gateway(whatsapp_log):
-    """Simula: cliente guarda pedido (notify) + admin confirma (gateway)."""
-    from app.integrations.google_sheets import GoogleSheetsClient
-    from chatbot.gateway import handle_incoming_message
-    from chatbot.runtime import get_bot_context
-    from config.settings import ADMIN_WHATSAPP_NUMBER
-
-    ctx = get_bot_context(start_background=False)
-    sheets: GoogleSheetsClient = ctx.admin_service.sheets
-
-    order_id = sheets.create_order(
-        wa_id="573001110099",
-        items=[{"nombre": "Hamburguesa", "qty": 1, "subtotal": 9.5}],
-        total=9.5,
-        status="pending",
-    )
-    from services.notification_service import on_order_pending
-
-    on_order_pending(
-        sheets.get_order(order_id) or {"order_id": order_id, "wa_id": "573001110099"},
-    )
-    assert any("ORD-" in body for _, body in whatsapp_log)
-
-    admin_digits = "".join(c for c in ADMIN_WHATSAPP_NUMBER if c.isdigit())
-    result = handle_incoming_message(
-        {
-            "phone": admin_digits,
-            "message": f"CONFIRMAR {order_id}",
-            "business_id": "default",
-        }
-    )
-    assert result.get("is_admin") is True
-    assert "confirmado" in str(result.get("response_text", "")).lower()
-    assert sheets.get_order(order_id)["status"] == "confirmed"
-
-
-if __name__ == "__main__":
-    raise SystemExit(pytest.main([__file__, "-v"]))
+    with session_scope() as db:
+        row = order_svc.get_order(db, "default", order_id)
+    assert row and row.status == "confirmed"

@@ -1,4 +1,4 @@
-"""In-memory cache of blocked users with periodic refresh from Google Sheets."""
+"""In-memory cache of blocked users with periodic refresh from the DB."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ import time
 from typing import TYPE_CHECKING, Optional, Set
 
 from app.config import BLOCKED_USERS_CACHE_TTL_SECONDS
-from app.integrations.google_sheets import GoogleSheetsClient
 
 if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
     from app.services.admin_service import AdminService
 
 logger = logging.getLogger(__name__)
@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 class BlockedUsersCache:
     def __init__(
         self,
-        sheets: GoogleSheetsClient,
-        admin_service: AdminService,
+        store: "DBStore",
+        admin_service: "AdminService",
         ttl_seconds: int = BLOCKED_USERS_CACHE_TTL_SECONDS,
     ) -> None:
-        self.sheets = sheets
+        self.sheets = store  # attr name kept for internal compatibility
         self.admin_service = admin_service
         self.ttl_seconds = max(5, ttl_seconds)
         self._blocked: Set[str] = set()

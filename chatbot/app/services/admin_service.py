@@ -6,7 +6,7 @@ import logging
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from app.config import (
     ADMIN_REMINDER_INTERVAL_SECONDS,
@@ -20,7 +20,6 @@ from app.config import (
     is_twilio_whatsapp_sandbox,
 )
 from app.core.parser import OrderParser
-from app.integrations.google_sheets import GoogleSheetsClient
 from app.services.order_service import OrderService
 from app.utils.validators import (
     extract_admin_order_id,
@@ -28,17 +27,20 @@ from app.utils.validators import (
     parse_admin_block_command,
 )
 
+if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
+
 logger = logging.getLogger(__name__)
 
 
 class AdminService:
     def __init__(
         self,
-        sheets: GoogleSheetsClient,
+        store: "DBStore",
         order_service: OrderService,
         blocked_cache: Optional[Any] = None,
     ) -> None:
-        self.sheets = sheets
+        self.sheets = store  # attr name kept for internal compatibility
         self.order_service = order_service
         self.blocked_cache = blocked_cache
         self._reminder_state: Dict[str, Dict[str, Any]] = {}
@@ -495,7 +497,7 @@ class AdminService:
 
         blocked = action == "block"
         if not self.sheets.set_user_blocked(target, blocked):
-            return f"No pude actualizar el estado de *{target}* en Google Sheets."
+            return f"No pude actualizar el estado de *{target}* en la base de datos."
 
         if self.blocked_cache is not None:
             self.blocked_cache.apply_local(target, blocked)

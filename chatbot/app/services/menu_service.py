@@ -1,32 +1,21 @@
+"""MenuService — DB-backed, multi-tenant (via DBStore)."""
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from app.config import DATA_DIR
-from app.integrations.google_sheets import GoogleSheetsClient
-
-_MENU_CACHE_PATH = DATA_DIR / "menu_cache.json"
+if TYPE_CHECKING:
+    from app.integrations.db_store import DBStore
 
 
 class MenuService:
-    def __init__(self, sheets: GoogleSheetsClient) -> None:
-        self.sheets = sheets
-        self._formatted_menu_cache: Optional[str] = None
-        self._formatted_menu_mtime: float = -1.0
-        self._available_menu_cache: Optional[List[Dict[str, Any]]] = None
-        self._available_menu_mtime: float = -1.0
-        self._literal_tokens_cache: Optional[frozenset[str]] = None
-        self._literal_tokens_mtime: float = -1.0
+    def __init__(self, store: "DBStore") -> None:
+        self.sheets = store  # attr name kept for internal compatibility
+        # Per-request menu override (set by business_context for testing)
+        self._context_menu_override_fn = self._default_context_override
 
     @staticmethod
-    def _menu_cache_mtime() -> float:
-        if not _MENU_CACHE_PATH.exists():
-            return 0.0
-        return _MENU_CACHE_PATH.stat().st_mtime
-
-    @staticmethod
-    def _context_menu_override() -> Optional[List[Dict[str, Any]]]:
+    def _default_context_override() -> Optional[List[Dict[str, Any]]]:
         try:
             from chatbot.business_context import get_active_menu
 
@@ -37,59 +26,13 @@ class MenuService:
             pass
         return None
 
-    def _fetch_available_menu(self) -> List[Dict[str, Any]]:
-        override = self._context_menu_override()
-        if override is not None:
-            return override
-        return [
-            item for item in self.sheets.get_menu() if item.get("disponible", True)
-        ]
-
-    def _refresh_available_menu_if_stale(self) -> List[Dict[str, Any]]:
-        override = self._context_menu_override()
-        if override is not None:
-            return override
-
-        mtime = self._menu_cache_mtime()
-        if (
-            self._available_menu_cache is not None
-            and self._available_menu_mtime == mtime
-        ):
-            return self._available_menu_cache
-
-        menu = self._fetch_available_menu()
-        self._available_menu_cache = menu
-        self._available_menu_mtime = mtime
-        self._literal_tokens_cache = None
-        self._literal_tokens_mtime = -1.0
-        return menu
-
     def get_available_menu(self) -> List[Dict[str, Any]]:
-        try:
-            from flask import g, has_request_context
-        except ImportError:
-            return self._refresh_available_menu_if_stale()
-
-        if not has_request_context():
-            return self._refresh_available_menu_if_stale()
-
-        cached = getattr(g, "_available_menu_cache", None)
-        if cached is not None:
-            return cached
-
-        menu = self._refresh_available_menu_if_stale()
-        g._available_menu_cache = menu
-        return menu
+        override = self._default_context_override()
+        if override is not None:
+            return override
+        return [item for item in self.sheets.get_menu() if item.get("disponible", True)]
 
     def menu_literal_tokens(self) -> frozenset[str]:
-        """Cached product-name tokens for intent detection (hot path)."""
-        mtime = self._menu_cache_mtime()
-        if (
-            self._literal_tokens_cache is not None
-            and self._literal_tokens_mtime == mtime
-        ):
-            return self._literal_tokens_cache
-
         from app.core.parser import TextNormalizer
 
         tokens: set[str] = set()
@@ -97,42 +40,23 @@ class MenuService:
             name = str(item.get("nombre", "")).strip()
             if name:
                 tokens.update(TextNormalizer.basic(name).split())
-        self._literal_tokens_cache = frozenset(tokens)
-        self._literal_tokens_mtime = mtime
-        return self._literal_tokens_cache
+        return frozenset(tokens)
 
     def format_menu(self) -> str:
-        override = self._context_menu_override()
-        if override is None:
-            mtime = self._menu_cache_mtime()
-            if (
-                self._formatted_menu_cache is not None
-                and self._formatted_menu_mtime == mtime
-            ):
-                return self._formatted_menu_cache
-            menu = self.get_available_menu()
-        else:
-            menu = override
+        menu = self.get_available_menu()
         if not menu:
-            formatted = (
-                "Por el momento no tenemos platos disponibles. Intenta más tarde."
-            )
-        else:
-            grouped: Dict[str, List[Dict[str, Any]]] = {}
-            for item in menu:
-                category = item.get("categoria") or "General"
-                grouped.setdefault(category, []).append(item)
+            return "Por el momento no tenemos platos disponibles. Intenta más tarde."
 
-            lines = ["*Nuestro menú*\n"]
-            for category, items in grouped.items():
-                lines.append(f"*{category}*")
-                for item in items:
-                    lines.append(f"• {item['nombre']} — ${item['precio']:.2f}")
-                lines.append("")
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for item in menu:
+            category = item.get("categoria") or "General"
+            grouped.setdefault(category, []).append(item)
 
-            formatted = "\n".join(lines).strip()
+        lines = ["*Nuestro menú*\n"]
+        for category, items in grouped.items():
+            lines.append(f"*{category}*")
+            for item in items:
+                lines.append(f"• {item['nombre']} — ${item['precio']:.2f}")
+            lines.append("")
 
-        if override is None:
-            self._formatted_menu_cache = formatted
-            self._formatted_menu_mtime = self._menu_cache_mtime()
-        return formatted
+        return "\n".join(lines).strip()

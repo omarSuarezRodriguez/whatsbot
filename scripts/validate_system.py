@@ -190,13 +190,14 @@ def main() -> int:
         return True
 
     try:
-        from app.integrations.google_sheets import GoogleSheetsClient
         from chatbot.runtime import get_bot_context
+        from infrastructure.database import session_scope
         from services import notification_service as notify
+        from services import order_service as order_svc
 
         ctx = get_bot_context(start_background=False)
-        sheets: GoogleSheetsClient = ctx.admin_service.sheets
-        order_id = sheets.create_order(
+        store = ctx.admin_service.sheets  # DBStore instance
+        order_id = store.create_order(
             wa_id="573007776666",
             items=[{"nombre": "Pizza validate", "qty": 1, "subtotal": 12.0}],
             total=12.0,
@@ -208,10 +209,8 @@ def main() -> int:
             "app.services.admin_service.AdminService._send_whatsapp",
             _fake_send,
         ):
-            notify.on_order_pending(
-                sheets.get_order(order_id) or {"order_id": order_id},
-                business_id="default",
-            )
+            order_payload = store.get_order(order_id) or {"order_id": order_id}
+            notify.on_order_pending(order_payload, business_id="default")
             if any("CONFIRMAR" in body for _, body in whatsapp_log):
                 _ok("notify admin -> CONFIRMAR en mensaje")
             else:
@@ -229,10 +228,12 @@ def main() -> int:
                 _fail("approve desde app", r.text[:120])
                 failures += 1
 
-            if sheets.get_order(order_id)["status"] == "confirmed":
-                _ok("pedido confirmado en Sheets")
+            with session_scope() as db:
+                row = order_svc.get_order(db, "default", order_id)
+            if row and row.status == "confirmed":
+                _ok("pedido confirmado en BD")
             else:
-                _fail("estado pedido Sheets", sheets.get_order(order_id).get("status"))
+                _fail("estado pedido BD", row.status if row else "not found")
                 failures += 1
 
             if any(

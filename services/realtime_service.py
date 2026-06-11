@@ -121,7 +121,11 @@ def build_order_updated_event(order: Any) -> dict[str, Any]:
 
 
 class RealtimeHub:
-    """In-memory WebSocket hub keyed by business_id."""
+    """In-memory WebSocket hub keyed by business_id.
+
+    When Redis is enabled, events are also published to Redis pub/sub so that
+    multiple API workers behind a load balancer can fan out to their local sockets.
+    """
 
     def __init__(self) -> None:
         self._connections: dict[str, set[WebSocket]] = {}
@@ -199,9 +203,22 @@ class RealtimeHub:
         return delivered
 
     async def emit(self, business_id: str, event: dict[str, Any]) -> int:
-        """Broadcast event to all sockets for business_id. Returns delivery count."""
+        """Broadcast event to local sockets and publish to Redis (if enabled)."""
         if not REALTIME_ENABLED:
             return 0
+
+        # Publish to Redis so all workers receive the event
+        try:
+            from infrastructure.cache import publish_event, ws_channel
+            channel = await ws_channel(business_id)
+            await publish_event(channel, event)
+        except Exception:
+            pass  # Redis optional; continue with local delivery
+
+        return await self._emit_local(business_id, event)
+
+    async def _emit_local(self, business_id: str, event: dict[str, Any]) -> int:
+        """Deliver event to this worker's local WebSocket connections."""
         async with self._lock:
             sockets = list(self._connections.get(business_id, set()))
         if not sockets:

@@ -83,7 +83,14 @@ class FlowEngine:
         self.global_commands = self.meta.get("global_commands", {})
 
     def _render(self, template: str, extra: Optional[Dict[str, Any]] = None) -> str:
-        context = {"restaurant_name": RESTAURANT_NAME, "welcome_line": "", "address_prompt": ""}
+        # Use per-business prompts/name from contextvar when available
+        try:
+            from chatbot.business_context import get_prompt as ctx_get_prompt
+
+            biz_name = ctx_get_prompt("restaurant_name", RESTAURANT_NAME)
+        except Exception:
+            biz_name = RESTAURANT_NAME
+        context = {"restaurant_name": biz_name, "welcome_line": "", "address_prompt": ""}
         if extra:
             context.update(extra)
         rendered = template
@@ -468,12 +475,18 @@ class FlowEngine:
         return self._as_reply(response, node, step=step)
 
     def _build_node_context(self, wa_id: str, step: str) -> Dict[str, str]:
+        try:
+            from chatbot.business_context import get_prompt as ctx_get_prompt
+
+            _biz_name = ctx_get_prompt("restaurant_name", RESTAURANT_NAME)
+        except Exception:
+            _biz_name = RESTAURANT_NAME
         profile = self.user_service.get_profile(wa_id)
         name = profile.get("name", "")
         if name:
-            welcome = f"Hola *{name}*, Bienvenido a *{RESTAURANT_NAME}*."
+            welcome = f"Hola *{name}*, Bienvenido a *{_biz_name}*."
         else:
-            welcome = f"Hola, Bienvenido a *{RESTAURANT_NAME}*."
+            welcome = f"Hola, Bienvenido a *{_biz_name}*."
 
         address_prompt = "Indícame la dirección de entrega a domicilio."
         saved_address = profile.get("address", "")
