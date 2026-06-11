@@ -6,11 +6,11 @@ Backend **FastAPI** + app móvil **Flutter** (UI tipo WhatsApp). Multi-negocio; 
 
 Para correr el sistema:
 
-- **Bot (Python / API): desde final_system:**
+- **Bot (Python / API):**
 
-python -m api.main
+.\start.ps1
 
-- **App Flutter: desde final_system:**
+- **App Flutter:**
 
 cd whatsbot_app
 flutter run

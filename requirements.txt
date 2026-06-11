@@ -18,11 +18,9 @@ psycopg2-binary>=2.9.0
 alembic>=1.14.0
 
 # Chatbot runtime deps
-Flask>=3.0.0
 twilio>=9.0.0
 requests>=2.31.0
 rapidfuzz>=3.0.0
-waitress>=3.0.0
 
 # Cache / pub-sub (Redis — for WS fanout & stateless multi-worker)
 redis>=5.0.0

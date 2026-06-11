@@ -1,4 +1,4 @@
-## v1.8 - Plan implementado (en revisión)
+## v1.9
 
 
 
@@ -1603,7 +1603,57 @@ The system is fully clean of Sheets dependencies at the code level.
 
 
 ###################################################3
+## 1.9
 
 
+## prompt ## (pendiente a pegar)
+
+Quiero que reorganices este proyecto Flutter para que quede completamente independiente y portable.
+
+OBJETIVO:
+Dejar la app Flutter en una sola carpeta limpia que pueda copiar y pegar en cualquier otro lugar y ejecutarse sin dependencias externas del proyecto actual.
+
+INSTRUCCIONES:
+
+1. Identifica todo lo relacionado exclusivamente con Flutter:
+   - lib/
+   - pubspec.yaml
+   - android/
+   - ios/
+   - web/ (si existe)
+   - assets/
+   - test/
+
+2. Crea una nueva carpeta en la raíz del proyecto llamada:
+   /flutter_app_clean
+
+3. Mueve SOLO lo necesario de Flutter a esa carpeta.
+   NO incluyas:
+   - backend en Python
+   - scripts del bot
+   - archivos de configuración del servidor
+   - logs o datos temporales
+   - archivos que no sean necesarios para ejecutar Flutter
+
+4. Asegúrate de que dentro de /flutter_app_clean el proyecto pueda ejecutarse solo con:
+   flutter pub get
+   flutter run
+
+5. Ajusta rutas de imports si es necesario para que nada dependa del proyecto original.
+
+6. Verifica que no haya referencias a archivos externos fuera de esa carpeta.
+
+7. No borres el proyecto original, solo crea la versión limpia separada.
+
+RESULTADO FINAL:
+Una carpeta autónoma de Flutter lista para copiar, pegar y ejecutar en otro entorno sin errores, no toques el código solo has copia de lo que te pido
 
 
+## resp  ##
+
+Listo ya quedó en flutter_app_clean
+
+Ya lo pasé a otra carpeta, los voy a borrar y dejar el proyecto este solo con el bot y el otro solo con la app
+
+
+################################################################
