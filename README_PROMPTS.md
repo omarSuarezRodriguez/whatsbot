@@ -1,4 +1,4 @@
-## v1.8
+## v1.8 - Plan implementado (en revisión)
 
 
 
