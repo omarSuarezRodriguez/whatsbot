@@ -1659,3 +1659,43 @@ Cliente: sdfsd
 Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
 
 #################################################################
+################################################################
+
+Cliente: key
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: sdfsd
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: oko
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: okok
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################

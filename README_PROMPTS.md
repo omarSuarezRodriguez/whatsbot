@@ -1,4 +1,4 @@
-## v1.9
+## v1.10 - Se puso whatsapp en un proyecto independiente y se retiró del actual, quedando solamente el bot en este proyecto
 
 
 
@@ -1657,3 +1657,9 @@ Ya lo pasé a otra carpeta, los voy a borrar y dejar el proyecto este solo con e
 
 
 ################################################################
+## v1.10
+
+Se puso whatsapp en un proyecto independiente y se retiró del actual, quedando solamente el bot en este proyecto
+
+
+
