@@ -33,7 +33,7 @@ python scripts/onboard_business.py --default
 
 Salida esperada: `Default business ready: default`
 
-En la app Flutter, el dueño entra con **ID del negocio:** `default` y el PIN de `WHATSBOT_OWNER_PIN`.
+El dueño se autentica con `POST /auth/login` usando **ID del negocio:** `default` y el PIN de `WHATSBOT_OWNER_PIN`.
 
 ---
 
@@ -69,19 +69,23 @@ POST {API_PUBLIC_URL}/webhook
 
 Ejemplo con ngrok: `https://abc123.ngrok-free.app/webhook`
 
-### Paso 3 — Login en la app
+### Paso 3 — Autenticarse en la API
 
-1. Abre WhatsBot en el móvil.
-2. **ID del negocio:** `pizzeria-norte` (el `--id` que usaste).
-3. **PIN:** el valor de `WHATSBOT_OWNER_PIN` en el `.env` del servidor.
-4. Entra y personaliza menú, intents y mensajes desde Ajustes.
+```http
+POST /auth/login
+Content-Type: application/json
+
+{"business_id": "pizzeria-norte", "pin": "<WHATSBOT_OWNER_PIN del .env>"}
+```
+
+Respuesta: `access_token` JWT. Úsalo como `Authorization: Bearer <token>` en todas las rutas REST y WebSocket.
 
 ### Paso 4 — Probar
 
 1. Desde un teléfono cliente, escribe al número Twilio del negocio nuevo.
 2. Debe responder el bot con la bienvenida.
-3. El chat aparece en la app del dueño.
-4. Haz un pedido de prueba y confírmalo desde la app o desde el WhatsApp admin.
+3. `GET /whatsbot/conversations` con el JWT devuelve el chat del cliente.
+4. Haz un pedido de prueba y confírmalo con `POST /whatsbot/orders/{id}/approve` o desde el WhatsApp admin.
 
 ---
 
@@ -91,8 +95,8 @@ Ejemplo con ngrok: `https://abc123.ngrok-free.app/webhook`
 |----------|----------------|
 | Identificación | Twilio envía el campo **To** → el sistema busca `twilio_whatsapp_from` en la tabla `business`. |
 | Datos aislados | Menú, intents, prompts, chats y pedidos van por `business_id`. |
-| App Flutter | Cada dueño entra con su `business_id` + PIN. |
-| Secrets | Twilio y PIN **solo** en el servidor (`.env`), nunca en Flutter. |
+| Auth API | Cada dueño se autentica con su `business_id` + PIN → JWT. |
+| Secrets | Twilio y PIN **solo** en el servidor (`.env`). |
 
 ---
 
@@ -121,7 +125,7 @@ python scripts/validate_system.py
 |----------|----------|
 | El bot no responde al cliente | Revisa webhook Twilio → `{API_PUBLIC_URL}/webhook` |
 | Mensajes van al negocio equivocado | El número **To** debe coincidir con `twilio_whatsapp_from` del negocio |
-| App no conecta | Verifica `api_config.dart` y que la API esté encendida |
-| PIN incorrecto | Revisa `WHATSBOT_OWNER_PIN` en `final_system/.env` |
+| `POST /auth/login` falla | Verifica que la API esté encendida (`python -m api.main`) |
+| PIN incorrecto | Revisa `WHATSBOT_OWNER_PIN` en `.env` |
 
-Para editar menú e intents después del alta, ver `docs/GUIA_EDICION_APP.md`.
+Para editar menú e intents después del alta, usar `PUT /whatsbot/business/menu`, `PUT /whatsbot/business/intents` y `PUT /whatsbot/business/prompts` con el JWT del negocio.

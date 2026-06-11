@@ -5,7 +5,7 @@ SQLAlchemy + Alembic — ORM y migraciones
 SQLite (dev) / PostgreSQL (producción)
 Twilio — integración WhatsApp
 Redis — pub/sub para WebSockets y multi-worker
-WebSockets — tiempo real tipo WhatsApp
+WebSockets — tiempo real
 JWT + bcrypt — autenticación por negocio con PIN
 Firebase/FCM — push notifications (opcional)
 RapidFuzz — fuzzy matching para intents del chatbot
@@ -23,9 +23,7 @@ El webhook de Twilio identifica el negocio por el número Twilio que recibe el m
 
 
 
-
-
-## Sí, exactamente. La base está bien puesta:
+## Estado actual
 
 Arquitectura limpia y separada por capas
 Multi-tenant en el diseño desde el inicio
@@ -33,12 +31,10 @@ Tiempo real con WebSockets
 Auth JWT
 BD relacional con migraciones
 Tests y scripts de validación
-App móvil conectada
-Lo que queda para crecer es solo operacional y de escala, no rehacer nada:
+Lo que queda para crecer es operacional y de escala:
 
 Probar con múltiples negocios reales
 Subir a producción (servidor + dominio + HTTPS)
 Activar PostgreSQL en lugar de SQLite
 Activar Redis real para multi-worker
-Activar FCM si quieres push con app cerrada
-Pulir la app Flutter (UX, íconos, etc.)
+Activar FCM si se quiere push (requiere cliente que registre device token)

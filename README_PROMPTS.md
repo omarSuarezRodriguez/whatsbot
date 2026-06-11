@@ -1,4 +1,4 @@
-## v1.10 - Se puso whatsapp en un proyecto independiente y se retiró del actual, quedando solamente el bot en este proyecto
+## v1.11 - proyecto limpio, actualmente quedó solo el bot y la app en otro proyecto (whatsbot_app)
 
 
 
@@ -1661,5 +1661,28 @@ Ya lo pasé a otra carpeta, los voy a borrar y dejar el proyecto este solo con e
 
 Se puso whatsapp en un proyecto independiente y se retiró del actual, quedando solamente el bot en este proyecto
 
+
+
+
+
+
+
+
+#################################################################
+## v1.11
+
+Yo saqué el código flutter de aquí, actualmente el proyecto ahora es solo del bot, actualiza eso
+
+
+## resp cursor ##
+
+Yo saqué el código flutter de aquí, actualmente el proyecto ahora es solo del bot, actualiza eso
+
+
+
+
+
+
+####################################################
 
 
