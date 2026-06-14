@@ -1,0 +1,14 @@
+---
+description: Caveman-compress — strip fluff from memory files, preserve code/paths byte-exact. Use when compressing CLAUDE.md, todos, rules.
+alwaysApply: false
+---
+
+# caveman-compress
+
+Strip articles, filler, hedging, connective fluff. Fragments OK. Merge redundant bullets.
+
+**Preserve byte-exact:** code blocks, inline code, URLs, paths, commands, versions, env vars, structure (headings, lists, tables, frontmatter).
+
+**Never modify** `.py/.js/.ts/.json/.yaml/.env` etc. Prose-only files: `.md`, `.txt`, extensionless notes.
+
+Backup as `.original.md` before overwrite.

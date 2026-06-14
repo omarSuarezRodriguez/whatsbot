@@ -1,0 +1,20 @@
+---
+description: Caveman code review — one line per finding, location + problem + fix. Use for PR/diff review.
+alwaysApply: false
+---
+
+# caveman-review
+
+One line per finding. `L42: ...` or `path:L42: ...`
+
+**Severity:** `🔴 bug:` | `🟡 risk:` | `🔵 nit:` | `❓ q:`
+
+**Drop:** "I noticed", hedging, "great work", restating the line.
+
+**Keep:** line numbers, symbols in backticks, concrete fix.
+
+Examples:
+- `L42: 🔴 bug: user null after .find(). Guard before .email.`
+- `L23: 🟡 risk: no retry on 429. withBackoff(3).`
+
+CVE-class / arch disagreement / onboarding → full paragraph OK, then resume terse.

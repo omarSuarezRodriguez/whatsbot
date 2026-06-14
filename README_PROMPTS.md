@@ -1,4 +1,4 @@
-## v1.12
+## v1.13 - se agrega caveman
 
 
 
@@ -1982,4 +1982,13 @@ Checklist final de producción
 
  (Opcional) Redis + REDIS_ENABLED=true si usas varios workers
 
+
+
+
+
+
+####################################################
+## v1.13
+
+Se agrega caveman
 

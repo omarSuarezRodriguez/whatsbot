@@ -1,5 +1,12 @@
 # Prompts listos — copiar y pegar en Cursor
 
+
+.\start.ps1   
+
+comando para iniciar el servidor
+
+
+
 > **Fuente de verdad:** `@PROMPT_EVOLUCION_SAAS_WHATSBOT.md`  
 > **WhatsBot = app móvil Flutter (Android/iOS), UI tipo WhatsApp. PROHIBIDO UI web.**
 

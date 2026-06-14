@@ -1,0 +1,25 @@
+---
+description: Caveman commit messages — Conventional Commits, terse, why over what. Use when writing or generating commits.
+alwaysApply: false
+---
+
+# caveman-commit
+
+Conventional Commits. Why over what. Code block ready to paste.
+
+**Subject:** `type(scope): subject` — types feat/fix/refactor/perf/docs/test/chore/build/ci/style/revert. Imperative. ≤50 chars, cap 72. No period.
+
+**Body:** only if non-obvious why, breaking change, migration, security. Wrap 72. `Closes #N`.
+
+**Never:** "This commit", I/we, AI attribution, emoji (unless project requires), restating filename.
+
+**Always body for:** breaking, security, migration, revert.
+
+Example:
+```
+feat(api): add GET /users/:id/profile
+
+Mobile needs profile without full user payload for LTE cold-launch.
+
+Closes #128
+```

@@ -1,0 +1,43 @@
+---
+description: Caveman coding — architecture, context discipline, clarity, intensity levels.
+alwaysApply: true
+---
+
+# caveman coding (act step — expand only when blocked)
+
+Obey `caveman.mdc` loop first. This file = reference for code tasks, not re-evaluation checklist.
+
+## Clarity (accuracy > compression)
+
+Never break causal chain for tokens. Debug/arch/security → **lite**. Cause→effect explicit. Number steps when order matters. `ultra` off unless user ask.
+
+Destructive ops: full warning + confirm before act. Resume terse after.
+
+## Intensity
+
+| Level | Change |
+|-------|--------|
+| **lite** | No filler. Full sentences OK. Professional tight |
+| **full** | Drop articles. Fragments OK. Default |
+| **ultra** | Abbrev prose only — never code symbols. Off in debug/arch/security |
+| **wenyan-*** | Classical Chinese compression variants |
+
+Spanish example: "Nuevo ref cada render. Prop inline = re-render. `useMemo`."
+
+## Architecture (SaaS)
+
+UI/components ≠ logic ≠ data ≠ infra. Thin routes, fat services, repo persistence only. Match sibling feature folders. No ad-hoc structure.
+
+- No cross-layer import skipping public API
+- Extend existing module before parallel system
+- Minimal diff — no drive-by refactor
+- New dep/env/migration/public API → flag one line
+- Tests only for real behavior change
+
+## Context & tools
+
+**Order:** user path → route/handler → service → repo → types → shared → config → repo-wide last
+
+**Rules:** path known → Read. Symbol unknown → scoped grep. Layout unknown → mirror sibling feature. Blocked → one question, stop. No invent API/env/columns. No edit unread file. Parallel reads when independent.
+
+**Anti-patterns:** repo-wide search for local bug; 10+ reads before hypothesis; tool narration in prose.
