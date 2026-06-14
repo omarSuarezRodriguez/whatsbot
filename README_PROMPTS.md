@@ -1,4 +1,4 @@
-## v1.11 - proyecto limpio, actualmente quedó solo el bot y la app en otro proyecto (whatsbot_app)
+## v1.12
 
 
 
@@ -1684,5 +1684,302 @@ Yo saqué el código flutter de aquí, actualmente el proyecto ahora es solo del
 
 
 ####################################################
+## v1.12
+
+
+## prompt ##
+
+Analiza este proyecto leyendo solo lo necesario (README, configs, Docker, .env.example, dependencias, entrypoints). No modifiques nada. Ahorra tokens: respuestas concisas, sin repetir el prompt, sin listar archivos irrelevantes, sin volcar código salvo lo imprescindible.
+
+Contexto de despliegue
+
+VPS Contabo, Ubuntu 24.04, CyberPanel instalado
+Dominio: kiresoft.com
+API: api.kiresoft.com
+Responde solo con lo que encuentres en el código (cero suposiciones):
+
+Tecnologías
+Punto de entrada principal
+Variables de entorno (nombre + propósito)
+Dependencias externas
+Servicios requeridos (PostgreSQL, MySQL, Redis, Docker, RabbitMQ, etc.)
+Puertos
+¿Listo para producción? ¿Qué falta?
+Si hay FastAPI: comando exacto de uvicorn
+Si hay Docker: contenedores/servicios a levantar
+Si hay BD: configuración en el VPS
+Si hay webhooks: dominios y rutas públicas
+Si hay WhatsApp/Telegram/Evolution API/Meta Cloud API u otros: cómo configurarlos
+Guía de despliegue paso a paso para mi stack (Contabo + Ubuntu 24.04 + CyberPanel + kiresoft.com + api.kiresoft.com), con comandos copy-paste exactos.
+
+Checklist Final de Producción: lista verificable de todo lo que debe funcionar para dar el despliegue por terminado.
+
+
+
+## resp cursor ##
+
+Tecnologías
+Backend: Python, FastAPI, Uvicorn, SQLAlchemy, Alembic, Pydantic, JWT (python-jose + passlib)
+WhatsApp: Twilio (único canal documentado en código)
+BD: PostgreSQL (prod) o SQLite (dev)
+Opcional: Redis (REDIS_ENABLED, default false), Firebase Admin (FCM push)
+Cliente: app Flutter referenciada en DEPLOY_DOCKER.md (no está en el repo git actual)
+No aparece en el código: Telegram, Evolution API, Meta Cloud API, MySQL, RabbitMQ, CyberPanel, nginx
+Punto de entrada principal
+python -m api.main
+Arranca Uvicorn con api.main:app en HOST/PORT (default 0.0.0.0:5000).
+En dev local también existe start.ps1 (Windows): alembic upgrade head + python -m api.main.
+
+Variables de entorno (nombre → propósito)
+Variable	Propósito
+API_PUBLIC_URL
+URL pública HTTPS del API (webhooks Twilio, callbacks, app)
+CORS_ORIGINS
+Orígenes CORS (, separados o *)
+HOST / PORT
+Bind del servidor (default 0.0.0.0:5000)
+DEBUG
+Logs debug + reload Uvicorn
+DATABASE_URL
+PostgreSQL o SQLite
+DEFAULT_BUSINESS_ID / DEFAULT_BUSINESS_NAME
+Negocio semilla
+TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_WHATSAPP_FROM
+Credenciales y línea WhatsApp
+TWILIO_REST_WEBHOOK_REPLIES
+Respuestas vía REST vs TwiML
+TWILIO_VALIDATE_SIGNATURE
+Validar firma Twilio en /webhook (default false, solo en settings.py)
+ADMIN_WHATSAPP_NUMBER
+WhatsApp del dueño (confirmación legacy)
+ADMIN_REMINDER_*
+Intervalos recordatorio admin
+JWT_SECRET_KEY / JWT_EXPIRE_MINUTES
+Auth JWT app
+WHATSBOT_OWNER_PIN
+PIN inicial del negocio default
+SUPERADMIN_API_KEY
+CRUD multi-negocio /businesses (vacío = deshabilitado)
+REDIS_URL / REDIS_ENABLED
+Pub/sub WS multi-worker (default desactivado)
+REALTIME_ENABLED / WS_HEARTBEAT_SECONDS
+WebSocket tiempo real
+FCM_ENABLED / FCM_SERVICE_ACCOUNT_*
+Push Firebase
+STATE_PERSIST_PATH / PARSER_ERROR_LOG_PATH / FLOWS_PATH
+Runtime bot
+SECRET_KEY / FLASK_*
+Legacy Flask
+DEPLOY_URL / DEPLOY_TIMEOUT
+Scripts de despliegue
+GOOGLE_* / MENU_CACHE_* / SHEETS_*
+En .env.example pero Sheets eliminado del código (chatbot/app/config.py)
+POSTGRES_PASSWORD / DOMAIN
+Solo en guía DEPLOY_DOCKER.md (Docker), no en .env.example
+Dependencias externas
+Twilio (WhatsApp inbound/outbound)
+PostgreSQL (recomendado prod)
+Redis (opcional, multi-instancia)
+Firebase (opcional, push FCM)
+Dominio + HTTPS (prod; doc usa Caddy)
+ngrok (solo dev, README.md)
+Servicios requeridos
+Servicio	¿Requerido?
+PostgreSQL
+Sí en prod (SQLite solo dev)
+Redis
+No (opcional)
+Docker
+No en runtime; solo documentado en DEPLOY_DOCKER.md
+MySQL, RabbitMQ
+No
+Puertos
+Puerto	Uso (según docs)
+5000
+API FastAPI
+5432
+PostgreSQL (interno)
+6379
+Redis (opcional, interno)
+80 / 443
+Caddy reverse proxy (DEPLOY_DOCKER.md)
+No exponer 5000 ni 5432 a internet (firewall en doc)
+¿Listo para producción? ¿Qué falta?
+Parcialmente. El backend está pensado para prod, pero en el repo faltan:
+
+Dockerfile, docker-compose.yml, Caddyfile (hay que crearlos manualmente según DEPLOY_DOCKER.md)
+Configuración CyberPanel / systemd (no documentada)
+App Flutter (whatsbot_app/) no está en git
+.env con secretos reales (JWT_SECRET_KEY, Twilio, PIN)
+Migraciones + onboard ejecutados una vez
+Validaciones: validate_chatbot.py, validate_api.py, validate_system.py, pytest
+Redis desactivado → un solo worker; WS en memoria por proceso
+TWILIO_VALIDATE_SIGNATURE=false por defecto
+docs/FLUTTER_APP.md referenciado en deploy pero no presente en el workspace
+FastAPI — comando uvicorn exacto
+Documentado en DEPLOY_DOCKER.md:
+
+python -m uvicorn api.main:app --host 0.0.0.0 --port 5000 --proxy-headers --forwarded-allow-ips "*"
+Alternativa nativa del entrypoint:
+
+python -m api.main
+(sin --proxy-headers; menos adecuado detrás de proxy HTTPS)
+
+Docker — contenedores a levantar
+Según DEPLOY_DOCKER.md (archivos no commiteados en el repo):
+
+Servicio	Imagen/rol
+db
+postgres:16-alpine
+api
+Build local (Python 3.11-slim)
+caddy
+caddy:2-alpine (HTTPS + reverse proxy)
+docker compose up -d --build
+BD en el VPS
+Docker (doc oficial):
+
+DATABASE_URL=postgresql://whatsbot:TU_PASSWORD@db:5432/whatsbot
+POSTGRES_PASSWORD=TU_PASSWORD
+Sin Docker (.env.example):
+
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/whatsbot
+Inicialización (primera vez):
+
+python scripts/migrate_db.py --postgres
+python scripts/onboard_business.py --default
+# o: python -m alembic upgrade head  (usa start.ps1)
+Webhooks — dominios y rutas públicas
+Con API_PUBLIC_URL=https://api.kiresoft.com:
+
+Ruta	Método	Uso
+/webhook
+POST
+Twilio “When a message comes in”
+/bot
+POST
+Alias legacy
+/webhook/status
+POST
+Callback estado Twilio (auto si API_PUBLIC_URL es HTTPS público)
+/health
+GET
+Health check
+/whatsbot/ws?token=JWT
+WS
+Tiempo real app
+/auth/login
+POST
+Login app (business_id + PIN)
+No hay webhooks de Telegram/Evolution/Meta en el código.
+
+WhatsApp (Twilio) — configuración
+Rellenar en .env: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM, ADMIN_WHATSAPP_NUMBER
+Twilio Console → Messaging → número WhatsApp → When a message comes in:
+URL: https://api.kiresoft.com/webhook
+Método: POST
+API_PUBLIC_URL=https://api.kiresoft.com (debe coincidir con el dominio real)
+Nuevo negocio: python scripts/onboard_business.py --id X --twilio-from "whatsapp:+57..." → mismo webhook para todos los números
+Sandbox Twilio: número hardcodeado +14155238886 en settings.py
+Guía de despliegue (Contabo + Ubuntu 24.04 + api.kiresoft.com)
+Nota: CyberPanel y kiresoft.com no aparecen en el código. La guía oficial del repo es Docker + Caddy. CyberPanel ya usa 80/443 → puede chocar con Caddy; no hay pasos CyberPanel en el repo.
+
+A) Ruta documentada en el repo (Docker + Caddy)
+# 1. Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# cerrar sesión y volver a entrar
+# 2. Clonar
+cd ~
+git clone https://github.com/omarSuarezRodriguez/whatsbot.git
+cd whatsbot
+# 3. Crear Dockerfile, docker-compose.yml, Caddyfile (contenido exacto en DEPLOY_DOCKER.md)
+#    Caddyfile: api.kiresoft.com { reverse_proxy api:5000 }
+# 4. .env producción
+cp .env.example .env
+nano .env
+Valores mínimos (adaptados de DEPLOY_DOCKER.md):
+
+DOMAIN=api.kiresoft.com
+API_PUBLIC_URL=https://api.kiresoft.com
+CORS_ORIGINS=*
+HOST=0.0.0.0
+PORT=5000
+DEBUG=false
+POSTGRES_PASSWORD=GENERA_UNA_CLAVE_LARGA
+DATABASE_URL=postgresql://whatsbot:GENERA_UNA_CLAVE_LARGA@db:5432/whatsbot
+TWILIO_ACCOUNT_SID=ACxxxx
+TWILIO_AUTH_TOKEN=xxxx
+TWILIO_WHATSAPP_FROM=whatsapp:+57xxxx
+ADMIN_WHATSAPP_NUMBER=whatsapp:+57xxxx
+JWT_SECRET_KEY=GENERA_32_CARACTERES_MINIMO
+WHATSBOT_OWNER_PIN=tu_pin_seguro
+DEFAULT_BUSINESS_ID=default
+GOOGLE_SHEETS_ENABLED=false
+REALTIME_ENABLED=true
+FCM_ENABLED=false
+SECRET_KEY=misma_que_JWT_SECRET_KEY
+# 5. DNS: registro A api.kiresoft.com → IP del VPS
+# 6. Levantar
+docker compose up -d --build
+docker compose ps
+# 7. Inicializar BD (solo primera vez)
+docker compose exec api python scripts/migrate_db.py --postgres
+docker compose exec api python scripts/onboard_business.py --default
+docker compose exec api python scripts/validate_system.py
+# 8. Verificar
+curl -s https://api.kiresoft.com/health | python3 -m json.tool
+# 9. Twilio webhook → https://api.kiresoft.com/webhook (POST)
+# 10. Firewall
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+B) Sin Docker (comandos del README.md, proxy HTTPS no documentado)
+sudo apt update && sudo apt install -y python3 python3-pip python3-venv postgresql
+cd ~/whatsbot
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # editar DATABASE_URL localhost + secretos
+python scripts/migrate_db.py --postgres
+python scripts/onboard_business.py --default
+python -m uvicorn api.main:app --host 0.0.0.0 --port 5000 --proxy-headers --forwarded-allow-ips "*"
+HTTPS/proxy en este modo: no documentado en el repo (solo ngrok para dev). Con CyberPanel habría que apuntar api.kiresoft.com como reverse proxy a 127.0.0.1:5000 — fuera del alcance del código.
+
+Checklist final de producción
+
+ DNS api.kiresoft.com → IP VPS
+
+ .env con secretos fuertes (no valores de ejemplo)
+
+ PostgreSQL operativo y DATABASE_URL correcta
+
+ migrate_db.py --postgres + onboard_business.py --default ejecutados
+
+ curl https://api.kiresoft.com/health → "status":"ok"
+
+ Twilio webhook POST https://api.kiresoft.com/webhook
+
+ WhatsApp al bot → respuesta automática
+
+ POST /auth/login con default + PIN funciona
+
+ App/cliente: GET /whatsbot/conversations con JWT
+
+ POST /whatsbot/messages → cliente recibe por WhatsApp
+
+ WS wss://api.kiresoft.com/whatsbot/ws?token=... con REALTIME_ENABLED=true
+
+ Pedido → notifica admin → POST /whatsbot/orders/{id}/approve
+
+ Validaciones sin fallos: validate_chatbot.py, validate_api.py, validate_system.py, pytest
+
+ Puertos 5000/5432 no expuestos públicamente
+
+ Backup PostgreSQL (pg_dump en doc Docker)
+
+ (Opcional) FCM: FCM_ENABLED=true + JSON en credentials/
+
+ (Opcional) Redis + REDIS_ENABLED=true si usas varios workers
 
 
