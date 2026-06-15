@@ -2060,3 +2060,13 @@ Cliente: lol
 Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
 
 #################################################################
+################################################################
+
+Cliente: ñ4
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################

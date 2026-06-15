@@ -55,6 +55,49 @@ def test_login_rejects_bad_pin(client: TestClient):
     assert r.status_code == 401
 
 
+def test_login_returns_refresh_token(client: TestClient):
+    r = client.post(
+        "/auth/login",
+        json={"business_id": "default", "pin": "testpin"},
+    )
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["access_token"]
+    assert data["refresh_token"]
+    assert data["business_id"] == "default"
+
+
+def test_refresh_issues_new_access_token(client: TestClient):
+    login = client.post(
+        "/auth/login",
+        json={"business_id": "default", "pin": "testpin"},
+    )
+    assert login.status_code == 200, login.text
+    refresh_token = login.json()["refresh_token"]
+
+    refreshed = client.post(
+        "/auth/refresh",
+        json={"refresh_token": refresh_token},
+    )
+    assert refreshed.status_code == 200, refreshed.text
+    data = refreshed.json()
+    assert data["access_token"]
+    assert data["refresh_token"]
+    assert data["refresh_token"] != refresh_token
+
+    headers = {"Authorization": f"Bearer {data['access_token']}"}
+    r = client.get("/whatsbot/conversations", headers=headers)
+    assert r.status_code == 200
+
+
+def test_refresh_rejects_invalid_token(client: TestClient):
+    r = client.post(
+        "/auth/refresh",
+        json={"refresh_token": "not-a-valid-token"},
+    )
+    assert r.status_code == 401
+
+
 def test_whatsbot_requires_auth(client: TestClient):
     r = client.get("/whatsbot/conversations")
     assert r.status_code == 401

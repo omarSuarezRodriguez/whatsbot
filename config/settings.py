@@ -33,6 +33,7 @@ REDIS_ENABLED = os.getenv("REDIS_ENABLED", "false").strip().lower() in {"1", "tr
 # JWT
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", os.getenv("SECRET_KEY", ""))
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
+JWT_REFRESH_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "90"))
 SECRET_KEY = os.getenv("SECRET_KEY", JWT_SECRET_KEY)
 
 # PIN para login app Flutter — migrated to per-business pin_hash.
