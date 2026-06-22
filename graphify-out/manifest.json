@@ -1,0 +1,557 @@
+{
+  "alembic/env.py": {
+    "mtime": 1781141134.759842,
+    "ast_hash": "ba3a3a9edf25153f5a0ac7dc2c0902f8",
+    "semantic_hash": ""
+  },
+  "alembic/versions/001_db_only_multi_tenant.py": {
+    "mtime": 1781141171.1748135,
+    "ast_hash": "0a2c8b3cd44f80b6e723d3b9f47024e1",
+    "semantic_hash": ""
+  },
+  "api/__init__.py": {
+    "mtime": 1781049443.3475194,
+    "ast_hash": "252f1b536ea59fb8cfab23bc8b2fdb32",
+    "semantic_hash": ""
+  },
+  "api/main.py": {
+    "mtime": 1782111014.4746127,
+    "ast_hash": "e3a22cf0eb1ee3474dc21f063ca8b36f",
+    "semantic_hash": ""
+  },
+  "api/middleware/__init__.py": {
+    "mtime": 1781049443.3745615,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "api/middleware/auth.py": {
+    "mtime": 1782111019.7582142,
+    "ast_hash": "64c1947fd119fca1c3c44a0b3ab5eabd",
+    "semantic_hash": ""
+  },
+  "api/routes/__init__.py": {
+    "mtime": 1781049443.392567,
+    "ast_hash": "83b1d3e729312a2f05a1f28a6d60f92b",
+    "semantic_hash": ""
+  },
+  "api/routes/auth.py": {
+    "mtime": 1782111019.761277,
+    "ast_hash": "b39d5cfbef36a2c2018100c27240f3b8",
+    "semantic_hash": ""
+  },
+  "api/routes/businesses.py": {
+    "mtime": 1782111014.476629,
+    "ast_hash": "bae7cfde3786a8f8513adddc1030e551",
+    "semantic_hash": ""
+  },
+  "api/routes/customers.py": {
+    "mtime": 1781140771.943165,
+    "ast_hash": "8a8dffc286c6427d66956e3788ae89f2",
+    "semantic_hash": ""
+  },
+  "api/routes/menus.py": {
+    "mtime": 1782111014.476629,
+    "ast_hash": "e50392572ff16a89daf88c2aabbb4a73",
+    "semantic_hash": ""
+  },
+  "api/routes/orders.py": {
+    "mtime": 1782111014.4725971,
+    "ast_hash": "05ef2f3e141e957fac7242a7a332ab5f",
+    "semantic_hash": ""
+  },
+  "api/routes/realtime.py": {
+    "mtime": 1781140723.8986032,
+    "ast_hash": "7c23acf197de5286a43546b7628b9906",
+    "semantic_hash": ""
+  },
+  "api/routes/whatsapp.py": {
+    "mtime": 1781140670.7822719,
+    "ast_hash": "51b75f0cdd05461dd888d07901bd9c75",
+    "semantic_hash": ""
+  },
+  "api/routes/whatsbot.py": {
+    "mtime": 1781140266.570163,
+    "ast_hash": "91e57f90a5036b422367d9ecb0b875fd",
+    "semantic_hash": ""
+  },
+  "api/schemas.py": {
+    "mtime": 1782111014.4725971,
+    "ast_hash": "bd776387314bb8a9d8b30053acc7e63f",
+    "semantic_hash": ""
+  },
+  "chatbot/__init__.py": {
+    "mtime": 1781049443.461841,
+    "ast_hash": "97c314a2efc00b825794ce29eecf5803",
+    "semantic_hash": ""
+  },
+  "chatbot/app/__init__.py": {
+    "mtime": 1781049443.4885194,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "chatbot/app/config.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "8e02764c312180113ab88e6d8343d649",
+    "semantic_hash": ""
+  },
+  "chatbot/app/core/__init__.py": {
+    "mtime": 1781049443.5100453,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "chatbot/app/core/flow_engine.py": {
+    "mtime": 1781140636.6511302,
+    "ast_hash": "dca630151c9458663a3d9ef22f949586",
+    "semantic_hash": ""
+  },
+  "chatbot/app/core/parser.py": {
+    "mtime": 1781140558.7838237,
+    "ast_hash": "99dbe728d6514183103f335f8c126081",
+    "semantic_hash": ""
+  },
+  "chatbot/app/core/state_manager.py": {
+    "mtime": 1781140606.8612037,
+    "ast_hash": "bd8cada576ac680ac3db114efefbf0b9",
+    "semantic_hash": ""
+  },
+  "chatbot/app/integrations/__init__.py": {
+    "mtime": 1781049443.5386927,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "chatbot/app/integrations/db_store.py": {
+    "mtime": 1781140452.7793105,
+    "ast_hash": "6f14b379474c5b6f51485d2462a6e5f6",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/__init__.py": {
+    "mtime": 1781049443.5564415,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/admin_service.py": {
+    "mtime": 1782111014.4725971,
+    "ast_hash": "3933476e2fb5ecb142ae72cfa1cb9a68",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/blocked_users_cache.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "7119d2585e72e0381973d3347dbbcbf0",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/menu_service.py": {
+    "mtime": 1782111014.4746127,
+    "ast_hash": "274b2ffe0846a65802adfa08d6730c10",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/order_service.py": {
+    "mtime": 1782111014.4725971,
+    "ast_hash": "8c5184f84e0e0693d71a649cfd1cfa2b",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/reservation_service.py": {
+    "mtime": 1782111014.4725971,
+    "ast_hash": "952857529eb9712b9dbc8962b40ca607",
+    "semantic_hash": ""
+  },
+  "chatbot/app/services/user_service.py": {
+    "mtime": 1782111014.4746127,
+    "ast_hash": "b4ba73be552c0f77727d62b057584145",
+    "semantic_hash": ""
+  },
+  "chatbot/app/utils/__init__.py": {
+    "mtime": 1781049443.6065466,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "chatbot/app/utils/client_message_log.py": {
+    "mtime": 1781049443.6125472,
+    "ast_hash": "654508a5f705ea5ef82776b454c502a8",
+    "semantic_hash": ""
+  },
+  "chatbot/app/utils/validators.py": {
+    "mtime": 1781049443.617547,
+    "ast_hash": "a0c5900e2328dc2912daa7db6702fd64",
+    "semantic_hash": ""
+  },
+  "chatbot/business_context.py": {
+    "mtime": 1781140580.5640762,
+    "ast_hash": "1f2c00d8164df92eac8de651bed0b9ed",
+    "semantic_hash": ""
+  },
+  "chatbot/gateway.py": {
+    "mtime": 1781051139.7040455,
+    "ast_hash": "c2a0b144e573319e6a6ac438b394c513",
+    "semantic_hash": ""
+  },
+  "chatbot/runtime.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "77b98daeb711f591ab8fdeb9372e69a1",
+    "semantic_hash": ""
+  },
+  "config/__init__.py": {
+    "mtime": 1782111014.4746127,
+    "ast_hash": "86c9db6e33a49cdefbbca5041603f759",
+    "semantic_hash": ""
+  },
+  "config/bot_config.py": {
+    "mtime": 1781049443.6873622,
+    "ast_hash": "7a77e186c5a5c8a8a9dd8c9a8f04ce2b",
+    "semantic_hash": ""
+  },
+  "config/intents.py": {
+    "mtime": 1781049443.693369,
+    "ast_hash": "a1db71c01f7f12bb25c07a3bd71ff7f8",
+    "semantic_hash": ""
+  },
+  "config/prompts.py": {
+    "mtime": 1781049443.699369,
+    "ast_hash": "2fff4fddc3515adf906cae21ef360ed9",
+    "semantic_hash": ""
+  },
+  "config/settings.py": {
+    "mtime": 1782111019.757216,
+    "ast_hash": "bd2dff2606817444a5d93f6fb688f1ec",
+    "semantic_hash": ""
+  },
+  "flows/restaurant_flow.json": {
+    "mtime": 1781049443.7612803,
+    "ast_hash": "e90adaeb6df638558dbccd9d9099e7e4",
+    "semantic_hash": ""
+  },
+  "guardar.py": {
+    "mtime": 1781049445.1897967,
+    "ast_hash": "0d0c520508c6cbf496cefa7b776d58a9",
+    "semantic_hash": ""
+  },
+  "infrastructure/__init__.py": {
+    "mtime": 1781049443.771287,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "infrastructure/cache.py": {
+    "mtime": 1781140697.675357,
+    "ast_hash": "929fb781f3499a092a9f96e32cf4e844",
+    "semantic_hash": ""
+  },
+  "infrastructure/database.py": {
+    "mtime": 1781140009.9107325,
+    "ast_hash": "55b606fdc9c4b0329564e138058c6c14",
+    "semantic_hash": ""
+  },
+  "infrastructure/twilio_client.py": {
+    "mtime": 1781049443.7882872,
+    "ast_hash": "e611227184bada19ea5f8a250f1e0499",
+    "semantic_hash": ""
+  },
+  "models/__init__.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "e354973f00db65e2fee1eac62b0be3dc",
+    "semantic_hash": ""
+  },
+  "models/business.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "1f3dd6300db839bfc5fc6bd1d22b086c",
+    "semantic_hash": ""
+  },
+  "models/conversation.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "7d8f2bac039e0a42326a865f45589ff4",
+    "semantic_hash": ""
+  },
+  "models/customer.py": {
+    "mtime": 1782111014.4633336,
+    "ast_hash": "244ab8576e8d50da621fb0bb67a2327f",
+    "semantic_hash": ""
+  },
+  "models/menu.py": {
+    "mtime": 1781049443.8346505,
+    "ast_hash": "2285ff3e841e488239f0772b018510fd",
+    "semantic_hash": ""
+  },
+  "models/message.py": {
+    "mtime": 1781049443.8419547,
+    "ast_hash": "95360cc73a4264b420f59ff268e709ce",
+    "semantic_hash": ""
+  },
+  "models/order.py": {
+    "mtime": 1781049443.8479548,
+    "ast_hash": "01644f8d3ac9390dc053f42b2d93a73f",
+    "semantic_hash": ""
+  },
+  "models/reservation.py": {
+    "mtime": 1781139304.40575,
+    "ast_hash": "69c0b3965b03286e9d9dfa2f50e3ad7a",
+    "semantic_hash": ""
+  },
+  "scripts/migrate_client_id.py": {
+    "mtime": 1781049443.8574648,
+    "ast_hash": "89bf1c6004b06681cabb620c8f7a5b6e",
+    "semantic_hash": ""
+  },
+  "scripts/migrate_db.py": {
+    "mtime": 1781049443.8634648,
+    "ast_hash": "50d144717f4a35ed0daa5b57fb68213a",
+    "semantic_hash": ""
+  },
+  "scripts/migrate_message_status.py": {
+    "mtime": 1781049443.8694654,
+    "ast_hash": "6bfd4ed4929021a3b4b5d12b21ec9bdd",
+    "semantic_hash": ""
+  },
+  "scripts/onboard_business.py": {
+    "mtime": 1781049443.8754647,
+    "ast_hash": "7d46b94d9eb0855b1591273edaf11418",
+    "semantic_hash": ""
+  },
+  "scripts/validate_api.py": {
+    "mtime": 1781049443.881465,
+    "ast_hash": "0da5ca14582d21f597805a4b374f7394",
+    "semantic_hash": ""
+  },
+  "scripts/validate_chatbot.py": {
+    "mtime": 1781049443.8874652,
+    "ast_hash": "7e88851904067deee239c3fcc393a763",
+    "semantic_hash": ""
+  },
+  "scripts/validate_system.py": {
+    "mtime": 1781140975.8460016,
+    "ast_hash": "abf1f8303ca245b2370e231a573fb0c1",
+    "semantic_hash": ""
+  },
+  "services/__init__.py": {
+    "mtime": 1781049443.902469,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "services/analytics_service.py": {
+    "mtime": 1781049443.9080162,
+    "ast_hash": "1c4ea22a1cb4f534bdc8351ed58701d6",
+    "semantic_hash": ""
+  },
+  "services/business_config_loader.py": {
+    "mtime": 1781049443.913016,
+    "ast_hash": "a966f7212e70289aa07d936c2f0ad62c",
+    "semantic_hash": ""
+  },
+  "services/business_service.py": {
+    "mtime": 1782111014.476629,
+    "ast_hash": "3ffd6e0d3d88dd97dfdae3ec1aaa9633",
+    "semantic_hash": ""
+  },
+  "services/conversation_service.py": {
+    "mtime": 1781049443.9256816,
+    "ast_hash": "13afc992cf238b0e03d309eb433f2c2a",
+    "semantic_hash": ""
+  },
+  "services/customer_service.py": {
+    "mtime": 1781139333.5353887,
+    "ast_hash": "e95a96d46848b8452079b880a208d19c",
+    "semantic_hash": ""
+  },
+  "services/device_token_service.py": {
+    "mtime": 1781049443.9328003,
+    "ast_hash": "fbdce1b5c9a1099ab775ac080dc6ba0a",
+    "semantic_hash": ""
+  },
+  "services/menu_service.py": {
+    "mtime": 1781049443.9388702,
+    "ast_hash": "bf80bd2c27bbf9e7a1d07ed53c3faee1",
+    "semantic_hash": ""
+  },
+  "services/notification_service.py": {
+    "mtime": 1781140300.6786668,
+    "ast_hash": "1a1dbe3dcd255f871d5cbe11209727e6",
+    "semantic_hash": ""
+  },
+  "services/order_service.py": {
+    "mtime": 1781049443.9508753,
+    "ast_hash": "42f9f255bb24073acb0f16f34d9610d8",
+    "semantic_hash": ""
+  },
+  "services/push_service.py": {
+    "mtime": 1781049443.957394,
+    "ast_hash": "07cbe2c571086a1dae0d219bcd355440",
+    "semantic_hash": ""
+  },
+  "services/realtime_service.py": {
+    "mtime": 1781140712.1984105,
+    "ast_hash": "368b74b61c6786fce7280e4d7be58e0c",
+    "semantic_hash": ""
+  },
+  "services/reservation_service.py": {
+    "mtime": 1781139339.8984077,
+    "ast_hash": "64c81a96388061fb54930baeabc0f400",
+    "semantic_hash": ""
+  },
+  "services/twilio_sync_service.py": {
+    "mtime": 1781049443.9770072,
+    "ast_hash": "77fa488791a50abc7faef63ad0cc20f5",
+    "semantic_hash": ""
+  },
+  "start.ps1": {
+    "mtime": 1781141629.0456333,
+    "ast_hash": "bb0a036acd43fd5fce8e4bca7f2345e3",
+    "semantic_hash": ""
+  },
+  "tests/__init__.py": {
+    "mtime": 1781049443.985029,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "tests/test_api.py": {
+    "mtime": 1781049443.9910195,
+    "ast_hash": "93372211d0e80ac4dd6e527d14d95e83",
+    "semantic_hash": ""
+  },
+  "tests/test_chatbot_gateway.py": {
+    "mtime": 1781049443.9980137,
+    "ast_hash": "a129b14a3d6eab83663ea39385faaa56",
+    "semantic_hash": ""
+  },
+  "tests/test_message_status.py": {
+    "mtime": 1781049444.0032604,
+    "ast_hash": "a5e6f3c486158b4c9af74b6151d7a043",
+    "semantic_hash": ""
+  },
+  "tests/test_order_confirmation_flow.py": {
+    "mtime": 1781141319.6878312,
+    "ast_hash": "698eee33cbbf842c84b144145f47c78c",
+    "semantic_hash": ""
+  },
+  "tests/test_push_api.py": {
+    "mtime": 1781049444.0164626,
+    "ast_hash": "db6914b9f69da872c328c9027360c4bb",
+    "semantic_hash": ""
+  },
+  "tests/test_realtime_ws.py": {
+    "mtime": 1781049444.0224626,
+    "ast_hash": "3a4fc79d1b28c72cb6ed9467b1ec3ed6",
+    "semantic_hash": ""
+  },
+  "tests/test_twilio_status.py": {
+    "mtime": 1781049444.0344627,
+    "ast_hash": "277ef7780544cb275e380ea24e7cb502",
+    "semantic_hash": ""
+  },
+  "tests/test_whatsbot_api.py": {
+    "mtime": 1782111019.757216,
+    "ast_hash": "059a251d0a94fd7091893ba2cb73b33e",
+    "semantic_hash": ""
+  },
+  "DEPLOY_DOCKER.md": {
+    "mtime": 1781049445.1788437,
+    "ast_hash": "b5bfaa6dd1e60ed71ef01b15b0751bc5",
+    "semantic_hash": ""
+  },
+  "PENDIENTES.md": {
+    "mtime": 1781049445.2023616,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "PROMPTS_LISTOS.md": {
+    "mtime": 1781424087.93375,
+    "ast_hash": "5bbd350520b70196890c778198b124c6",
+    "semantic_hash": ""
+  },
+  "PROMPT_EVOLUCION_SAAS_WHATSBOT.md": {
+    "mtime": 1781049445.208968,
+    "ast_hash": "7c936593d72b95144ca393cfd7b01984",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1781144706.7389143,
+    "ast_hash": "07e5fbfe46b5be64103cd9564e67b88a",
+    "semantic_hash": ""
+  },
+  "README_PROMPTS.md": {
+    "mtime": 1781557434.2840972,
+    "ast_hash": "7fff18bee7e19ebde14cb44edd557093",
+    "semantic_hash": ""
+  },
+  "arquitectura_del_sistema.md": {
+    "mtime": 1781144736.1322548,
+    "ast_hash": "370a663b3446182b7baa34c27e955cf9",
+    "semantic_hash": ""
+  },
+  "chatbot/README.md": {
+    "mtime": 1781051139.8349023,
+    "ast_hash": "6ef317dad776cf699ede26bb65a2b829",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log.txt": {
+    "mtime": 1781426688.17023,
+    "ast_hash": "0c4ec0a7cae503fd2c602e225a58b430",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_35699155990.txt": {
+    "mtime": 1781426688.171623,
+    "ast_hash": "9ab40d203391ba9b142de7c501f59ec3",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573001234567.txt": {
+    "mtime": 1781049443.6395464,
+    "ast_hash": "56697c589f130656c07b52eb0dc8d6dc",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573005556677.txt": {
+    "mtime": 1781050157.3273044,
+    "ast_hash": "023b9f9ccb8d16b2ec3b415e78e0aa89",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573006665544.txt": {
+    "mtime": 1781049443.6510458,
+    "ast_hash": "d92e9539ff1f4125ce26468319f387cd",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573007778899.txt": {
+    "mtime": 1781050159.7117426,
+    "ast_hash": "1ee26a474839a33ce14e50e881fbe57c",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573008887777.txt": {
+    "mtime": 1781050159.8379102,
+    "ast_hash": "36e0920793db10432849551e2a750aa7",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573009998877.txt": {
+    "mtime": 1781049443.6656845,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "client_messages_log/client_messages_log_573009999999.txt": {
+    "mtime": 1781050159.8379102,
+    "ast_hash": "ade3b9bc7bee2d658c50c4b3aed4ed2f",
+    "semantic_hash": ""
+  },
+  "docs/ARCHITECTURE.md": {
+    "mtime": 1781144724.7982826,
+    "ast_hash": "f493f1f8a371883ff047309fed5a3239",
+    "semantic_hash": ""
+  },
+  "docs/GUIA_NEGOCIOS.md": {
+    "mtime": 1781144768.5948932,
+    "ast_hash": "02adb8a1086610245aaa19f450261eee",
+    "semantic_hash": ""
+  },
+  "docs/INCREMENTAL_GUIDE.md": {
+    "mtime": 1781124069.520751,
+    "ast_hash": "5e1927bbc977eaae50fe4c848e479215",
+    "semantic_hash": ""
+  },
+  "docs/WHATSAPP_FLOWS.md": {
+    "mtime": 1781049443.7541578,
+    "ast_hash": "af4156b65887088e719ba0a05e111dd9",
+    "semantic_hash": ""
+  },
+  "infrastructure/migrations/README.md": {
+    "mtime": 1781049443.7964406,
+    "ast_hash": "d68b2baa75a2f273eb90e3673bfe6fe7",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1781143089.0652938,
+    "ast_hash": "d77abe70c622f0661c749275208f2344",
+    "semantic_hash": ""
+  }
+}
