@@ -1,4 +1,4 @@
-## v1.15 graphify added
+## v1.16
 
 
 
@@ -2003,3 +2003,294 @@ Se agrega caveman
 ##################################################
 ## v1.15 - graphify added
 
+
+
+
+
+####################################################
+## v1.16
+
+
+## prompt ##
+
+
+Analiza el proyecto y localiza dónde se almacenan las respuestas y el flujo conversacional del chatbot.
+
+No hagas cambios.
+
+Muéstrame únicamente:
+
+* archivo
+* línea
+* estructura encontrada
+* explicación breve de cómo se carga
+
+
+
+## resp cursor ##
+
+1. Flujo conversacional (grafo de nodos)
+Archivo: flows/restaurant_flow.json
+Línea: 1–156
+Estructura:
+
+{
+  "meta": { "global_commands", "cancel_message", "navigation_hint" },
+  "nodes": {
+    "<step>": {
+      "flow": "idle|order|reservation",
+      "message": "...",
+      "message_after_action": "...",
+      "action": "capture_order|show_menu|...",
+      "input_mode": "free_text",
+      "options": { "pedido": "order_start", ... }
+    }
+  }
+}
+Carga: config/bot_config.py L25–35 resuelve FLOWS_PATH (env FLOWS_PATH o default flows/restaurant_flow.json). FlowEngine.__init__ L51–55 llama _load_flow() L75–77 (json.load). runtime.py L63–70 instancia FlowEngine al arrancar bot.
+
+2. Textos de respuesta — fallback global
+Archivo: config/prompts.py
+Línea: 5–74
+Estructura:
+
+DEFAULT_PROMPTS: dict[str, str] = {
+  "empty_body_hint": "...",
+  "error_generic": "...",
+  "node_order_start_message": "...",
+  ...
+}
+Carga: import directo en memoria. get_prompt(key) L76–77. Usado por gateway.py L45, L101, L143 y como fallback si no hay negocio activo.
+
+3. Textos de respuesta — por negocio (BD)
+Archivo: models/business.py
+Línea: 62–72
+Estructura:
+
+class BusinessPromptConfig:
+  __tablename__ = "business_prompts"
+  business_id: str  # PK
+  config_json: dict[str, str]  # {"welcome_secondary": "...", ...}
+Carga: services/business_config_loader.py L30–39 → business_service.get_business_prompts() L235–243. Por mensaje: business_context.business_scope() L94–99 pone prompts en contextvar; get_prompt() L49–55 lee activos o cae a config/prompts.py.
+
+4. Estado conversacional (paso actual del usuario)
+Archivo: chatbot/app/core/state_manager.py
+Línea: 11–15, 28–37
+Estructura:
+
+DEFAULT_STATE = { "flow": "idle", "step": "start", "data": {} }
+# Persistido como JSON: { "business_id:wa_id": { flow, step, data } }
+Carga: config/settings.py L80–83 define STATE_PERSIST_PATH (default data/user_states.json). StateManager._load() L28–37 lee JSON al init. runtime.py L50 crea StateManager(persist_path=STATE_PERSIST_PATH).
+
+5. Enrutamiento de intents (parte del flujo)
+Archivo: config/intents.py
+Línea: 7–57
+Estructura:
+
+GLOBAL_COMMAND_ROUTES = { "menu": "menu_node", "pedido": "order_start", ... }
+GLOBAL_COMMAND_INTENTS = { "menu": { "phrases": ..., "tokens": ... }, ... }
+Carga: import estático. Multi-tenant: tabla business_intents (models/business.py L49–57, config_json). business_config_loader.load_intents_json() L42–51 → índice en business_context._build_intent_index_for_business() L63–90.
+
+6. Respuestas dinámicas de menú
+Archivo: models/menu.py
+Línea: 17–18 (menu_items)
+Estructura: filas { id, nombre, precio, categoria, disponible, business_id }
+Carga: MenuService.format_menu() L45–62 arma texto desde BD vía DBStore.get_menu(). Override por negocio: business_config_loader.load_menu_items() L73–95 → business_context.get_active_menu().
+
+7. Historial cliente ↔ bot (log, no motor de flujo)
+Archivo: chatbot/app/utils/client_message_log.py
+Línea: 23–24, 65–79
+Estructura: archivos client_messages_log/client_messages_log.txt y client_messages_log_<wa_id>.txt con bloques Cliente/Chatbot.
+Carga: no se lee para responder. gateway.py L146–150 llama schedule_client_message_log() tras cada intercambio; worker async escribe a disco.
+
+8. Motor que une todo (no almacena, ejecuta)
+Archivo: chatbot/app/core/flow_engine.py
+Línea: 273–293 (process_message), 412–475 (_process_node)
+Estructura: lee state.step → nodo en self.nodes → renderiza message / ejecuta action → devuelve Reply (str | list[str]).
+Carga: gateway.py L86–88 obtiene FlowEngine de get_bot_context(); L118 activa business_scope(business_id); L138 flow_engine.process_message(wa_id, body).
+
+9. Respuestas hardcodeadas en runtime
+Archivo: chatbot/app/core/flow_engine.py
+Línea: 140–173, 195–198, 406–409, 516–518, 527–529
+Estructura: strings inline (abandono pedido, repetir pedido, fallback nodo, saludos).
+Carga: no archivo externo; devueltas directo desde métodos _handle_* / _process_message_body.
+
+Flujo de carga resumido
+Webhook → gateway.handle_incoming_message()
+  → get_bot_context()          # singleton: FlowEngine + StateManager
+  → business_scope(business_id) # prompts/intents/menú del negocio
+  → flow_engine.process_message()
+      → state_manager.get(wa_id)     # data/user_states.json
+      → nodes[current_step]          # flows/restaurant_flow.json
+      → get_prompt() / format_menu() # BD o config/prompts.py
+  → schedule_client_message_log()    # log en disco
+
+
+
+
+--
+
+## otro prompt ##
+
+Analiza flows/restaurant_flow.json y explícame el flujo completo de conversación.
+
+Necesito:
+
+* nodo inicial
+* todos los nodos accesibles
+* diagrama textual del flujo
+* nodos huérfanos o no utilizados
+
+No modifiques nada.
+
+Muéstrame únicamente el mapa del flujo.
+
+
+
+## resp cursor ##
+
+Nodo inicial
+start — StateManager arranca con step: "start"; usuario nuevo o reset cae aquí.
+
+Nodos accesibles (13/13)
+Nodo	Flujo
+start
+idle
+menu_node
+idle
+order_start
+order
+order_review
+order
+order_modify
+order
+order_delivery
+order
+order_address
+order
+order_customer_name
+order
+order_saved
+idle
+reservation_start
+reservation
+reservation_date
+reservation
+reservation_time
+reservation
+reservation_review
+reservation
+reservation_saved
+idle
+Diagrama textual
+                              ┌─────────────────────────────────────┐
+                              │  GLOBAL (desde cualquier nodo)      │
+                              │  menu→menu_node  pedido→order_start │
+                              │  reservar→reservation_start         │
+                              │  inicio/cancelar→start              │
+                              └─────────────────────────────────────┘
+                                              │
+┌─────────────────────────────────────────────▼─────────────────────────────────────────────┐
+│  START [idle]  action:welcome_customer                                                    │
+│    ├─ hola/buenas/hey ──► start (loop)                                                    │
+│    ├─ menu ─────────────► MENU_NODE                                                       │
+│    ├─ pedido ───────────► ORDER_START                                                     │
+│    └─ reservar ─────────► RESERVATION_START                                               │
+│                                                                                           │
+│  [welcome_customer]                                                                       │
+│    ├─ tiene pedido anterior ──► pregunta repetir (queda en start)                         │
+│    │     ├─ sí ──► ORDER_REVIEW                                                           │
+│    │     └─ no ──► START                                                                  │
+│    └─ sin pedido anterior ──► muestra bienvenida + menú opciones                          │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
+── RAMA MENÚ ───────────────────────────────────────────────────────────────────────────────
+MENU_NODE [idle]  action:show_menu
+  ├─ pedido ──► ORDER_START
+  ├─ reservar ─► RESERVATION_START
+  └─ inicio ───► START
+── RAMA PEDIDO ──────────────────────────────────────────────────────────────────────────────
+ORDER_START [order]  action:capture_order
+  ├─ menu ─────────────────────────────► MENU_NODE
+  └─ [texto con productos] ──action──► ORDER_REVIEW
+ORDER_REVIEW [order]  action:show_cart + action_on_input:handle_order_confirmation
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ carrito vacío ──action────────────► ORDER_START
+  ├─ sí (confirmar) ──action───────────► ORDER_DELIVERY
+  └─ no (modificar) ──action───────────► ORDER_MODIFY
+ORDER_MODIFY [order]  action:capture_order
+  ├─ menu ─────────────────────────────► MENU_NODE
+  └─ [edita pedido] ──action───────────► ORDER_REVIEW
+ORDER_DELIVERY [order]  action:capture_delivery_type
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ domicilio ──action────────────────► ORDER_ADDRESS
+  ├─ recoger + tiene nombre ──action───► ORDER_SAVED
+  └─ recoger + sin nombre ──action─────► ORDER_CUSTOMER_NAME
+ORDER_ADDRESS [order]  action:capture_address
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ dirección + tiene nombre ──action─► ORDER_SAVED
+  └─ dirección + sin nombre ──action────► ORDER_CUSTOMER_NAME
+ORDER_CUSTOMER_NAME [order]  action:capture_customer_name
+  ├─ menu ─────────────────────────────► MENU_NODE
+  └─ nombre válido ──action──────────────► ORDER_SAVED
+ORDER_SAVED [idle]  action:save_order → reset interno a START
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ pedido ───────────────────────────► ORDER_START
+  ├─ reservar ─────────────────────────► RESERVATION_START
+  └─ inicio ───────────────────────────► START
+── RAMA RESERVA ────────────────────────────────────────────────────────────────────────────
+RESERVATION_START [reservation]  action:capture_persons
+  ├─ menu ─────────────────────────────► MENU_NODE
+  └─ N personas válido ──action────────► RESERVATION_DATE
+RESERVATION_DATE [reservation]  action:capture_date
+  ├─ menu ─────────────────────────────► MENU_NODE
+  └─ fecha válida ──action──────────────► RESERVATION_TIME
+RESERVATION_TIME [reservation]  action:capture_time
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ sin fecha previa ──action──────────► RESERVATION_DATE
+  └─ hora válida ──action───────────────► RESERVATION_REVIEW
+RESERVATION_REVIEW [reservation]  action:show_reservation_summary + action_on_input:handle_reservation_confirmation
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ datos incompletos ──action────────► RESERVATION_START
+  ├─ sí (confirmar) ──action───────────► RESERVATION_SAVED
+  └─ no (modificar) ──action───────────► RESERVATION_START
+RESERVATION_SAVED [idle]  action:save_reservation → reset interno a START
+  ├─ menu ─────────────────────────────► MENU_NODE
+  ├─ pedido ───────────────────────────► ORDER_START
+  ├─ reservar ─────────────────────────► RESERVATION_START
+  └─ inicio ───────────────────────────► START
+Nodos huérfanos o no utilizados
+Ninguno. Los 13 nodos del JSON tienen al menos una arista entrante:
+
+Solo vía options/global_commands	Solo vía action del motor
+start, menu_node, order_start, reservation_start
+order_review, order_modify, order_delivery, order_address, order_customer_name, reservation_date, reservation_time, reservation_review
+order_saved, reservation_saved
+ambas vías
+Nota: order_modify, order_delivery, order_address, order_customer_name, order_review, reservation_date, reservation_time, reservation_review no aparecen como destino en ningún options del JSON — solo los alcanza flow_engine.py tras validar input. No son huérfanos; son transiciones implícitas del motor.
+
+
+
+--
+
+
+
+## otro prompt ##
+
+Cómo puedo cambiar el flujo? osea el orden de lo que muestra y el contenido, dame una guia breve y ponla dentro de /tutoriales  , en .MD
+
+
+## resp cursor ##
+
+Guía creada en
+
+tutoriales/cambiar-flujo-chatbot.md.
+
+Orden y textos de pasos → flows/restaurant_flow.json (message, options, global_commands)
+Saltos tras sí/no, domicilio, confirmaciones → chatbot/app/core/flow_engine.py (_action_*)
+Fallbacks y errores → config/prompts.py
+Menú de productos → BD, no el JSON del flujo
+Aplicar → reiniciar el servicio del bot tras guardar
+
+
+
+###########################################################
