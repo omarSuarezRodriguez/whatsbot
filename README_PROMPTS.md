@@ -1,4 +1,4 @@
-## v1.39
+## v1.40.
 
 
 
@@ -4404,129 +4404,161 @@ Fase 4 cerrada. 21 tests PASS, validadores OK.
 
 @flows/restaurant_flow.json @chatbot/app/core/flow_engine.py 
 
-No edites código, solo revisa estos dos archivos, y dime cómo podría implementar line by line el cambio, osea muestrame pero no lo hagas, yo lo haré
+No edites código, solo revisa estos dos archivos, y dime cómo podría implementar line by line que el intent me sirva también para identificar el saludo, y dime qué intents hay actualmente
+
+IMPORTANTE: muestrame qué debo hacer, pero no edites nada, yo lo hago
 
 
 ## resp cursor ##
 
-Estado actual
-Ya empezaste cambio en JSON (diff git):
+ntents actuales
+Hoy infer_user_intent() detecta 5 comandos globales (definidos en config/intents.py → GLOBAL_COMMAND_INTENTS):
 
-Antes	Ahora
-message: {{welcome_line}}
-mensaje fijo con emojis
-message_secondary: menú de opciones
-eliminado
-dual_message: true
-sigue (inconsistente)
-Motor (flow_engine.py) no requiere cambio para mensaje estático — solo compone lo que dice JSON. Pero JSON quedó a medias.
-
-Parte 1 — restaurant_flow.json (línea por línea)
-Línea 52 — dual_message
-"dual_message": true,
-Opción A (mensaje único, recomendado): borrar línea entera.
-Sin message_secondary, flag no hace nada → validate_flow.py avisa.
-
-Opción B: dejar dual_message y restaurar message_secondary (vuelves al diseño viejo de dos bloques).
-
-Línea 56 — message
-Ya tienes:
-
-"message": "Hola 👋 Bienvenido a nuestro restaurante 🍔?",
-Tres variantes según objetivo:
-
-1) Genérico (lo que tienes): dejar así.
-
-2) Nombre del restaurante — usa plantilla que motor ya renderiza:
-
-"message": "Hola 👋 Bienvenido a *{{restaurant_name}}* 🍔\n\n¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
-3) Personalizado con nombre de cliente — usa {{welcome_line}} (motor lo arma en _build_node_context ~L499–517 desde meta.welcome_with_name / welcome_without_name):
-
-"message": "{{welcome_line}}\n\n¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
-Un solo message, sin dual_message, sin message_secondary → un str en WhatsApp. Es el patrón que describe README Fase 3.
-
-Líneas que NO tocar (salvo que quieras otro comportamiento)
-Línea	Campo	Por qué
-49
-welcome_customer
-Acción vacía; mensaje sale de message
-50–51
-intercept_products, suppress_navigation
-Productos en saludo → pedido; sin hint navegación
-53–54
-self_loop_behavior, suppress_repeat_message
-2º hola → fallback, no re-bienvenida
-55
-fallback
-Texto si input no reconocido en start
-57–64
-options
-Routing menu/pedido/reservar/hola
-Parte 2 — flow_engine.py (qué hace hoy, qué podrías tocar)
-Sin cambio obligatorio
-idle.start ya funciona así:
-
-_goto_ref → _process_node("start") (~L436)
-Lee message, pasa por _render() con contexto de _build_node_context (~L447–451)
-Ejecuta welcome_customer → "" (~L519–520)
-_compose_message (~L327–340): si dual_message + message_secondary, añade segundo bloque
-suppress_repeat_message marca paso mostrado (~L494–495)
-Con mensaje estático y sin dual_message, pasos 4 no añaden nada extra.
-
-Segundo hola en start: _should_self_loop_fallback (~L199–218) + options.hola → start (~L379–382) → fallback, no _process_node. Motor ya cubre eso.
-
-Cambios opcionales en motor (solo si quieres limpiar)
-A) Nada — si JSON queda coherente, motor sigue igual.
-
-B) Limpieza dual_message — solo si ningún flow lo usa:
-
-# L336-339 en _compose_message — borrar bloque:
-        if node.get("dual_message"):
-            secondary = node.get("message_secondary")
-            if secondary:
-                parts.append(self._render(secondary, extra))
-Y quitar "dual_message" de KNOWN_NODE_FLAGS en scripts/validate_flow.py (~L82). No hagas esto si otros flows pueden usar el flag.
-
-C) welcome_line muerto — si message ya no usa {{welcome_line}}:
-
-_build_node_context (~L502–506) sigue calculando welcome_line sin costo real
-Borrarlo solo si confirmas que ningún nodo usa {{welcome_line}}
-D) welcome_customer — acción vacía. Podrías quitar "action": "welcome_customer" del JSON (línea 49) en vez de tocar Python. Equivalente.
-
-Receta mínima recomendada (tú la aplicas)
-Solo JSON, 3 edits:
-
-L52  → borrar "dual_message": true,
-L56  → unificar welcome + CTA en un solo "message" (opción 2 o 3 arriba)
-L49  → (opcional) borrar "action": "welcome_customer",
-flow_engine.py: no tocar.
-
-Cómo verificar
-python scripts/validate_flow.py
-pytest tests/test_flow_transitions.py -q -k "idle_start"
-Manual:
-
-Input	step	Esperado
-1er hola
-start
-Un solo mensaje (welcome + CTA si lo pusiste)
-2º hola
-start
-Fallback, sin re-bienvenida
+Intent	Tokens ejemplo	Uso
 menu
-menu_node
-Menú vía show_menu, no en start
-2 pizzas en start
-order
-intercept_products → flujo pedido
-Resumen
-Cambio real es JSON: pasar de dos bloques (message + message_secondary) a un message.
-Motor ya compone un str; tu diff dejó dual_message: true huérfano — quítalo o restaura message_secondary.
-Para personalización: {{welcome_line}} o {{restaurant_name}} en el mismo message, no en motor.
-Si quieres guía solo para variante concreta (genérico vs welcome_line vs restaurant_name), dime cuál.
+menu, carta, catálogo, ver
+Ver carta
+pedido
+pedido, pedidos
+Iniciar orden
+reservar
+reservar, reserva, agendar, cita
+Iniciar reserva
+inicio
+inicio, reiniciar, restart
+Volver al inicio
+cancelar
+cancelar, anular, abortar, borrar
+Cancelar proceso
+Además devuelve has_products: bool — señal de que el texto parece pedido de productos (no es un 6.º comando).
+
+Saludo NO es intent hoy. Vive aparte:
+
+GREETING_PHRASES en config/intents.py (hola, buenas, buenos días, qué tal, etc.)
+is_greeting() en validators.py
+Match exacto en JSON options: solo hola, buenas, hey en idle.start y menu_node
+Flag order_greeting_on_greeting en nodos de pedido
+Consecuencia: "buenos días" o "qué tal" en start no matchean options → caen en fallback, aunque is_greeting() los reconocería.
+
+Pipeline actual (orden fijo)
+input normalizado
+  → abandon confirm (meta)
+  → options del nodo actual
+  → global_commands (meta.global_commands)
+  → infer_user_intent (parser + intents del tenant)
+  → intercept_products / order_greeting_on_greeting (flags de nodo)
+  → action_on_input (free_text)
+  → fallback del nodo
+Saludo entra por paso 2 (3 tokens en JSON) o paso 6 (solo en order_start / order_modify). El paso 4 (intent) no lo ve.
+
+Cómo unificar saludo en intent — paso a paso
+Paso 1 — config/intents.py
+Opción A (recomendada): campo separado, no 6.º global command
+
+Dejar GREETING_PHRASES como está. No meter saludo en GLOBAL_COMMAND_ROUTES — eso activaría _resolve_global_command() con lógica de reset/abandon que no aplica.
+
+Opción B: intent explícito saludo
+
+Agregar bloque en GLOBAL_COMMAND_INTENTS:
+
+"saludo": {
+    "phrases": ("buenos dias", "buenas tardes", "que tal", "como estas", ...),
+    "tokens": frozenset({"hola", "buenas", "hey", "hello", "hi", "saludos"}),
+}
+Pero no agregar saludo a GLOBAL_COMMANDS / meta.global_commands del JSON. Sería intent del parser, no comando global del flujo.
+
+Paso 2 — chatbot/app/core/parser.py → UserIntentClassifier.infer()
+Ubicación: ~L809, justo después del check if not basic: y antes de looks_like_reservation_data.
+
+Qué hacer:
+
+Importar is_greeting de validators (o reutilizar GREETING_PHRASES directo).
+
+Detectar saludo solo si no hay señal de producto:
+
+if not product_signal and is_greeting(text):  # usar text original o basic según prefieras
+Retornar algo como:
+
+return {
+    "command": None,           # o "saludo" si elegiste Opción B
+    "is_greeting": True,       # campo nuevo
+    "confidence": 0.95,
+    "matched": "...",
+    "has_products": False,
+}
+Regla anti-falso-positivo: si product_signal es True ("hola, 2 pizzas"), no marcar saludo — dejar que siga el flujo de productos/pedido.
+
+Actualizar docstring de infer_user_intent() (~L945): ya no son solo 5 comandos.
+
+Nota: _sanitize_command() (~L757) filtra a GLOBAL_COMMANDS. Si usas command: "saludo", o amplías sanitize o usas is_greeting: True con command: None — más limpio.
+
+Paso 3 — chatbot/app/core/flow_engine.py → _process_message_body()
+Ubicación: bloque intent ~L396–410, después de resolver comandos globales y antes de intercept_products.
+
+Agregar bloque nuevo:
+
+if intent.get("is_greeting"):  # o intent_command == "saludo"
+    # comportamiento según nodo actual
+Comportamiento por nodo (replicar lo que ya tienes):
+
+Nodo / contexto	Acción
+idle.start + self_loop_behavior: "fallback" + ya visto
+→ fallback (como hoy con 2.º "hola")
+idle.start primera vez
+→ _goto_ref(wa_id, "start") o self-loop según quieras
+idle.menu_node (u otro idle)
+→ _goto_ref(wa_id, "start")
+Nodo con order_greeting_on_greeting: true
+→ texto meta.order_greeting_while_ordering
+Resto
+→ ignorar saludo o fallback según prefieras
+Para el caso idle.start segunda vez, reutiliza lógica existente:
+
+if self._should_self_loop_fallback("start", current_step, node, state):
+    return self._append_navigation(self._node_fallback_message(node), node)
+Paso 4 — Simplificar duplicados (opcional, después)
+Una vez intent cubra saludos:
+
+restaurant_flow.json — quitar de options las claves hola, buenas, hey en start y menu_node (intent las cubre con todas las frases de GREETING_PHRASES).
+
+flow_engine.py ~L423–425 — bloque order_greeting_on_greeting and is_greeting(text) puede quedarse (flag sigue siendo útil) o moverse dentro del nuevo bloque intent+greeting. No borrar el flag del JSON; solo unificar la detección.
+
+is_greeting() — mantener en validators; el parser lo reutiliza. Una sola fuente de verdad (GREETING_PHRASES).
+
+Paso 5 — Tests a tocar
+En tests/test_flow_transitions.py:
+
+test_idle_greeting_from_menu_navigates_to_start — debe seguir pasando con "hola".
+test_idle_start_second_hola_fallback — anti re-bienvenida intacta.
+test_order_greeting_while_modifying — saludo en pedido sigue respondiendo con mensaje de ordenar.
+Nuevo: "buenos días" en start → bienvenida (hoy falla a fallback).
+Nuevo: "hola quiero 2 pizzas" → pedido, no saludo.
+Diagrama del cambio
+sí, sin productos
+no
+Mensaje
+options exactas
+global_commands
+infer_user_intent
+is_greeting?
+Routing por nodo
+intercept_products
+order_greeting_on_greeting legacy
+free_text action
+Respuesta
+Resumen mínimo
+parser.py: en infer(), detectar saludo vía is_greeting() / GREETING_PHRASES, retornar is_greeting: True.
+flow_engine.py: después del bloque intent, ramificar saludo según nodo (idle → start, order → mensaje ordering).
+config/intents.py: no hace falta tocar si reutilizas GREETING_PHRASES existente.
+restaurant_flow.json: opcional quitar hola/buenas/hey de options — intent los reemplaza con cobertura completa.
+¿Quieres que el saludo en idle siempre re-muestre bienvenida, o mantener anti-spam del 2.º hola (fallback)? Eso define la rama en paso 3 para idle.start.
 
 
 
-###########################################################
+
+
+
+#####################################################
+
 
 
