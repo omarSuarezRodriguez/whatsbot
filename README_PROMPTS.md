@@ -1,4 +1,4 @@
-## v1.29
+## v1.30
 
 
 
@@ -3657,6 +3657,19 @@ Siguiente lógico (no hecho): Prompt 2A — mover abandon + order_greeting_while
 
 
 ####################################
+## v1.30
+
+Cambios
+migracion.md
+Sección Reglas de resolución de UX con jerarquía meta → node.fallback → _SYSTEM_TECHNICAL_FALLBACK
+Contrato estricto _handle_abandon_confirm, inicio+carrito, greeting order
+Tabla reemplazo hardcode → JSON
+Criterio cierre: cero string UX en handlers (salvo _action_* dinámico, NAV_HINT, parche Fase 3)
+Fase 2 marcada ✅ IMPLEMENTADA
+
+
+
+##############################################
 
 
 

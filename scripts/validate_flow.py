@@ -34,6 +34,16 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "save_reservation": {"success", "incomplete"},
 }
 
+PHASE2_META_KEYS = (
+    "cancel_message",
+    "abandon_confirm_prompt",
+    "abandon_confirm_continue",
+    "abandon_confirm_invalid",
+    "order_greeting_while_ordering",
+    "welcome_with_name",
+    "welcome_without_name",
+)
+
 
 def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
     states = raw.get("states")
@@ -71,6 +81,10 @@ def validate_flow(flow: Dict[str, Any]) -> List[str]:
     for command, target in meta.get("global_commands", {}).items():
         if not _step_exists(nodes, str(target)):
             errors.append(f"global_commands[{command!r}] -> {target!r} (nodo inexistente)")
+
+    for key in PHASE2_META_KEYS:
+        if not meta.get(key):
+            errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 2)")
 
     for step, node in nodes.items():
         for option, target in node.get("options", {}).items():

@@ -32,6 +32,7 @@ _START_IDLE_FALLBACK = (
     "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? "
     "También puedes escribir menu, pedido o reservar."
 )
+_SYSTEM_TECHNICAL_FALLBACK = "Error interno: texto no configurado."
 
 
 class FlowEngine:
@@ -160,17 +161,27 @@ class FlowEngine:
         cart = state.get("data", {}).get("cart", [])
         return bool(cart) and state.get("flow") == "order"
 
+    def _resolve_ux_text(self, meta_key: str, node: Dict[str, Any]) -> str:
+        text = self.meta.get(meta_key)
+        if text:
+            return str(text)
+        fallback = node.get("fallback")
+        if fallback:
+            return str(fallback)
+        return _SYSTEM_TECHNICAL_FALLBACK
+
     def _handle_abandon_confirm(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[str]:
         if not state.get("data", {}).get("awaiting_abandon_confirm"):
             return None
+        node = self.nodes.get(state.get("step", ""), {})
         if is_confirmation(text):
             self.state_manager.reset(wa_id)
             _, start_step = self._parse_ref("idle.start", state.get("flow", "idle"))
             return self._process_node(wa_id, start_step, include_navigation=True)
         if is_rejection(text):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
-            return "Perfecto, continuamos con tu pedido actual."
-        return "Responde *sí* para volver al inicio o *no* para continuar tu pedido."
+            return self._resolve_ux_text("abandon_confirm_continue", node)
+        return self._resolve_ux_text("abandon_confirm_invalid", node)
 
     def _resolve_global_command(
         self,
@@ -196,17 +207,13 @@ class FlowEngine:
 
         if command == "inicio" and self._has_active_order(state):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=True)
-            return (
-                "Tienes un pedido en curso.\n\n"
-                "¿Estás seguro de abandonar tu pedido actual?\n"
-                "Responde *sí* para volver al inicio o *no* para continuar."
-            )
+            current_node = self.nodes.get(current_step, {})
+            return self._resolve_ux_text("abandon_confirm_prompt", current_node)
 
         if command == "cancelar":
             self.state_manager.reset(wa_id)
-            cancel_message = self.meta.get(
-                "cancel_message",
-                "Proceso cancelado. Estoy aquí cuando quieras continuar.",
+            cancel_message = self._resolve_ux_text(
+                "cancel_message", self.nodes.get(target_step, {})
             )
             start_message = self._process_node(wa_id, target_step, include_navigation=False)
             combined = self._join_reply(cancel_message, start_message)
@@ -382,6 +389,10 @@ class FlowEngine:
             if response:
                 return self.process_message(wa_id, text, _inner=True)
 
+        if is_greeting(text) and current_step in {"order_start", "order_modify"}:
+            greeting = self._resolve_ux_text("order_greeting_while_ordering", node)
+            return self._append_navigation(greeting, node)
+
         if node.get("input_mode") == "free_text":
             step_response = self._execute_input_action(
                 wa_id, text, node, current_step, state
@@ -389,20 +400,10 @@ class FlowEngine:
             if step_response is not None:
                 return step_response
 
-        if is_greeting(text) and current_step in {"order_start", "order_modify"}:
-            return self._append_navigation(
-                "¡Hola! Cuando quieras, cuéntame qué deseas ordenar.\n"
-                "Ejemplo: *2 hamburguesas y 1 agua*",
-                node,
-            )
-
         if current_step == "start" and state.get("data", {}).get("start_seen"):
             return _START_IDLE_FALLBACK
 
-        fallback = node.get(
-            "fallback",
-            "No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.",
-        )
+        fallback = node.get("fallback") or _SYSTEM_TECHNICAL_FALLBACK
         return self._append_navigation(fallback, node)
 
     def _process_node(
@@ -478,18 +479,13 @@ class FlowEngine:
         return response
 
     def _build_node_context(self, wa_id: str, step: str) -> Dict[str, str]:
-        try:
-            from chatbot.business_context import get_prompt as ctx_get_prompt
-
-            _biz_name = ctx_get_prompt("restaurant_name", RESTAURANT_NAME)
-        except Exception:
-            _biz_name = RESTAURANT_NAME
         profile = self.user_service.get_profile(wa_id)
         name = profile.get("name", "")
-        if name:
-            welcome = f"Hola *{name}*, Bienvenido a *{_biz_name}*."
-        else:
-            welcome = f"Hola, Bienvenido a *{_biz_name}*."
+        welcome_key = "welcome_with_name" if name else "welcome_without_name"
+        welcome = self._render(
+            self._resolve_ux_text(welcome_key, self.nodes.get(step, {})),
+            {"name": name},
+        )
 
         address_prompt = "Indícame la dirección de entrega a domicilio."
         saved_address = profile.get("address", "")
@@ -508,13 +504,6 @@ class FlowEngine:
         return self.menu_service.format_menu(), None
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
-        if is_greeting(text):
-            return (
-                "¡Hola! Cuéntame qué te gustaría ordenar.\n"
-                "Ejemplo: *2 hamburguesas y 1 agua*",
-                None,
-            )
-
         state = self.state_manager.get(wa_id)
         cart = state.get("data", {}).get("cart", [])
         result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)

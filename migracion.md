@@ -11,7 +11,7 @@ Guía por fases para refactor estructural. Cada fase = chat(s) independiente(s).
 | Fase / bloque | Estado | Resumen verificado en código |
 |---------------|--------|------------------------------|
 | **Fase 1** — Motor puro | ✅ **IMPLEMENTADA** | `process_message` siempre `str`; composición genérica en `_process_node`; menú solo vía `_action_show_menu`; `hola` en idle = bienvenida + CTA JSON sin catálogo |
-| **Fase 2** — UX estática al JSON | ⚠️ **PARCIAL** | Solo `cancel_message` en meta; abandon + greeting order **siguen hardcode** (L172–173, L199–203, L392–396); claves meta **ausentes** en JSON |
+| **Fase 2** — UX estática al JSON | ✅ **IMPLEMENTADA** | `_resolve_ux_text`; claves meta abandon + greeting en JSON; cero UX hardcode en handlers Fase 2 |
 | **Parche crítico** — idle.start estable | ✅ **APLICADO (fuera de fases)** | `start_seen` + `_START_IDLE_FALLBACK` + ramas B1/B2/B3 en `flow_engine.py`; **no** cuenta como fase completada |
 | **Fase 3** — Routing declarativo | ❌ **PENDIENTE REAL** | Steps hardcode (`start`, `menu_node`, `order_start`, `order_modify`); parche idle.start aún en Python |
 | **Fase 4** — Cierre y docs | ❌ **PENDIENTE** | `validate_flow.py` sin claves meta Fase 2/3; tutorial sin sección arquitectura motor |
@@ -78,14 +78,14 @@ Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`
 | `Reply = Union[str, List[str]]` / `_as_reply` | — | ✅ Resuelto (Fase 1) | — |
 | Menú inyectado en `start` desde Python | — | ✅ Resuelto (Fase 1) | `format_menu` solo en `_action_show_menu` |
 | Repeat-order | — | ✅ Eliminado (parche) | No reintroducir |
-| UX abandonar pedido | `_handle_abandon_confirm` L172–173; `_resolve_global_command` `inicio`+carrito L199–203 | ⚠️ **Deuda Fase 2** | → `meta.abandon_confirm_prompt`, `abandon_confirm_invalid`, `abandon_confirm_continue` |
-| Greeting durante pedido | `_process_message_body` L392–396 (`order_start` / `order_modify`) | ⚠️ **Deuda Fase 2** | → `meta.order_greeting_while_ordering` |
+| UX abandonar pedido | `_handle_abandon_confirm`; `_resolve_global_command` `inicio`+carrito | ✅ Fase 2 | `meta.abandon_confirm_*` vía `_resolve_ux_text` |
+| Greeting durante pedido | `_process_message_body` (`order_start` / `order_modify`) | ✅ Fase 2 | `meta.order_greeting_while_ordering` vía `_resolve_ux_text` |
 | `pedido_implicito` con steps fijos | `_process_message_body` | ❌ Fase 3 | `intercept_products` (o similar) en nodos idle |
 | Salto hardcode `idle.start` en greeting idle | `_process_message_body` | ❌ Fase 3 | `options` JSON + helper `_goto_ref` |
 | Parche `start_seen` + `_START_IDLE_FALLBACK` | L31–34, L336–340, L399–400, L475–476 | ❌ **Deuda Fase 3** | Declaratizar: `node.fallback` + flag self-loop en JSON |
 | `step == "start"` para `start_seen` | `_process_node` L475 | ❌ **Deuda Fase 3** | Sin nombre de step hardcode en Python |
 | Mensajes estáticos en `_action_*` | varios `_action_*` | ❌ Fase 3–4 | Estáticos → JSON; dinámicos (carrito, totales, errores con datos) quedan en action |
-| `cancel_message` | `_resolve_global_command` | ✅ Parcial | Ya lee `meta.cancel_message`; abandon prompt no |
+| `cancel_message` | `_resolve_global_command` | ✅ Fase 2 | Lee `meta.cancel_message` vía `_resolve_ux_text` |
 
 ### Pipeline del motor
 
@@ -93,14 +93,14 @@ Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`
 
 ```
 process_message(text) → str
-  → _handle_abandon_confirm          # hardcode Python (Fase 2 pendiente)
+  → _handle_abandon_confirm          # solo meta + is_confirmation/is_rejection (Fase 2)
   → action_on_input (si aplica)
-  → global_commands                  # inicio+carrito: hardcode abandon (Fase 2 pendiente)
+  → global_commands                  # inicio+carrito: meta.abandon_confirm_prompt (Fase 2)
   → options[normalized]              # B2: self-loop start + start_seen → _START_IDLE_FALLBACK
   → greeting idle → _parse_ref idle.start   # B3: skip si ya en start
   → intent (parser) + pedido_implicito      # current_step in {start, menu_node} hardcode
   → free_text action
-  → greeting order_start/order_modify       # hardcode Python (Fase 2 pendiente)
+  → greeting order_start/order_modify       # meta.order_greeting_while_ordering (Fase 2)
   → B1: start + start_seen → _START_IDLE_FALLBACK
   → fallback del nodo
   → compose en _process_node: message + action + message_after_action + message_secondary
@@ -207,75 +207,155 @@ NO empezar Fase 2.
 
 ## Fase 2 — UX estática al JSON (meta)
 
-**Estado:** ⚠️ **PARCIAL**
+**Estado:** ✅ **IMPLEMENTADA** — completa cuando **NO** existe string UX visible al usuario en `flow_engine.py` (salvo `_action_*` dinámicos, `NAV_HINT`, parche `_START_IDLE_FALLBACK` de Fase 3).
 
-**Meta:** Motor no contiene copy de usuario; solo lee `meta` y campos de nodo.
+**Meta:** Motor cero copy estático de usuario. Todo texto UX viene del JSON (`meta` o `node.fallback`). Python solo decide **qué clave leer** y **cuándo**; nunca redacta mensajes de negocio.
 
-**Hecho (verificado en código + JSON):**
+### Reglas de resolución de UX (obligatorias)
 
-- `meta.cancel_message` en `restaurant_flow.json`; `_resolve_global_command("cancelar")` lo usa (L207–213).
+**Origen del texto** — orden de prioridad único, sin excepciones:
 
-**Deuda pendiente (hardcode Python, claves meta ausentes en JSON):**
+| Prioridad | Fuente | Cuándo |
+|-----------|--------|--------|
+| 1 | `flow.meta[<clave>]` | Clave explícita para el caso (abandon, greeting order, cancel, etc.) |
+| 2 | `node.fallback` | Clave meta ausente o vacía en el nodo actual |
+| 3 | `_SYSTEM_TECHNICAL_FALLBACK` | Solo error técnico de configuración; **prohibido** como UX de negocio |
 
-| Copy hardcode | Ubicación | Clave meta objetivo |
-|---------------|-----------|---------------------|
-| Prompt abandon `inicio` con carrito activo | `_resolve_global_command` L199–203 | `abandon_confirm_prompt` |
-| Respuesta sí/no inválida en abandon | `_handle_abandon_confirm` L173 | `abandon_confirm_invalid` |
-| Confirmación “continuamos pedido” | `_handle_abandon_confirm` L172 | `abandon_confirm_continue` |
-| Saludo en `order_start` / `order_modify` | `_process_message_body` L392–396 | `order_greeting_while_ordering` |
+**Implementación:** helper `_resolve_ux_text(meta_key, node)` en `flow_engine.py`. Un solo punto de resolución; prohibido `self.meta.get(key, "texto…")` con default UX en Python.
 
-### Prompt 2A (chat nuevo — completar Fase 2)
+**Qué NO es UX estática (queda en `_action_*`):** mensajes con datos dinámicos (carrito, totales, dirección, resumen reserva, errores de validación con contexto). Esos strings son salida de acción, no meta.
+
+**Qué SÍ es UX estática (debe estar en JSON):**
+
+| Caso | Clave `meta` | Lógica Python permitida |
+|------|--------------|-------------------------|
+| `inicio` con carrito activo | `abandon_confirm_prompt` | `patch_data(awaiting_abandon_confirm=True)` + `_resolve_ux_text` |
+| Respuesta inválida en abandon | `abandon_confirm_invalid` | `is_confirmation` / `is_rejection` → elegir clave |
+| Rechazo abandon (seguir pedido) | `abandon_confirm_continue` | idem |
+| Saludo en `order_start` / `order_modify` | `order_greeting_while_ordering` | `is_greeting` + step in set → `_resolve_ux_text` |
+| `cancelar` | `cancel_message` | reset + compose con start |
+
+### Reemplazo obligatorio del hardcode existente
+
+Al cerrar Fase 2, **eliminar** de `flow_engine.py` (no dejar híbrido):
+
+| String / patrón hardcode (antes) | Destino JSON | Handler |
+|----------------------------------|--------------|---------|
+| `"Tienes un pedido en curso…"` | `meta.abandon_confirm_prompt` | `_resolve_global_command("inicio")` |
+| `"Perfecto, continuamos…"` | `meta.abandon_confirm_continue` | `_handle_abandon_confirm` (rama `is_rejection`) |
+| `"Responde *sí* para volver…"` | `meta.abandon_confirm_invalid` | `_handle_abandon_confirm` (rama default) |
+| `"¡Hola! Cuando quieras, cuéntame…"` | `meta.order_greeting_while_ordering` | `_process_message_body` greeting order |
+| Default UX en `cancel_message` | `meta.cancel_message` (ya existe) | `_resolve_global_command("cancelar")` |
+| Default UX en `node.fallback` | `node.fallback` en JSON por nodo | fallback genérico del nodo |
+
+**`_handle_abandon_confirm` — contrato estricto:**
+
+- ✅ Leer `meta` vía `_resolve_ux_text`
+- ✅ Evaluar `is_confirmation` / `is_rejection`
+- ✅ Decidir qué clave meta usar (`abandon_confirm_continue` vs `abandon_confirm_invalid`)
+- ✅ Transiciones de estado (`reset`, `patch_data`)
+- ❌ Cero strings UX literales en Python
+- ❌ Cero lógica de lenguaje natural propia
+- ❌ Cero fallback interno de mensaje
+
+**`_resolve_global_command("inicio")` con carrito:**
+
+- Si `_has_active_order` → devolver `_resolve_ux_text("abandon_confirm_prompt", current_node)`
+- Si meta vacía → `current_node.fallback` → `_SYSTEM_TECHNICAL_FALLBACK`
+- Prohibido string directo en Python
+
+**Greeting `order_start` / `order_modify`:**
+
+- Obligatorio: `_resolve_ux_text("order_greeting_while_ordering", node)`
+- Si meta vacía → `node.fallback`
+- Prohibido hardcode en Python
+
+### Claves `meta` requeridas (`restaurant_flow.json`)
+
+```json
+"abandon_confirm_prompt": "...",
+"abandon_confirm_continue": "...",
+"abandon_confirm_invalid": "...",
+"order_greeting_while_ordering": "...",
+"welcome_with_name": "...",
+"welcome_without_name": "...",
+"cancel_message": "..."
+```
+
+Validadas por `scripts/validate_flow.py` (`PHASE2_META_KEYS`).
+
+### Fuera de alcance Fase 2 (Fase 3)
+
+- `_START_IDLE_FALLBACK` y parche `start_seen` / B1–B3
+- `pedido_implicito`, greeting idle → `idle.start`
+- Mensajes dinámicos en `_action_*`
+
+### Prompt 2A (referencia — ya aplicado)
 
 ```
 Ejecuta ÚNICAMENTE Fase 2 de @migracion.md (UX en JSON).
 
-CONTEXTO: Fase 1 hecha. Parche crítico idle.start aplicado (ver sección dedicada).
+CONTEXTO: Fase 1 hecha. Parche crítico idle.start aplicado. repeat-order NO existe.
+
+OBJETIVO: Fase 2 100% determinista — cero string UX visible en flow_engine.py
+(salvo _action_* dinámicos, NAV_HINT, _START_IDLE_FALLBACK de Fase 3).
 
 ARCHIVOS:
 - flows/restaurant_flow.json
 - chatbot/app/core/flow_engine.py
-- scripts/validate_flow.py (validar nuevas claves meta opcionales)
+- scripts/validate_flow.py
 
 IMPLEMENTAR:
 
-1. Añadir en meta (restaurant_flow.json) textos que hoy están hardcode en Python:
-   - abandon_confirm_prompt (pedido en curso + sí/no)
+1. meta en restaurant_flow.json (textos que hoy están hardcode):
+   - abandon_confirm_prompt
    - abandon_confirm_invalid
-   - abandon_confirm_continue (rechazo sí/no → seguir pedido)
-   - order_greeting_while_ordering (hoy en order_start/order_modify greeting)
-   Mantener cancel_message existente.
+   - abandon_confirm_continue
+   - order_greeting_while_ordering
+   Mantener cancel_message.
 
-2. Refactor flow_engine:
-   - _handle_abandon_confirm → solo lee meta + is_confirmation/is_rejection
-   - _resolve_global_command "inicio" con carrito → usa meta.abandon_confirm_prompt
-   - greeting en order_start/order_modify → usa meta.order_greeting_while_ordering
+2. flow_engine.py:
+   - Añadir _resolve_ux_text(meta_key, node): meta → node.fallback → _SYSTEM_TECHNICAL_FALLBACK
+   - _handle_abandon_confirm: SOLO meta + is_confirmation/is_rejection + estado
+   - _resolve_global_command "inicio"+carrito: _resolve_ux_text("abandon_confirm_prompt", current_node)
+   - greeting order_start/order_modify: _resolve_ux_text("order_greeting_while_ordering", node)
+   - cancelar: _resolve_ux_text("cancel_message", …) sin default UX en Python
+   - fallback nodo: node.fallback o _SYSTEM_TECHNICAL_FALLBACK (sin default UX en Python)
 
-3. Fallback por nodo: seguir usando node.fallback del JSON (ya existe).
-- No cambiar transitions ni outcomes.
-- No cambiar services.
+3. validate_flow.py: PHASE2_META_KEYS obligatorias.
 
-COMPROBACIÓN DE CIERRE:
+RESTRICCIONES:
+- No nuevas fases ni arquitectura paralela de fallback
+- No lógica híbrida (parte meta + parte Python)
+- No cambiar transitions/outcomes/services/StateManager
+
+COMPROBACIÓN DE CIERRE (Fase 2 completa ⇔ todo PASS):
 - python scripts/validate_flow.py
 - pytest tests/test_flow_transitions.py -q
-- rg 'Tienes un pedido en curso|Cuando quieras, cuéntame' chatbot/app/core/flow_engine.py → 0 matches
-- Test manual: pedido a medias → inicio → mensaje meta; hola con last_order_items → bienvenida sin repetir (test_idle_start_ignores_last_order_items)
+- rg 'Tienes un pedido|Cuando quieras|Bienvenido|cuéntame' chatbot/app/core/flow_engine.py → 0 matches
+- rg 'Perfecto, continuamos|Responde \*sí\* para volver' chatbot/app/core/flow_engine.py → 0 matches
+- Manual: pedido a medias → inicio → meta.abandon_confirm_prompt; hola en order_start → meta.order_greeting_while_ordering
 ```
 
 ### Prompt 2B (solo si 2A dejó strings sueltos)
 
 ```
-Continúo Fase 2 @migracion.md. Busca strings de UX restantes en flow_engine.py
-(fuera de _action_* dinámicos y NAV_HINT). Muévelos a meta del JSON o a fallback de nodo.
-Reporta tabla de strings movidos. Misma comprobación de cierre Fase 2.
+Continúo Fase 2 @migracion.md. Busca strings UX restantes en flow_engine.py
+(fuera de _action_* dinámicos, NAV_HINT, _START_IDLE_FALLBACK).
+Muévelos a meta o node.fallback. Tabla strings movidos. Misma comprobación de cierre.
 ```
 
 ### Comprobación manual Fase 2
 
 | Prueba | Esperado | Estado |
 |--------|----------|--------|
-| Pedido iniciado → `inicio` | Mensaje desde `meta.abandon_confirm_prompt` | ⚠️ hoy hardcode Python |
-| `hola` con `last_order_items` | Bienvenida normal, sin “repetir” | ✅ (`test_idle_start_ignores_last_order_items`) |
-| `hola` durante `order_start` | `meta.order_greeting_while_ordering` | ⚠️ hoy hardcode Python |
+| Pedido iniciado → `inicio` | `meta.abandon_confirm_prompt` (vía `_resolve_ux_text`) | ✅ |
+| `inicio` + carrito → `sí` | Reset + bienvenida `idle.start` | ✅ |
+| `inicio` + carrito → `no` | `meta.abandon_confirm_continue` | ✅ |
+| Input inválido en abandon | `meta.abandon_confirm_invalid` | ✅ |
+| `hola` con `last_order_items` | Bienvenida normal, sin “repetir” | ✅ |
+| `hola` durante `order_start` | `meta.order_greeting_while_ordering` | ✅ |
+| `cancelar` mid-order | `meta.cancel_message` + start | ✅ |
 
 ---
 
@@ -285,13 +365,13 @@ Reporta tabla de strings movidos. Misma comprobación de cierre Fase 2.
 
 **Meta:** Decisiones de flujo solo vía JSON (`options`, `transitions`, `global_commands`, flags de nodo). Motor sin listas de steps hardcode ni parche `start_seen` / `_START_IDLE_FALLBACK` en Python.
 
-**Sigue en Python hoy:** `pedido_implicito` (L372–376), greeting idle → `idle.start` (L349–351), greeting order (L392–396), parche B1/B2/B3, `step == "start"` para `start_seen` (L475).
+**Sigue en Python hoy:** `pedido_implicito`, greeting idle → `idle.start`, parche B1/B2/B3, `step == "start"` para `start_seen`. Greeting order ya en meta (Fase 2 ✅).
 
 ### Prompt 3A (chat nuevo — copiar tal cual)
 
 ```
 Ejecuta ÚNICAMENTE Fase 3 de @migracion.md (routing declarativo).
-CONTEXTO: Fase 1 hecha. Fase 2 parcial (abandon/greeting pendientes). Parche crítico idle.start
+CONTEXTO: Fase 1 hecha. Fase 2 completa. Parche crítico idle.start
 aplicado (start_seen + B1/B2/B3 en Python). Esta fase declaratiza routing y el parche idle.start.
 ARCHIVOS:
 - flows/restaurant_flow.json
@@ -447,7 +527,7 @@ RESTRICCIONES: no tocar StateManager ni services; no refactor extra.
 | Chat | Fase | Estado | Prompt |
 |------|------|--------|--------|
 | 1 | 1 | ✅ Hecha | 1A (referencia) |
-| 2 | 2 | ⚠️ Parcial (abandon + greeting) | 2A (2B si hace falta) |
+| 2 | 2 | ✅ Hecha | 2A (referencia) |
 | — | Parche crítico | ✅ Hecho (fuera de fases) | — |
 | 3 | 3 | ❌ Pendiente real | **3A** |
 | 4 | 4 | ❌ Pendiente | 4A |

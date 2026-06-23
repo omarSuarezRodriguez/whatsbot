@@ -9,6 +9,12 @@
       "cancelar": "idle.start"
     },
     "cancel_message": "Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.",
+    "abandon_confirm_prompt": "Tienes un pedido en curso.\n\n¿Estás seguro de abandonar tu pedido actual?\nResponde *sí* para volver al inicio o *no* para continuar.",
+    "abandon_confirm_continue": "Perfecto, continuamos con tu pedido actual.",
+    "abandon_confirm_invalid": "Responde *sí* para volver al inicio o *no* para continuar tu pedido.",
+    "order_greeting_while_ordering": "¡Hola! Cuando quieras, cuéntame qué deseas ordenar.\nEjemplo: *2 hamburguesas y 1 agua*",
+    "welcome_with_name": "Hola *{{name}}*, Bienvenido a *{{restaurant_name}}*.",
+    "welcome_without_name": "Hola, Bienvenido a *{{restaurant_name}}*.",
     "navigation_hint": true
   },
   "states": {
