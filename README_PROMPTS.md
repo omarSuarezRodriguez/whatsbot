@@ -1,4 +1,4 @@
-## v1.37
+## v1.38 - fin de migracion.md (se dejó json para mapa y python para motor)
 
 
 
@@ -4340,3 +4340,64 @@ Fase 3C lista. Motor quedó mínimo.
 
 
 #####################################################
+## v1.38
+
+
+## prompt cursor ##
+
+Ejecuta ÚNICAMENTE Fase 4 de @migracion.md (cierre).
+
+CONTEXTO: Fases 1–2 completas. Fases 3A–3C completas. Parche idle.start eliminado en 3B.
+
+ARCHIVOS:
+- chatbot/app/core/flow_engine.py
+- scripts/validate_flow.py
+- tests/test_flow_transitions.py
+- tutoriales/editar-flujo-restaurant.md (sección "Arquitectura motor")
+
+IMPLEMENTAR:
+
+1. validate_flow.py:
+   - Si meta define claves Fase 2/3, validar que existen (lista documentada en script).
+   - Opcional: warning si nodo tiene dual_message sin message_secondary.
+
+2. Tests nuevos en test_flow_transitions.py:
+   - test_process_message_always_returns_str (varios wa_id/mensajes)
+   - test_cancelar_mid_order (si entorno lo permite)
+   - test_abandon_confirm_reject_continues_order
+   - test_idle_start_second_hola_fallback (2º hola en start)
+   - test_idle_start_ignores_last_order_items (regresión: sin repetir)
+
+3. Documentar en tutorial:
+   - JSON = mapa (mensajes, transitions, options, meta)
+   - Python = motor (actions devuelven outcome + datos dinámicos)
+   - Prohibido: step hardcode, List[str], menú fuera de show_menu
+
+4. Limpieza final flow_engine:
+   - Eliminar código muerto
+   - Una sola función _compose_message(node, parts) si aún no existe
+
+COMPROBACIÓN DE CIERRE (migración completa):
+- python scripts/validate_flow.py
+- python scripts/validate_chatbot.py
+- pytest tests/test_flow_transitions.py -q
+- rg 'dual_message|step ==|List\[str\]|Reply = Union|format_menu|start_seen|_START_IDLE_FALLBACK' chatbot/app/core/flow_engine.py
+  → format_menu solo _action_show_menu; resto 0
+- rg 'return .*, "(order_|reservation_|menu_node|start)"' chatbot/app/core/flow_engine.py → 0 en _action_*
+- Checklist manual abajo: todo probado
+
+NO abrir nueva fase sin pedido explícito.
+
+
+## resp cursor ##
+
+Fase 4 cerrada. 21 tests PASS, validadores OK.
+
+
+
+
+########################################################
+
+
+
+

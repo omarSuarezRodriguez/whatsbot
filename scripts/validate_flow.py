@@ -34,6 +34,7 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "save_reservation": {"success", "incomplete"},
 }
 
+# Meta UX estática (Fase 2). Obligatorias si el flujo usa restaurant_flow estándar.
 PHASE2_META_KEYS = (
     "cancel_message",
     "abandon_confirm_prompt",
@@ -65,6 +66,22 @@ PHASE2_META_KEYS = (
     "save_reservation_success",
 )
 
+# Meta de routing/config (Fase 3). Obligatorias en flujo restaurante migrado.
+PHASE3_META_KEYS = (
+    "navigation_hint",
+    "active_order_command_targets",
+)
+
+# Campos de nodo declarativos (Fase 3B idle.start). Validados si el nodo los define.
+PHASE3_NODE_OPTIONAL_FLAGS = (
+    "self_loop_behavior",
+    "suppress_repeat_message",
+    "suppress_navigation",
+    "intercept_products",
+    "order_greeting_on_greeting",
+    "dual_message",
+)
+
 
 def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
     states = raw.get("states")
@@ -94,8 +111,9 @@ def _step_exists(nodes: Dict[str, Any], ref: str, current_state: str = "idle") -
     return step in nodes
 
 
-def validate_flow(flow: Dict[str, Any]) -> List[str]:
+def validate_flow(flow: Dict[str, Any]) -> Tuple[List[str], List[str]]:
     errors: List[str] = []
+    warnings: List[str] = []
     nodes = flow.get("nodes", {})
     meta = flow.get("meta", {})
 
@@ -106,6 +124,10 @@ def validate_flow(flow: Dict[str, Any]) -> List[str]:
     for key in PHASE2_META_KEYS:
         if not meta.get(key):
             errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 2)")
+
+    for key in PHASE3_META_KEYS:
+        if key not in meta or meta.get(key) in (None, ""):
+            errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 3)")
 
     active_targets = meta.get("active_order_command_targets")
     if not isinstance(active_targets, dict):
@@ -169,7 +191,17 @@ def validate_flow(flow: Dict[str, Any]) -> List[str]:
                 f"nodes[{step!r}]: self_loop_behavior='fallback' requiere node.fallback"
             )
 
-    return errors
+        if node.get("dual_message") and not node.get("message_secondary"):
+            warnings.append(
+                f"nodes[{step!r}]: dual_message=true sin message_secondary"
+            )
+
+        if node.get("suppress_repeat_message") and not node.get("self_loop_behavior"):
+            warnings.append(
+                f"nodes[{step!r}]: suppress_repeat_message sin self_loop_behavior"
+            )
+
+    return errors, warnings
 
 
 def main() -> int:
@@ -185,16 +217,23 @@ def main() -> int:
         raw = json.load(handle)
 
     flow = _normalize_flow(raw)
-    errors = validate_flow(flow)
+    errors, warnings = validate_flow(flow)
+
+    for warn in warnings:
+        print(f"  WARN {warn}")
 
     if errors:
         for err in errors:
             print(f"  ERROR {err}")
-        print(f"\n=== Resultado: {len(errors)} error(es) ===")
+        print(f"\n=== Resultado: {len(errors)} error(es), {len(warnings)} aviso(s) ===")
         return 1
 
     print(f"  OK  {len(flow.get('nodes', {}))} nodos")
-    print("\n=== Resultado: 0 errores ===")
+    print(
+        f"\n=== Resultado: 0 errores"
+        + (f", {len(warnings)} aviso(s)" if warnings else "")
+        + " ==="
+    )
     return 0
 
 

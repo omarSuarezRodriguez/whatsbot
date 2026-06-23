@@ -86,6 +86,61 @@ def _text(reply) -> str:
     return str(reply)
 
 
+def _step(engine, wa_id: str) -> str:
+    return engine.state_manager.get(wa_id).get("step", "")
+
+
+@pytest.mark.parametrize(
+    "wa_id,message",
+    [
+        ("573011110001", "hola"),
+        ("573011110002", "menu"),
+        ("573011110003", "pedido"),
+        ("573011110004", "reservar"),
+        ("573011110005", ""),
+        ("573011110006", "xyz basura"),
+    ],
+)
+def test_process_message_always_returns_str(engine, wa_id, message):
+    reply = engine.process_message(wa_id, message)
+    assert isinstance(reply, str)
+    assert reply.strip()
+
+
+def test_cancelar_mid_order(engine):
+    wa_id = "573011110010"
+    engine.process_message(wa_id, "pedido")
+    engine.process_message(wa_id, "1 pizza hawaiana")
+    assert _step(engine, wa_id) == "order_review"
+
+    reply = engine.process_message(wa_id, "cancelar")
+
+    assert isinstance(reply, str)
+    assert "cancel" in reply.lower()
+    assert _step(engine, wa_id) == "start"
+    assert not engine.state_manager.get(wa_id).get("data", {}).get("cart")
+
+
+def test_abandon_confirm_reject_continues_order(engine):
+    wa_id = "573011110011"
+    engine.process_message(wa_id, "pedido")
+    engine.process_message(wa_id, "1 pizza hawaiana")
+    assert _step(engine, wa_id) == "order_review"
+
+    prompt = engine.process_message(wa_id, "inicio")
+    assert "pedido en curso" in prompt.lower()
+    assert engine.state_manager.get(wa_id).get("data", {}).get(
+        "awaiting_abandon_confirm"
+    )
+
+    reply = engine.process_message(wa_id, "no")
+    assert "continuamos" in reply.lower()
+    assert not engine.state_manager.get(wa_id).get("data", {}).get(
+        "awaiting_abandon_confirm"
+    )
+    assert _step(engine, wa_id) == "order_review"
+
+
 def test_idle_start_no_menu_catalog(engine):
     wa_id = "573009998875"
     reply = engine.process_message(wa_id, "hola")
@@ -129,9 +184,6 @@ def test_idle_start_ignores_last_order_items(engine):
     assert "¿Qué te gustaría hacer hoy?" in reply
     assert "repetir" not in reply.lower()
     assert _step(engine, wa_id) == "start"
-
-def _step(engine, wa_id: str) -> str:
-    return engine.state_manager.get(wa_id).get("step", "")
 
 
 def test_order_happy_path_domicilio(engine):

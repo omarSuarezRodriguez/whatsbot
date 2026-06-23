@@ -324,7 +324,22 @@ class FlowEngine:
             message = self._node_fallback_message(node)
         return self._append_navigation(message, node)
 
-    def process_message(self, wa_id: str, body: str, *, _inner: bool = False) -> str:
+    def _compose_message(
+        self,
+        node: Dict[str, Any],
+        parts: list[str],
+        extra: Dict[str, str],
+    ) -> str:
+        after_action = node.get("message_after_action")
+        if after_action:
+            parts.append(self._render(after_action, extra))
+        if node.get("dual_message"):
+            secondary = node.get("message_secondary")
+            if secondary:
+                parts.append(self._render(secondary, extra))
+        return self._join_reply(*parts)
+
+    def process_message(self, wa_id: str, body: str) -> str:
         text = (body or "").strip()
         if not text:
             text = "hola"
@@ -334,7 +349,6 @@ class FlowEngine:
             normalized = "pedido"
         state = self.state_manager.get(wa_id)
         current_step = state.get("step", "start")
-        log_meta: Dict[str, Any] = {"intent": None, "routed": None}
 
         return self._process_message_body(
             wa_id,
@@ -342,8 +356,6 @@ class FlowEngine:
             normalized,
             state,
             current_step,
-            log_meta,
-            _inner=_inner,
         )
 
     def _process_message_body(
@@ -353,9 +365,6 @@ class FlowEngine:
         normalized: str,
         state: Dict[str, Any],
         current_step: str,
-        log_meta: Dict[str, Any],
-        *,
-        _inner: bool,
     ) -> str:
         abandon = self._handle_abandon_confirm(wa_id, text, state)
         if abandon is not None:
@@ -371,7 +380,6 @@ class FlowEngine:
             next_ref = options[normalized]
             if self._should_self_loop_fallback(next_ref, current_step, node, state):
                 return self._append_navigation(self._node_fallback_message(node), node)
-            log_meta["routed"] = f"option:{normalized}"
             return self._goto_ref(
                 wa_id,
                 next_ref,
@@ -379,7 +387,6 @@ class FlowEngine:
             )
 
         if normalized in self.global_commands:
-            log_meta["routed"] = normalized
             response = self._resolve_global_command(
                 wa_id, normalized, current_step, state
             )
@@ -388,7 +395,6 @@ class FlowEngine:
 
         menu_tokens = self.menu_service.menu_literal_tokens()
         intent = infer_user_intent(text, menu_tokens=menu_tokens)
-        log_meta["intent"] = intent
         intent_command = intent.get("command")
         if intent_command in {"pedido", "menu", "reservar"} and is_confirmation(text):
             intent_command = None
@@ -397,7 +403,6 @@ class FlowEngine:
             and intent_command in self.global_commands
             and not intent.get("has_products")
         ):
-            log_meta["routed"] = str(intent_command)
             response = self._resolve_global_command(
                 wa_id, intent_command, current_step, state
             )
@@ -409,12 +414,11 @@ class FlowEngine:
             and intent.get("has_products")
             and node.get("intercept_products")
         ):
-            log_meta["routed"] = "pedido_implicito"
             response = self._resolve_global_command(
                 wa_id, "pedido", current_step, state
             )
             if response:
-                return self.process_message(wa_id, text, _inner=True)
+                return self.process_message(wa_id, text)
 
         if node.get("order_greeting_on_greeting") and is_greeting(text):
             greeting = self._resolve_ux_text("order_greeting_while_ordering", node)
@@ -425,7 +429,6 @@ class FlowEngine:
                 wa_id, text, node, current_step, state
             )
             if step_response is not None:
-                log_meta["routed"] = node.get("action_on_input") or node.get("action")
                 return step_response
 
         return self._append_navigation(self._node_fallback_message(node), node)
@@ -466,16 +469,7 @@ class FlowEngine:
                     parts.append(action_message)
                 next_step = self._resolve_transition(node, outcome)
 
-        after_action = node.get("message_after_action")
-        if after_action:
-            parts.append(self._render(after_action, extra))
-
-        if node.get("dual_message"):
-            secondary = node.get("message_secondary")
-            if secondary:
-                parts.append(self._render(secondary, extra))
-
-        response = "\n\n".join(part for part in parts if part).strip()
+        response = self._compose_message(node, parts, extra)
 
         if next_step and next_step != step:
             next_node = self.nodes.get(next_step, {})
