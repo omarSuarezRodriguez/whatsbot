@@ -140,28 +140,33 @@ class FlowEngine:
             rendered = rendered.replace(f"{{{{{key}}}}}", str(value))
         return rendered
 
+    @staticmethod
+    def _join_reply(reply: Reply) -> str:
+        if isinstance(reply, list):
+            return "\n\n".join(
+                str(part).strip() for part in reply if part and str(part).strip()
+            ).strip()
+        return str(reply).strip() if reply else ""
+
     def _as_reply(
         self,
-        message: str,
+        message: Reply,
         node: Optional[Dict[str, Any]] = None,
         step: str = "",
-    ) -> Reply:
-        if node and node.get("dual_message"):
-            primary = message.strip()
-            if step == "start":
-                menu_text = self.menu_service.format_menu()
-                secondary = (
-                    f"{menu_text}\n\n"
-                    "¿Deseas hacer un pedido o reservar una mesa?\n\n"
-                    "Escribe *pedido* para ordenar o *reservar* para agendar tu mesa."
-                )
-            elif node.get("message_secondary"):
-                secondary = self._render(node.get("message_secondary", ""))
-            else:
-                secondary = ""
-            parts = [part for part in (primary, secondary) if part]
-            return parts if len(parts) > 1 else (parts[0] if parts else message)
-        return message
+    ) -> str:
+        text = self._join_reply(message)
+        if not node or not node.get("dual_message"):
+            return text
+
+        parts = [text] if text else []
+        if step == "start":
+            menu_text = self.menu_service.format_menu()
+            if menu_text:
+                parts.append(menu_text)
+        secondary = node.get("message_secondary")
+        if secondary:
+            parts.append(self._render(secondary))
+        return self._join_reply(parts)
 
     def _append_navigation(self, message: Reply, node: Dict[str, Any]) -> Reply:
         if not self.meta.get("navigation_hint", True):
@@ -255,10 +260,7 @@ class FlowEngine:
                 "Proceso cancelado. Estoy aquí cuando quieras continuar.",
             )
             start_message = self._process_node(wa_id, target_step, include_navigation=False)
-            if isinstance(start_message, list):
-                combined = [cancel_message, *start_message]
-            else:
-                combined = f"{cancel_message}\n\n{start_message}".strip()
+            combined = self._join_reply([cancel_message, start_message])
             return self._append_navigation(combined, self.nodes.get(target_step, {}))
 
         if command == "inicio":
@@ -312,12 +314,9 @@ class FlowEngine:
                     next_step,
                     include_navigation=False,
                 )
-                if isinstance(follow_up, list):
-                    combined: Reply = [message, *follow_up] if message else follow_up
-                elif message:
-                    combined = f"{message}\n\n{follow_up}".strip()
-                else:
-                    combined = follow_up
+                combined = self._join_reply(
+                    [message, follow_up] if message else follow_up
+                )
                 return self._append_navigation(combined, next_node)
         return self._append_navigation(message, node)
 
@@ -517,13 +516,10 @@ class FlowEngine:
                 next_step,
                 include_navigation=False,
             )
-            if isinstance(follow_up, list):
-                if response:
-                    response = [response, *follow_up]
-                else:
-                    response = follow_up
-            elif follow_up:
-                response = f"{response}\n\n{follow_up}".strip() if response else follow_up
+            if follow_up:
+                response = self._join_reply(
+                    [response, follow_up] if response else follow_up
+                )
 
         if include_navigation:
             response = self._append_navigation(response, node)

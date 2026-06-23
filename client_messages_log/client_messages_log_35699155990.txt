@@ -2070,3 +2070,158 @@ Cliente: ñ4
 Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+*Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+*Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+
+*Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################

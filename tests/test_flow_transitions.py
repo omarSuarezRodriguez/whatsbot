@@ -86,6 +86,29 @@ def _text(reply) -> str:
     return str(reply)
 
 
+def test_idle_start_returns_single_string(engine):
+    wa_id = "573009998877"
+    reply = engine.process_message(wa_id, "hola")
+
+    assert isinstance(reply, str), f"expected str, got {type(reply).__name__}"
+    assert "Bienvenido" in reply or "bienvenido" in reply.lower()
+    assert _step(engine, wa_id) == "start"
+
+
+def test_idle_start_no_list_after_repeat_order_reject(engine):
+    wa_id = "573009998876"
+    engine.user_service.sheets.upsert_user(
+        wa_id,
+        name="",
+        address="",
+        last_order_items=[{"nombre": "Pizza Hawaiana", "cantidad": 1, "precio": 12.0}],
+    )
+    engine.process_message(wa_id, "hola")
+    reply = engine.process_message(wa_id, "no")
+
+    assert isinstance(reply, str)
+    assert "Bienvenido" in reply or "bienvenido" in reply.lower()
+
 def _step(engine, wa_id: str) -> str:
     return engine.state_manager.get(wa_id).get("step", "")
 

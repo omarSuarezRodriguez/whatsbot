@@ -1,4 +1,4 @@
-## v1.23
+## v1.24
 
 
 
@@ -2767,6 +2767,99 @@ Idea central: Python devuelve outcome ("confirmed", "success"…); JSON elige de
 
 
 ##################################################
+## v1.24
+
+## prompt ##
+
+Quiero corregir un comportamiento específico del FlowEngine sin cambiar el resto del sistema.
+
+ARCHIVO:
+- chatbot/app/core/flow_engine.py
+
+PROBLEMA:
+En el nodo idle.start, el bot está enviando más de un bloque de mensaje (doble output visual).
+
+CAUSA REAL:
+En _as_reply():
+- Existe una rama especial: if step == "start"
+- Esta rama genera secondary message hardcodeado (menu_service.format_menu)
+- Además puede existir message_secondary desde JSON
+- Resultado: múltiples bloques de salida
+
+OBJETIVO:
+- idle.start debe generar UN SOLO mensaje final
+- El menú NO debe generar un segundo bloque separado
+- Si hay message_secondary JSON, debe fusionarse con el mensaje principal
+- No deben existir múltiples "secondary sources"
+
+REGLA NUEVA:
+- En step == "start":
+  - eliminar lógica de secondary hardcode separado
+  - el menú debe integrarse dentro del mismo string final
+  - NO retornar List[str]
+  - NO separar primary/secondary como mensajes distintos
+  - todo debe ser un único string final
+
+RESTRICCIONES:
+- No cambiar StateManager
+- No cambiar services
+- No modificar JSON todavía
+- No cambiar lógica de negocio
+- Solo ajustar rendering en FlowEngine
+
+ARCHIVOS INVOLUCRADOS:
+- chatbot/app/core/flow_engine.py
+  - _as_reply()
+  - posible impacto en _process_node()
+
+ENTREGABLE:
+1. Fix del comportamiento en idle.start
+2. Explicación de por qué el menú hardcode causa doble mensaje
+3. Confirmación de que idle.start devuelve un único string final
+
+
+
+## resp cursor ##
+
+Fix aplicado
+_as_reply() en flow_engine.py — un solo pipeline de partes, sin rama secondary hardcodeada.
+
+Antes (step == "start"):
+
+primary = welcome
+secondary = menu + "¿Deseas hacer un pedido..."  # hardcode, ignora JSON
+return join([primary, secondary])  # dos bloques lógicos
+Ahora:
+
+parts = [welcome]
+parts += [menu]                    # integrado, no "secondary"
+parts += [message_secondary JSON]  # fusionado
+return join(parts)                 # un solo str
+Por qué el menú hardcode causaba doble mensaje
+dual_message: true en idle.start activaba rama especial if step == "start":
+
+Primary — {{welcome_line}}
+Secondary hardcode — format_menu() + CTA fijo ("¿Deseas hacer un pedido o reservar...")
+Eso creaba dos fuentes de salida (primary vs secondary). El elif impedía usar message_secondary del JSON al mismo tiempo, pero el menú seguía siendo bloque separado unido con \n\n — en WhatsApp se lee como dos mensajes visuales.
+
+Además el CTA hardcode reemplazaba el message_secondary del JSON (opciones menu/pedido/reservar), generando contenido duplicado/inconsistente.
+
+Confirmación
+idle.start devuelve str único, no List[str]:
+
+Hola, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+...
+¿Qué te gustaría hacer hoy?
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+
+
+
+##################################################
+
 
 
 
