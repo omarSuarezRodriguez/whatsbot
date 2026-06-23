@@ -45,3 +45,21 @@ Chatbot: Hola *Validate E2E*, Bienvenido a *La Casa del Sabor*.
 Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
 
 #################################################################
+################################################################
+
+Cliente: hola desde validate_system
+
+
+-------------------------------
+
+Chatbot: Hola *Validate E2E*, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Test*
+• Plato Validate System — $7.50
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################

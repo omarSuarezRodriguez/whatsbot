@@ -1,16 +1,16 @@
 # Graph Report - whatsbot  (2026-06-23)
 
 ## Corpus Check
-- 105 files · ~78,685 words
+- 105 files · ~79,657 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1271 nodes · 2985 edges · 79 communities (67 shown, 12 thin omitted)
+- 1273 nodes · 2990 edges · 74 communities (62 shown, 12 thin omitted)
 - Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5ded3c2a`
+- Built from commit: `29d56e90`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,7 +24,6 @@
 - [[_COMMUNITY_Community 6|Community 6]]
 - [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 11|Community 11]]
 - [[_COMMUNITY_Community 12|Community 12]]
@@ -33,7 +32,6 @@
 - [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_Community 16|Community 16]]
 - [[_COMMUNITY_Community 17|Community 17]]
-- [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 19|Community 19]]
 - [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 21|Community 21]]
@@ -48,7 +46,6 @@
 - [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 32|Community 32]]
-- [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
@@ -59,12 +56,10 @@
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
-- [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 46|Community 46]]
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
-- [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 51|Community 51]]
 - [[_COMMUNITY_Community 52|Community 52]]
@@ -123,14 +118,14 @@
 - 1-file cycle: `models/order.py -> models/order.py`
 - 1-file cycle: `models/reservation.py -> models/reservation.py`
 - 2-file cycle: `api/main.py -> api/routes/auth.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/businesses.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/whatsbot.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/realtime.py -> api/main.py`
 - 2-file cycle: `api/main.py -> api/routes/customers.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/businesses.py -> api/main.py`
 - 2-file cycle: `api/main.py -> api/routes/menus.py -> api/main.py`
 - 2-file cycle: `api/main.py -> api/routes/orders.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/realtime.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/whatsapp.py -> api/main.py`
 
-## Communities (79 total, 12 thin omitted)
+## Communities (74 total, 12 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
@@ -145,8 +140,8 @@ Cohesion: 0.07
 Nodes (52): WebSocket, get_redis(), _is_enabled(), publish_event(), Any, Redis cache / pub-sub wrapper (OLA 4).  All operations are no-ops when REDIS_ENA, Return async Redis client (singleton). None if Redis disabled or unavailable., Publish JSON event to Redis channel.  Returns False if Redis unavailable. (+44 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.17
-Nodes (10): Any, get_active_business_id(), _active_business_id(), DBStore, get_db_store(), _new_order_id(), _order_to_dict(), DB-backed data store for the chatbot engine (replaces Google Sheets).  Single so (+2 more)
+Cohesion: 0.15
+Nodes (11): Any, get_active_business_id(), Thread-safe per-(business, user) state with optional disk persistence., _active_business_id(), DBStore, get_db_store(), _new_order_id(), _order_to_dict() (+3 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.07
@@ -168,13 +163,9 @@ Nodes (50): lifespan(), FastAPI application entry.  Arranque:   python -m api.ma
 Cohesion: 0.06
 Nodes (34): Cómo usarlo, Fase 11 — Tiempo real (paridad lógica con WhatsApp) ✅, Fase 12+ — Próximas mejoras (pendiente), Prompt 0 — Verificación al pegar el proyecto (opcional), Prompt 10 — Fase 9: App Flutter WhatsBot (UI WhatsApp), Prompt 11 — Fase 10: Validación final + guías, Prompt 11b — Solo si faltan credenciales tras Fase 1, Prompt 12 — Fase 11.1: Análisis (SIN código) (+26 more)
 
-### Community 9 - "Community 9"
-Cohesion: 0.19
-Nodes (6): Any, MenuService, OrderService — DB-backed, multi-tenant (via DBStore)., OrderParser, OrderService, Always build fresh from current DB menu (multi-tenant, no stale cache).
-
 ### Community 10 - "Community 10"
-Cohesion: 0.20
-Nodes (3): Any, Reply, FlowEngine
+Cohesion: 0.10
+Nodes (18): Any, Reply, date, time, FlowEngine, extract_admin_order_id(), is_admin_confirm(), is_confirmation() (+10 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.07
@@ -189,8 +180,8 @@ Cohesion: 0.33
 Nodes (8): get_prompt(), handle_incoming_message(), _normalize_reply(), Reply, Única puerta de entrada al chatbot (Fase 2).  Entrada payload:   - phone / wa_id, Procesa un mensaje entrante del webhook WhatsApp (Twilio).     No envía Twilio;, _reply_to_response_text(), Chatbot package — única puerta: gateway.handle_incoming_message.
 
 ### Community 14 - "Community 14"
-Cohesion: 0.15
-Nodes (21): _apply_schema_patches(), get_db(), get_engine(), get_session_factory(), init_db(), Session, SQLAlchemy engine, session factory and schema bootstrap., FastAPI dependency: yields a DB session. (+13 more)
+Cohesion: 0.19
+Nodes (18): _apply_schema_patches(), get_db(), get_engine(), get_session_factory(), init_db(), Session, SQLAlchemy engine, session factory and schema bootstrap., FastAPI dependency: yields a DB session. (+10 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.14
@@ -203,10 +194,6 @@ Nodes (8): OrderIntelligenceEngine, Production-grade order interpretation pipeli
 ### Community 17 - "Community 17"
 Cohesion: 0.09
 Nodes (21): Alta de un segundo negocio, `Caddyfile`, Checklist rápido antes de dar por bueno producción, Comandos útiles del día a día, `docker-compose.yml`, `Dockerfile`, Firewall del VPS, Paso 1 — Clonar el proyecto en el VPS (+13 more)
-
-### Community 18 - "Community 18"
-Cohesion: 0.22
-Nodes (5): Any, Thread-safe per-(business, user) state with optional disk persistence., Scope state by (business_id, wa_id) to prevent cross-tenant leakage., Lightweight read copy: deep-copy cart/reservation only when present., StateManager
 
 ### Community 19 - "Community 19"
 Cohesion: 0.18
@@ -229,8 +216,8 @@ Cohesion: 0.37
 Nodes (17): BusinessId, Session, MenuItemCreate, MenuItemOut, MenuItemUpdate, MenuReplace, MenuItemCreate, MenuItemOut (+9 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.31
-Nodes (8): create_app(), main(), Validate FastAPI webhook + DB (Fase 4)., _fail(), main(), _migrate_message_status(), _ok(), End-to-end validation — Fase 10 + realtime Fase 11.
+Cohesion: 0.18
+Nodes (14): create_app(), main(), Validate FastAPI webhook + DB (Fase 4)., _fail(), main(), _migrate_message_status(), _ok(), End-to-end validation — Fase 10 + realtime Fase 11. (+6 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.19
@@ -264,13 +251,9 @@ Nodes (15): auth_token(), client(), _fresh_test_database(), TestClient, WebSocke
 Cohesion: 0.15
 Nodes (9): Shim hacia config centralizada.  El chatbot importa `app.config` sin cambios;, Path, Bot session defaults — flows, navigation, branding., resolve_flows_path(), Central configuration package (4 modules + .env secrets)., Global intent defaults — migrated from legacy app/core/parser.py (Fase 3)., get_prompt(), Global prompt defaults — from flows/restaurant_flow.json + gateway (Fase 3). (+1 more)
 
-### Community 33 - "Community 33"
-Cohesion: 0.15
-Nodes (15): date, time, extract_admin_order_id(), is_admin_confirm(), is_confirmation(), is_global_command(), is_greeting(), is_rejection() (+7 more)
-
 ### Community 34 - "Community 34"
-Cohesion: 0.14
-Nodes (13): 1. Editar el flujo en JSON, 2. Transiciones en JSON, 3. Fallbacks y mensajes fuera del flujo, 4. Aplicar cambios, 5. Checklist rápido, Cambiar el flujo del chatbot, Cambiar el orden de los pasos, Cambiar solo el contenido (sin cambiar orden) (+5 more)
+Cohesion: 0.12
+Nodes (15): 1. Editar el flujo en JSON, 2. Transiciones en JSON, 3. Fallbacks y mensajes fuera del flujo, 4. Aplicar cambios, 5. Checklist rápido, Añadir un paso nuevo (workflow), Cambiar el flujo del chatbot, Cambiar el orden de los pasos (+7 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.23
@@ -297,20 +280,16 @@ Cohesion: 0.14
 Nodes (24): Any, Response, Session, is_twilio_whatsapp_sandbox(), Global settings loaded from .env., use_rest_webhook_replies(), build_twiml_response(), deliver_reply() (+16 more)
 
 ### Community 41 - "Community 41"
-Cohesion: 0.14
-Nodes (12): AdminService, MenuService, OrderService, date, time, Any, BotContext, ReservationService (+4 more)
+Cohesion: 0.06
+Nodes (27): AdminService, MenuService, OrderService, Any, Any, MenuService — DB-backed, multi-tenant (via DBStore)., Any, MenuService (+19 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.31
-Nodes (8): Context manager for scripts and services., session_scope(), _get_store(), _init_db(), Flujo confirmación admin (DB-backed, sin Sheets).  Cliente pide → notify admin →, test_admin_confirm_notifies_customer(), test_approve_from_app_notifies_customer(), test_approve_from_app_reports_twilio_failure()
+Cohesion: 0.22
+Nodes (11): Context manager for scripts and services., session_scope(), main(), Create/update schema and seed default business (Fase 5)., _seed_menu_from_cache(), _get_store(), _init_db(), Flujo confirmación admin (DB-backed, sin Sheets).  Cliente pide → notify admin → (+3 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.20
 Nodes (9): Arquitectura WhatsBot, Capas, Componentes, Flujo de mensaje entrante, Flujo de mensaje saliente (dueño → cliente), Modelo de números, Multi-tenant, Prohibiciones (+1 more)
-
-### Community 44 - "Community 44"
-Cohesion: 0.27
-Nodes (5): Any, MenuService — DB-backed, multi-tenant (via DBStore)., get_active_menu(), Any, MenuService
 
 ### Community 45 - "Community 45"
 Cohesion: 0.49
@@ -327,10 +306,6 @@ Nodes (7): auth_headers(), client(), TestClient, Message status + mark-read — 
 ### Community 48 - "Community 48"
 Cohesion: 0.29
 Nodes (7): A) Drift watch no dispara actualización UI para el `conversation.id` abierto (ALTA), B) `_reconcileWithStore` pisa o pierde mensajes mergeados por WS (ALTA), C) Doble vía con carrera WS ↔ Drift ↔ `_refresh` (MEDIA), D) WS desconectado en dispositivo real sin fallback percibido (MEDIA), E) Mensajes salientes / ticks como sub-síntoma (MEDIA-BAJA), F) Tests pasan pero producción falla — gap de cobertura (ALTA probabilidad), Hipótesis de causa raíz (priorizadas — actualizadas tras análisis)
-
-### Community 49 - "Community 49"
-Cohesion: 0.43
-Nodes (6): auth_headers(), client(), TestClient, Tests for Twilio status callback webhook., test_incoming_webhook_dedup_by_sid(), test_status_callback_updates_owner_message()
 
 ### Community 50 - "Community 50"
 Cohesion: 0.33
@@ -365,10 +340,10 @@ Nodes (4): 1. Lista de chats no se actualiza (pero suena la push), 2. Tus mensaj
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `get_bot_context()` connect `Community 54` to `Community 1`, `Community 3`, `Community 4`, `Community 40`, `Community 41`, `Community 10`, `Community 11`, `Community 42`, `Community 13`, `Community 46`, `Community 24`, `Community 27`?**
-  _High betweenness centrality (0.092) - this node is a cross-community bridge._
-- **Why does `AdminService` connect `Community 4` to `Community 3`, `Community 41`, `Community 10`, `Community 9`, `Community 19`, `Community 27`?**
+  _High betweenness centrality (0.091) - this node is a cross-community bridge._
+- **Why does `AdminService` connect `Community 4` to `Community 3`, `Community 41`, `Community 10`, `Community 19`, `Community 27`?**
   _High betweenness centrality (0.077) - this node is a cross-community bridge._
-- **Why does `session_scope()` connect `Community 42` to `Community 0`, `Community 3`, `Community 7`, `Community 11`, `Community 14`, `Community 46`, `Community 47`, `Community 49`, `Community 24`, `Community 25`, `Community 27`, `Community 30`, `Community 31`?**
+- **Why does `session_scope()` connect `Community 42` to `Community 0`, `Community 3`, `Community 7`, `Community 11`, `Community 14`, `Community 46`, `Community 47`, `Community 24`, `Community 25`, `Community 27`, `Community 30`, `Community 31`?**
   _High betweenness centrality (0.070) - this node is a cross-community bridge._
 - **Are the 15 inferred relationships involving `AdminService` (e.g. with `AdminService` and `Any`) actually correct?**
   _`AdminService` has 15 INFERRED edges - model-reasoned connections that need verification._

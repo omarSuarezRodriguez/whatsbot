@@ -36,11 +36,12 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
 
 
 def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
-    if "states" not in raw:
-        return raw
+    states = raw.get("states")
+    if not states:
+        raise ValueError("Flow JSON must define 'states'")
     meta = raw.get("meta", {})
     nodes: Dict[str, Any] = {}
-    for state_name, state_def in raw.get("states", {}).items():
+    for state_name, state_def in states.items():
         for step, node in state_def.get("nodes", {}).items():
             flat = dict(node)
             flat.setdefault("flow", state_name)

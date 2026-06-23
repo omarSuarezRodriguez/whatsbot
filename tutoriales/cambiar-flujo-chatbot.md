@@ -35,18 +35,19 @@ Archivo: `flows/restaurant_flow.json`
 
 Referencias cruzadas entre estados: `"idle.start"`, `"order.order_review"`, `"reservation.reservation_start"`.
 
-### Estructura de un nodo
+### Ejemplo completo: `order_review` (del JSON real)
 
 ```json
 "order_review": {
   "action": "show_cart",
-  "message_after_action": "¿Confirmamos tu pedido?",
+  "message_after_action": "\n\n¿Confirmamos tu pedido?\nResponde *sí* para confirmar o *no* para modificarlo.",
   "input_mode": "free_text",
   "action_on_input": "handle_order_confirmation",
   "transitions": {
+    "success": null,
+    "empty_cart": "order_start",
     "confirmed": "order_delivery",
     "rejected": "order_modify",
-    "empty_cart": "order_start",
     "invalid": null
   },
   "options": {
@@ -119,12 +120,34 @@ Las transiciones viven en `transitions` de cada nodo. Python devuelve **outcomes
 | `handle_reservation_confirmation` | `confirmed`, `rejected`, `incomplete`, `invalid` |
 | `save_reservation` | `success` → `idle.start`, `incomplete` → `reservation.reservation_start` |
 
-Para **nuevo paso** en el flujo:
+### Añadir un paso nuevo (workflow)
 
-1. Añade el nodo en `restaurant_flow.json` dentro del `state` correcto.
-2. Define `transitions` con los outcomes que devuelve la acción.
-3. Si necesita lógica nueva, registra la acción en `_actions` e implementa `_action_tu_accion` devolviendo outcomes (no nombres de nodo).
-4. Haz que el paso anterior apunte a tu nodo vía `transitions` o `options`.
+1. **JSON** — Añade el nodo dentro del `state` correcto (`idle`, `order` o `reservation`):
+
+   ```json
+   "order_tip": {
+     "message": "¿Deseas dejar propina? Responde *sí* o *no*.",
+     "input_mode": "free_text",
+     "action": "capture_tip",
+     "transitions": {
+       "yes": "order_saved",
+       "no": "order_saved",
+       "invalid": null
+     }
+   }
+   ```
+
+2. **Outcome** — Si la acción es nueva, implementa `_action_capture_tip` en `flow_engine.py` devolviendo `("mensaje", "yes")` o `("mensaje", "no")`, nunca un nombre de nodo.
+
+3. **Enlazar** — En el paso anterior, apunta el outcome al nodo nuevo:
+
+   ```json
+   "confirmed": "order_tip"
+   ```
+
+4. **Validar** — `python scripts/validate_flow.py` (debe salir 0 errores).
+
+5. **Probar** — Reinicia el bot y recorre el flujo manualmente.
 
 Textos hardcodeados en el motor (abandono de pedido, repetir pedido, fallbacks) siguen en `flow_engine.py`; cámbialos ahí si quieres unificar todo en JSON.
 
@@ -153,12 +176,24 @@ Si editas textos en JSON **y** existen claves `node_*` en `prompts.py`, el JSON 
 ## 5. Checklist rápido
 
 - [ ] ¿Solo cambiaste textos? → `restaurant_flow.json` (y `config/prompts.py` si aplica)
-- [ ] ¿Cambiaste a qué paso va después de sí/no o de un dato? → `transitions` en JSON
+- [ ] ¿Cambiaste a qué paso va después de sí/no o de un dato? → `transitions` en JSON (no Python)
 - [ ] ¿Añadiste un paso nuevo? → nodo + `transitions` en JSON + acción en `flow_engine.py`
 - [ ] ¿Cambiaste el menú de platos? → BD / Flutter, no el JSON del flujo
 - [ ] ¿Multi-negocio? → revisa también `business_prompts` en BD
-- [ ] Ejecutaste `python scripts/validate_flow.py` sin errores
+- [ ] `python scripts/validate_flow.py` → 0 errores
+- [ ] `python scripts/validate_chatbot.py` → 0 fallos
 - [ ] Reiniciaste el servicio tras guardar
+
+### Pruebas manuales recomendadas
+
+- [ ] `hola` → bienvenida
+- [ ] `menu` → muestra carta
+- [ ] Pedido domicilio completo (productos → sí → domicilio → dirección → guardado)
+- [ ] Pedido recoger con nombre ya en perfil
+- [ ] `cancelar` a mitad de pedido
+- [ ] Reserva completa (personas → fecha → hora → confirmar)
+- [ ] Rechazo en review de pedido o reserva
+- [ ] Comandos globales (`menu`, `pedido`, `reservar`, `inicio`) desde pasos intermedios
 
 ---
 

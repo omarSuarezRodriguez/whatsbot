@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "chatbot/app/core/flow_engine.py": {
-    "mtime": 1782204804.8903193,
-    "ast_hash": "06ecb285e098ebcd29ff3fbad8439e32",
+    "mtime": 1782205282.4679224,
+    "ast_hash": "8c8081dbea48d170819117c19d86b341",
     "semantic_hash": ""
   },
   "chatbot/app/core/parser.py": {
@@ -465,8 +465,8 @@
     "semantic_hash": ""
   },
   "README_PROMPTS.md": {
-    "mtime": 1782204951.58481,
-    "ast_hash": "680752dddcb0a9ebee52bb600497d0bb",
+    "mtime": 1782205130.4121416,
+    "ast_hash": "f4a9448f3b58e4cee7a1044dcb14beac",
     "semantic_hash": ""
   },
   "arquitectura_del_sistema.md": {
@@ -480,8 +480,8 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log.txt": {
-    "mtime": 1782204314.6473196,
-    "ast_hash": "46af97d9638d8538f5c6ff279958af78",
+    "mtime": 1782205322.5788538,
+    "ast_hash": "f33f76de863d5e0ee532458f00292786",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_35699155990.txt": {
@@ -510,8 +510,8 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573008887777.txt": {
-    "mtime": 1781050159.8379102,
-    "ast_hash": "36e0920793db10432849551e2a750aa7",
+    "mtime": 1782205322.5798476,
+    "ast_hash": "d27dd51804570ee6a36eb4e0aea63898",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573009998877.txt": {
@@ -520,8 +520,8 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573009999999.txt": {
-    "mtime": 1781050159.8379102,
-    "ast_hash": "ade3b9bc7bee2d658c50c4b3aed4ed2f",
+    "mtime": 1782205322.5808578,
+    "ast_hash": "26b6caf55faa7d9e4dde00d9db97bfcf",
     "semantic_hash": ""
   },
   "docs/ARCHITECTURE.md": {
@@ -555,8 +555,8 @@
     "semantic_hash": ""
   },
   "scripts/validate_flow.py": {
-    "mtime": 1782203897.395835,
-    "ast_hash": "89dd831347f367c88344e4323e0d517c",
+    "mtime": 1782205284.7236292,
+    "ast_hash": "8113a0eda1ec5b6509bcd0264618ab17",
     "semantic_hash": ""
   },
   "PROMPT_MIGRACION_FLUJO_ESTADOS.md": {
@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "tutoriales/cambiar-flujo-chatbot.md": {
-    "mtime": 1782204857.1385686,
-    "ast_hash": "8aa5b69510f750f799edaafc1e6afeaf",
+    "mtime": 1782205311.0103912,
+    "ast_hash": "3844268b71ce0cbac1882437e7173327",
     "semantic_hash": ""
   },
   "tests/test_flow_transitions.py": {

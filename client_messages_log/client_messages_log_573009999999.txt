@@ -156,3 +156,71 @@ Cliente: hola
 Chatbot: BIENVENIDA_VALIDATE_SYSTEM
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola, Bienvenido a *La Casa del Sabor*.
+*Nuestro menú*
+
+*Test*
+• Plato Validate System — $7.50
+
+¿Deseas hacer un pedido o reservar una mesa?
+
+Escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Test*
+• Plato Validate System — $7.50
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Test*
+• Plato Validate System — $7.50
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: BIENVENIDA_VALIDATE_SYSTEM
+
+#################################################################

@@ -86,11 +86,14 @@ class FlowEngine:
 
     @staticmethod
     def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
-        if "states" not in raw:
-            return raw
+        states = raw.get("states")
+        if not states:
+            raise ValueError(
+                "Flow JSON must define 'states' (legacy flat 'nodes' no longer supported)"
+            )
         meta = raw.get("meta", {})
         nodes: Dict[str, Any] = {}
-        for state_name, state_def in raw.get("states", {}).items():
+        for state_name, state_def in states.items():
             for step, node in state_def.get("nodes", {}).items():
                 flat = dict(node)
                 flat.setdefault("flow", state_name)
@@ -112,18 +115,14 @@ class FlowEngine:
     ) -> Optional[str]:
         if not outcome:
             return None
-        transitions = node.get("transitions")
-        if transitions:
-            if outcome in transitions:
-                dest = transitions[outcome]
-                if dest is None:
-                    return None
-                _, step = self._parse_ref(dest, node.get("flow", "idle"))
-                return step
-            if outcome in self.nodes:
-                return outcome
+        transitions = node.get("transitions") or {}
+        if outcome not in transitions:
             return None
-        return outcome
+        dest = transitions[outcome]
+        if dest is None:
+            return None
+        _, step = self._parse_ref(dest, node.get("flow", "idle"))
+        return step
 
     def _render(self, template: str, extra: Optional[Dict[str, Any]] = None) -> str:
         # Use per-business prompts/name from contextvar when available
@@ -185,7 +184,8 @@ class FlowEngine:
             return None
         if is_confirmation(text):
             self.state_manager.reset(wa_id)
-            return self._process_node(wa_id, "start", include_navigation=True)
+            _, start_step = self._parse_ref("idle.start", state.get("flow", "idle"))
+            return self._process_node(wa_id, start_step, include_navigation=True)
         if is_rejection(text):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
             return "Perfecto, continuamos con tu pedido actual."
@@ -368,12 +368,14 @@ class FlowEngine:
                 awaiting_repeat_order=False,
                 skip_repeat_order_once=True,
             )
-            return self._process_node(wa_id, "start", include_navigation=True)
+            _, start_step = self._parse_ref("idle.start", state.get("flow", "idle"))
+            return self._process_node(wa_id, start_step, include_navigation=True)
 
         node = self.nodes.get(current_step)
         if not node:
             self.state_manager.reset(wa_id)
-            return self._process_node(wa_id, "start", include_navigation=True)
+            _, start_step = self._parse_ref("idle.start", "idle")
+            return self._process_node(wa_id, start_step, include_navigation=True)
 
         if (
             node.get("action_on_input")
@@ -406,7 +408,8 @@ class FlowEngine:
             return self._process_node(wa_id, next_step, include_navigation=True)
 
         if is_greeting(text) and node.get("flow") == "idle":
-            return self._process_node(wa_id, "start", include_navigation=True)
+            _, start_step = self._parse_ref("idle.start", node.get("flow", "idle"))
+            return self._process_node(wa_id, start_step, include_navigation=True)
 
         menu_tokens = self.menu_service.menu_literal_tokens()
         intent = infer_user_intent(text, menu_tokens=menu_tokens)
@@ -467,7 +470,8 @@ class FlowEngine:
         include_navigation: bool = False,
         user_input: str = "",
     ) -> Reply:
-        node = self.nodes.get(step, self.nodes.get("start", {}))
+        _, idle_start = self._parse_ref("idle.start", "idle")
+        node = self.nodes.get(step, self.nodes.get(idle_start, {}))
         self.state_manager.set_step(wa_id, step, node.get("flow", "idle"))
 
         extra = self._build_node_context(wa_id, step)
