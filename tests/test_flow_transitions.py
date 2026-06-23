@@ -207,3 +207,34 @@ def test_global_menu_from_order(engine):
     body = _text(reply).lower()
     assert "menú" in body or "menu" in body or "pizza" in body
     assert _step(engine, wa_id) == "menu_node"
+
+
+def test_implicit_order_from_idle(engine):
+    wa_id = "573006667788"
+    reply = engine.process_message(wa_id, "2 pizza hawaiana")
+
+    body = _text(reply).lower()
+    assert "pizza" in body or "carrito" in body or "pedido" in body
+    assert _step(engine, wa_id) in {"order_review", "order_start"}
+
+
+def test_order_greeting_while_modifying(engine):
+    wa_id = "573007778899"
+    engine.process_message(wa_id, "pedido")
+    engine.process_message(wa_id, "1 pizza hawaiana")
+    engine.process_message(wa_id, "no")
+    assert _step(engine, wa_id) == "order_modify"
+
+    reply = engine.process_message(wa_id, "hola")
+    assert "ordenar" in reply.lower() or "hamburguesa" in reply.lower()
+    assert _step(engine, wa_id) == "order_modify"
+
+
+def test_idle_greeting_from_menu_navigates_to_start(engine):
+    wa_id = "573008889900"
+    engine.process_message(wa_id, "menu")
+    assert _step(engine, wa_id) == "menu_node"
+
+    reply = engine.process_message(wa_id, "hola")
+    assert "Bienvenido" in reply or "bienvenido" in reply.lower()
+    assert _step(engine, wa_id) == "start"

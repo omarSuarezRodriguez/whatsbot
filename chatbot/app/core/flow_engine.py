@@ -108,6 +108,17 @@ class FlowEngine:
         state = node.get("flow") or current_state or "idle"
         return state, ref
 
+    def _goto_ref(
+        self,
+        wa_id: str,
+        ref: str,
+        *,
+        current_flow: str = "idle",
+        include_navigation: bool = True,
+    ) -> str:
+        _, step = self._parse_ref(ref, current_flow)
+        return self._process_node(wa_id, step, include_navigation=include_navigation)
+
     def _resolve_transition(
         self,
         node: Dict[str, Any],
@@ -341,17 +352,19 @@ class FlowEngine:
                 and state.get("data", {}).get("start_seen")
             ):
                 return self._resolve_ux_text("start_fallback", node)
-            next_node = self.nodes.get(next_step, {})
-            self.state_manager.set_step(
+            return self._goto_ref(
                 wa_id,
                 next_step,
-                next_node.get("flow", state.get("flow", "idle")),
+                current_flow=state.get("flow", "idle"),
             )
-            return self._process_node(wa_id, next_step, include_navigation=True)
 
-        if is_greeting(text) and node.get("flow") == "idle" and current_step != "start":
-            _, start_step = self._parse_ref("idle.start", node.get("flow", "idle"))
-            return self._process_node(wa_id, start_step, include_navigation=True)
+        greeting_ref = node.get("greeting_ref")
+        if greeting_ref and is_greeting(text):
+            return self._goto_ref(
+                wa_id,
+                greeting_ref,
+                current_flow=node.get("flow", state.get("flow", "idle")),
+            )
 
         menu_tokens = self.menu_service.menu_literal_tokens()
         intent = infer_user_intent(text, menu_tokens=menu_tokens)
@@ -371,12 +384,10 @@ class FlowEngine:
             if response:
                 return response
 
-        node_for_intent = self.nodes.get(current_step, {})
         if (
             not intent_command
             and intent.get("has_products")
-            and current_step in {"start", "menu_node"}
-            and node_for_intent.get("flow") == "idle"
+            and node.get("intercept_products")
         ):
             log_meta["routed"] = "pedido_implicito"
             response = self._resolve_global_command(
@@ -385,7 +396,7 @@ class FlowEngine:
             if response:
                 return self.process_message(wa_id, text, _inner=True)
 
-        if is_greeting(text) and current_step in {"order_start", "order_modify"}:
+        if node.get("order_greeting_on_greeting") and is_greeting(text):
             greeting = self._resolve_ux_text("order_greeting_while_ordering", node)
             return self._append_navigation(greeting, node)
 

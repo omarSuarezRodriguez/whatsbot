@@ -1,4 +1,4 @@
-## v1.35
+## v1.36
 
 
 
@@ -4206,3 +4206,50 @@ migracion.md actualizado.
 
 
 ######################################
+## v1.36
+
+## prompt cursor ##
+
+Ejecuta ÚNICAMENTE Fase 3A de @migracion.md (eliminación hardrouting).
+
+CONTEXTO: Fase 1 ✅. Fase 2 ✅. Parche intermedio idle.start ✅ (start_seen + B1/B2/B3 — NO tocar en esta fase).
+
+ARCHIVOS:
+- flows/restaurant_flow.json
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py
+
+IMPLEMENTAR:
+
+1. pedido_implicito sin step filter
+   - Quitar current_step in {"start", "menu_node"}
+   - Campo JSON en nodo idle (ej. intercept_products: true) en start y menu_node
+   - Motor: si nodo tiene intercept_products y intent tiene productos → pedido
+
+2. Greeting en order sin step hardcode
+   - Quitar current_step in {"order_start", "order_modify"}
+   - Campo JSON (ej. order_greeting_on_greeting: true) en nodos order
+   - Texto ya en meta.order_greeting_while_ordering (Fase 2 ✅)
+
+3. Greeting idle sin hardcode de step
+   - Quitar condición current_step != "start" y _parse_ref suelto
+   - Usar options JSON + helper _goto_ref(wa_id, ref) si reduce duplicación
+
+RESTRICCIONES:
+- NO tocar start_seen, B1/B2/B3 (Fase 3B)
+- NO tocar StateManager ni services
+- NO cambiar transitions/outcomes semántica
+
+TEST DE CIERRE:
+- rg '"start"|"menu_node"|"order_start"|"order_modify"' chatbot/app/core/flow_engine.py → 0 en _process_message_body (routing)
+- pytest tests/test_flow_transitions.py -q
+- menu/start/order siguen funcionando sin lógica por step name
+```
+
+## resp cursor ##
+
+2b Done
+
+
+
+############################################

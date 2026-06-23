@@ -26,6 +26,7 @@
       "nodes": {
         "start": {
           "action": "welcome_customer",
+          "intercept_products": true,
           "suppress_navigation": true,
           "dual_message": true,
           "message": "{{welcome_line}}",
@@ -41,6 +42,8 @@
         },
         "menu_node": {
           "action": "show_menu",
+          "intercept_products": true,
+          "greeting_ref": "start",
           "fallback": "No entendí eso. Escribe *menu*, *pedido* o *reservar*.",
           "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
           "options": {
@@ -56,6 +59,7 @@
       "nodes": {
         "order_start": {
           "message": "Perfecto, vamos con tu pedido.\n\nCuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:\n• *2 pizza hawaiana, 1 coca cola*\n• *una hamburguesa y dos aguas*\n\nTambién puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.",
+          "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
           "action": "capture_order",
@@ -86,6 +90,7 @@
         },
         "order_modify": {
           "message": "Sin problema. Dime qué quieres agregar, quitar o cambiar.\n\nEjemplo: *agrega una ensalada* o *quita la coca cola*.",
+          "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "input_mode": "free_text",
           "action": "capture_order",
