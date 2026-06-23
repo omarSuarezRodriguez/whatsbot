@@ -1,16 +1,16 @@
 # Graph Report - whatsbot  (2026-06-23)
 
 ## Corpus Check
-- 104 files · ~77,990 words
+- 105 files · ~78,685 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1259 nodes · 2953 edges · 80 communities (66 shown, 14 thin omitted)
-- Extraction: 84% EXTRACTED · 16% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.52)
+- 1271 nodes · 2985 edges · 79 communities (67 shown, 12 thin omitted)
+- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e987f126`
+- Built from commit: `5ded3c2a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -83,19 +83,18 @@
 - [[_COMMUNITY_Community 66|Community 66]]
 - [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 68|Community 68]]
-- [[_COMMUNITY_Community 80|Community 80]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `session_scope()` - 52 edges
+1. `session_scope()` - 54 edges
 2. `AdminService` - 47 edges
 3. `FlowEngine` - 43 edges
 4. `Prompts listos — copiar y pegar en Cursor` - 34 edges
 5. `DBStore` - 33 edges
 6. `Session` - 31 edges
-7. `Guía incremental — registro por fase` - 31 edges
-8. `BusinessId` - 30 edges
-9. `Message` - 30 edges
-10. `init_db()` - 29 edges
+7. `init_db()` - 31 edges
+8. `Guía incremental — registro por fase` - 31 edges
+9. `BusinessId` - 30 edges
+10. `Message` - 30 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `DBStore` --uses--> `Customer`  [INFERRED]
@@ -104,10 +103,10 @@
   chatbot/app/integrations/db_store.py → models/customer.py
 - `Any` --uses--> `AdminService`  [INFERRED]
   services/notification_service.py → chatbot/app/services/admin_service.py
-- `reset_context()` --calls--> `reset_bot_context()`  [EXTRACTED]
-  tests/test_order_confirmation_flow.py → chatbot/runtime.py
-- `Any` --uses--> `Conversation`  [INFERRED]
-  services/realtime_service.py → models/conversation.py
+- `handle_admin_confirmation()` --calls--> `is_admin_confirm()`  [INFERRED]
+  services/notification_service.py → chatbot/app/utils/validators.py
+- `handle_admin_confirmation()` --calls--> `extract_admin_order_id()`  [INFERRED]
+  services/notification_service.py → chatbot/app/utils/validators.py
 
 ## Import Cycles
 - 1-file cycle: `api/main.py -> api/main.py`
@@ -123,15 +122,15 @@
 - 1-file cycle: `models/message.py -> models/message.py`
 - 1-file cycle: `models/order.py -> models/order.py`
 - 1-file cycle: `models/reservation.py -> models/reservation.py`
-- 2-file cycle: `api/main.py -> api/routes/whatsapp.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/menus.py -> api/main.py`
 - 2-file cycle: `api/main.py -> api/routes/auth.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/customers.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/orders.py -> api/main.py`
-- 2-file cycle: `api/main.py -> api/routes/whatsbot.py -> api/main.py`
 - 2-file cycle: `api/main.py -> api/routes/businesses.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/customers.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/menus.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/orders.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/realtime.py -> api/main.py`
+- 2-file cycle: `api/main.py -> api/routes/whatsapp.py -> api/main.py`
 
-## Communities (80 total, 14 thin omitted)
+## Communities (79 total, 12 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
@@ -151,7 +150,7 @@ Nodes (10): Any, get_active_business_id(), _active_business_id(), DBStore, get_d
 
 ### Community 4 - "Community 4"
 Cohesion: 0.07
-Nodes (13): Any, OrderService, Public URL for Twilio status callbacks (sent → delivered → read)., twilio_status_callback_url(), AdminService, Admin notifications, confirmations and reminder scheduler., Código de país ITU (1–3 dígitos); no confunde móvil CO 300… con +300., Solo dígitos nacionales del país del restaurante (sin código de país). (+5 more)
+Nodes (15): Any, OrderService, Public URL for Twilio status callbacks (sent → delivered → read)., twilio_status_callback_url(), AdminService, Admin notifications, confirmations and reminder scheduler., Código de país ITU (1–3 dígitos); no confunde móvil CO 300… con +300., Solo dígitos nacionales del país del restaurante (sin código de país). (+7 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.05
@@ -170,24 +169,24 @@ Cohesion: 0.06
 Nodes (34): Cómo usarlo, Fase 11 — Tiempo real (paridad lógica con WhatsApp) ✅, Fase 12+ — Próximas mejoras (pendiente), Prompt 0 — Verificación al pegar el proyecto (opcional), Prompt 10 — Fase 9: App Flutter WhatsBot (UI WhatsApp), Prompt 11 — Fase 10: Validación final + guías, Prompt 11b — Solo si faltan credenciales tras Fase 1, Prompt 12 — Fase 11.1: Análisis (SIN código) (+26 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.10
-Nodes (19): AdminService, MenuService, OrderService, Any, MenuService — DB-backed, multi-tenant (via DBStore)., Any, MenuService, OrderService — DB-backed, multi-tenant (via DBStore). (+11 more)
+Cohesion: 0.19
+Nodes (6): Any, MenuService, OrderService — DB-backed, multi-tenant (via DBStore)., OrderParser, OrderService, Always build fresh from current DB menu (multi-tenant, no stale cache).
 
 ### Community 10 - "Community 10"
 Cohesion: 0.20
 Nodes (3): Any, Reply, FlowEngine
 
 ### Community 11 - "Community 11"
-Cohesion: 0.08
-Nodes (55): Base, Business, MenuItem, Business, BusinessIntentConfig, BusinessPromptConfig, datetime, Business (tenant) — maps TWILIO_WHATSAPP_FROM to business_id. (+47 more)
+Cohesion: 0.07
+Nodes (60): Base, Business, Business, BusinessIntentConfig, BusinessPromptConfig, datetime, Business (tenant) — maps TWILIO_WHATSAPP_FROM to business_id., _utcnow() (+52 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.08
 Nodes (25): Alcance ESTRICTO (no negociable), Alcance ESTRICTO (no negociable), Contexto del flujo actual (para no romper nada), Estado actual del código (leer ANTES de planificar — no asumir StreamBuilder), FORMATO DE SALIDA, MÉTODO DE TRABAJO (obligatorio, en este orden), Objetivo, Plan de diagnóstico (ejecutar primero en Plan, sin tocar backend) (+17 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.16
-Nodes (18): get_prompt(), handle_incoming_message(), _normalize_reply(), Reply, Única puerta de entrada al chatbot (Fase 2).  Entrada payload:   - phone / wa_id, Procesa un mensaje entrante del webhook WhatsApp (Twilio).     No envía Twilio;, _reply_to_response_text(), Chatbot package — única puerta: gateway.handle_incoming_message. (+10 more)
+Cohesion: 0.33
+Nodes (8): get_prompt(), handle_incoming_message(), _normalize_reply(), Reply, Única puerta de entrada al chatbot (Fase 2).  Entrada payload:   - phone / wa_id, Procesa un mensaje entrante del webhook WhatsApp (Twilio).     No envía Twilio;, _reply_to_response_text(), Chatbot package — única puerta: gateway.handle_incoming_message.
 
 ### Community 14 - "Community 14"
 Cohesion: 0.15
@@ -195,11 +194,11 @@ Nodes (21): _apply_schema_patches(), get_db(), get_engine(), get_session_factory
 
 ### Community 15 - "Community 15"
 Cohesion: 0.14
-Nodes (16): _build_intent_phrase_index(), _find_item(), _get_intent_index(), infer_user_intent(), _menu_literal_tokens(), _min_confidence(), _qty_for(), Order Intelligence Engine — natural-language order parser with cart operations. (+8 more)
+Nodes (16): _find_item(), _get_intent_index(), infer_user_intent(), log_parser_errors(), _menu_literal_tokens(), _min_confidence(), _qty_for(), Order Intelligence Engine — natural-language order parser with cart operations. (+8 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.16
-Nodes (8): OrderIntelligenceEngine, Production-grade order interpretation pipeline.     Menu is injected at construc, First product per category in menu order (for category-name orders)., Canonical output contract., Double-check: menu boundary, coherence, no invented products., Category names count as valid menu overlap (e.g. una hamburguesa)., Reduce simple Spanish plurals for matching (pizzas → pizza)., _singularize_token()
+Cohesion: 0.19
+Nodes (8): OrderIntelligenceEngine, Production-grade order interpretation pipeline.     Menu is injected at construc, Canonical output contract., Double-check: menu boundary, coherence, no invented products., Category names count as valid menu overlap (e.g. una hamburguesa)., Reduce simple Spanish plurals for matching (pizzas → pizza)., _singularize_token(), _token_keys()
 
 ### Community 17 - "Community 17"
 Cohesion: 0.09
@@ -210,8 +209,8 @@ Cohesion: 0.22
 Nodes (5): Any, Thread-safe per-(business, user) state with optional disk persistence., Scope state by (business_id, wa_id) to prevent cross-tenant leakage., Lightweight read copy: deep-copy cart/reservation only when present., StateManager
 
 ### Community 19 - "Community 19"
-Cohesion: 0.15
-Nodes (8): Any, log_parser_errors(), NaturalLanguagePreprocessor, OrderParser, Facade used by OrderService; wraps OrderIntelligenceEngine., Structured output contract for order interpretation., Append parser audit events; never raises., Fast, regex-only canonicalization for conversational WhatsApp input.
+Cohesion: 0.18
+Nodes (5): NaturalLanguagePreprocessor, OrderParser, Facade used by OrderService; wraps OrderIntelligenceEngine., Structured output contract for order interpretation., Fast, regex-only canonicalization for conversational WhatsApp input.
 
 ### Community 20 - "Community 20"
 Cohesion: 0.23
@@ -222,20 +221,20 @@ Cohesion: 0.24
 Nodes (18): alias, Any, BusinessId, Session, BusinessCreate, BusinessOut, BusinessCreate, BusinessOut (+10 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.26
-Nodes (4): normalize(), Splits chaotic order text into quantity + product fragments., Public lightweight normalizer (backward compatible)., SegmentEngine
+Cohesion: 0.18
+Nodes (8): _build_intent_phrase_index(), normalize(), Splits chaotic order text into quantity + product fragments., Fold áéíóú, ñ and other accented characters for stable menu matching., Public lightweight normalizer (backward compatible)., Pre-normalize phrases and token map once at import (hot path in infer)., SegmentEngine, _strip_accents()
 
 ### Community 23 - "Community 23"
 Cohesion: 0.37
 Nodes (17): BusinessId, Session, MenuItemCreate, MenuItemOut, MenuItemUpdate, MenuReplace, MenuItemCreate, MenuItemOut (+9 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.53
-Nodes (5): _fail(), main(), _migrate_message_status(), _ok(), End-to-end validation — Fase 10 + realtime Fase 11.
+Cohesion: 0.31
+Nodes (8): create_app(), main(), Validate FastAPI webhook + DB (Fase 4)., _fail(), main(), _migrate_message_status(), _ok(), End-to-end validation — Fase 10 + realtime Fase 11.
 
 ### Community 25 - "Community 25"
-Cohesion: 0.17
-Nodes (19): Clear singleton (tests only)., reset_bot_context(), get_prompt(), auth_headers(), client(), TestClient, WhatsBot REST API — Fase 7., Gateway debe leer menú y prompts de BD cuando hay business_id. (+11 more)
+Cohesion: 0.19
+Nodes (17): get_prompt(), auth_headers(), client(), TestClient, WhatsBot REST API — Fase 7., Gateway debe leer menú y prompts de BD cuando hay business_id., OF-C: reintento con mismo client_id no reenvía Twilio ni duplica fila., test_gateway_uses_db_menu_and_prompts() (+9 more)
 
 ### Community 26 - "Community 26"
 Cohesion: 0.09
@@ -243,11 +242,11 @@ Nodes (21): 0. CONTEXTO, 1. VOCABULARIO DE OUTCOMES (contrato fijo), 2. MAPA DE 
 
 ### Community 27 - "Community 27"
 Cohesion: 0.22
-Nodes (14): _admin_service(), approve_order_from_app(), notify_admin_new_order(), on_order_pending(), _order_dict_from_db_row(), _persist_order_to_db(), Any, Notificaciones admin + confirmación/rechazo de pedidos (100% BD).  Flujo:   Clie (+6 more)
+Nodes (15): _admin_service(), approve_order_from_app(), handle_admin_confirmation(), notify_admin_new_order(), on_order_pending(), _order_dict_from_db_row(), _persist_order_to_db(), Any (+7 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.33
-Nodes (5): FuzzyMatcher, Fold áéíóú, ñ and other accented characters for stable menu matching., Real numeric similarity scoring against dynamic menu catalog., _strip_accents(), _token_keys()
+Cohesion: 0.26
+Nodes (4): Any, FuzzyMatcher, First product per category in menu order (for category-name orders)., Real numeric similarity scoring against dynamic menu catalog.
 
 ### Community 29 - "Community 29"
 Cohesion: 0.21
@@ -266,12 +265,12 @@ Cohesion: 0.15
 Nodes (9): Shim hacia config centralizada.  El chatbot importa `app.config` sin cambios;, Path, Bot session defaults — flows, navigation, branding., resolve_flows_path(), Central configuration package (4 modules + .env secrets)., Global intent defaults — migrated from legacy app/core/parser.py (Fase 3)., get_prompt(), Global prompt defaults — from flows/restaurant_flow.json + gateway (Fase 3). (+1 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.12
-Nodes (18): date, time, handle_admin_confirmation(), extract_admin_order_id(), is_admin_confirm(), is_confirmation(), is_global_command(), is_greeting() (+10 more)
+Cohesion: 0.15
+Nodes (15): date, time, extract_admin_order_id(), is_admin_confirm(), is_confirmation(), is_global_command(), is_greeting(), is_rejection() (+7 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.14
-Nodes (13): 1. Editar el flujo en JSON, 2. Editar transiciones en el motor, 3. Fallbacks y mensajes fuera del flujo, 4. Aplicar cambios, 5. Checklist rápido, Cambiar el flujo del chatbot, Cambiar el orden de los pasos, Cambiar solo el contenido (sin cambiar orden) (+5 more)
+Nodes (13): 1. Editar el flujo en JSON, 2. Transiciones en JSON, 3. Fallbacks y mensajes fuera del flujo, 4. Aplicar cambios, 5. Checklist rápido, Cambiar el flujo del chatbot, Cambiar el orden de los pasos, Cambiar solo el contenido (sin cambiar orden) (+5 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.23
@@ -282,8 +281,8 @@ Cohesion: 0.17
 Nodes (11): Alta de un negocio nuevo, Antes de empezar, Comandos útiles, Guía de negocios — alta fácil, Negocio default (el primero), Paso 1 — Crear el negocio en la base de datos, Paso 2 — Configurar Twilio, Paso 3 — Autenticarse en la API (+3 more)
 
 ### Community 37 - "Community 37"
-Cohesion: 0.27
-Nodes (12): Order, datetime, Orders per business (API/BD — chatbot sigue usando Sheets hasta Fase 6+)., _utcnow(), Order, create_order(), get_order(), list_orders() (+4 more)
+Cohesion: 0.28
+Nodes (14): MenuItem, MenuItem, datetime, Menu items per business., _utcnow(), create_menu_item(), delete_menu_item(), get_menu_item() (+6 more)
 
 ### Community 38 - "Community 38"
 Cohesion: 0.17
@@ -294,28 +293,32 @@ Cohesion: 0.17
 Nodes (12): APIs y Servicios, Arquitectura Interna, Base de Datos, Calidad del Código, Estado y Gestión de Datos, Estructura del Proyecto, Flujo de Ejecución, Mensajería (MÁXIMA PROFUNDIDAD) (+4 more)
 
 ### Community 40 - "Community 40"
-Cohesion: 0.27
-Nodes (11): Any, Response, Session, Request, _form_dict(), Twilio status callback (sent, delivered, read, failed)., 403 if Twilio signature is missing or invalid (gated by TWILIO_VALIDATE_SIGNATUR, Webhook Twilio Messaging.      Entrada: application/x-www-form-urlencoded (WaId, (+3 more)
+Cohesion: 0.14
+Nodes (24): Any, Response, Session, is_twilio_whatsapp_sandbox(), Global settings loaded from .env., use_rest_webhook_replies(), build_twiml_response(), deliver_reply() (+16 more)
+
+### Community 41 - "Community 41"
+Cohesion: 0.14
+Nodes (12): AdminService, MenuService, OrderService, date, time, Any, BotContext, ReservationService (+4 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.27
-Nodes (9): Context manager for scripts and services., session_scope(), _get_store(), _init_db(), Flujo confirmación admin (DB-backed, sin Sheets).  Cliente pide → notify admin →, reset_context(), test_admin_confirm_notifies_customer(), test_approve_from_app_notifies_customer() (+1 more)
+Cohesion: 0.31
+Nodes (8): Context manager for scripts and services., session_scope(), _get_store(), _init_db(), Flujo confirmación admin (DB-backed, sin Sheets).  Cliente pide → notify admin →, test_admin_confirm_notifies_customer(), test_approve_from_app_notifies_customer(), test_approve_from_app_reports_twilio_failure()
 
 ### Community 43 - "Community 43"
 Cohesion: 0.20
 Nodes (9): Arquitectura WhatsBot, Capas, Componentes, Flujo de mensaje entrante, Flujo de mensaje saliente (dueño → cliente), Modelo de números, Multi-tenant, Prohibiciones (+1 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.36
-Nodes (7): _normalize_wa_digits(), _parse_twilio_timestamp(), datetime, Session, Recuperación de mensajes desde Twilio API cuando faltan webhooks.  Entrada: busi, Backfill missing messages using Twilio Messages.list().      Returns counters: {, sync_messages_from_twilio()
+Cohesion: 0.27
+Nodes (5): Any, MenuService — DB-backed, multi-tenant (via DBStore)., get_active_menu(), Any, MenuService
 
 ### Community 45 - "Community 45"
 Cohesion: 0.49
 Nodes (9): _add_column_if_missing(), downgrade(), _drop_column_if_exists(), _existing_columns(), _existing_tables(), _inspector(), _is_pg(), _is_sqlite() (+1 more)
 
 ### Community 46 - "Community 46"
-Cohesion: 0.53
-Nodes (6): build_twiml_response(), deliver_reply(), Reply, Build MessagingResponse XML for Twilio webhook., Deliver bot reply: REST if configured, else TwiML XML string.     Returns TwiML, reply_parts()
+Cohesion: 0.40
+Nodes (9): _init_db(), Tests for JSON-driven flow transitions (states format)., _step(), test_global_menu_from_order(), test_order_happy_path_domicilio(), test_order_modify_then_confirm(), test_reservation_full(), test_reservation_rejected_restarts() (+1 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.39
@@ -326,8 +329,8 @@ Cohesion: 0.29
 Nodes (7): A) Drift watch no dispara actualización UI para el `conversation.id` abierto (ALTA), B) `_reconcileWithStore` pisa o pierde mensajes mergeados por WS (ALTA), C) Doble vía con carrera WS ↔ Drift ↔ `_refresh` (MEDIA), D) WS desconectado en dispositivo real sin fallback percibido (MEDIA), E) Mensajes salientes / ticks como sub-síntoma (MEDIA-BAJA), F) Tests pasan pero producción falla — gap de cobertura (ALTA probabilidad), Hipótesis de causa raíz (priorizadas — actualizadas tras análisis)
 
 ### Community 49 - "Community 49"
-Cohesion: 0.27
-Nodes (9): create_app(), main(), Validate FastAPI webhook + DB (Fase 4)., auth_headers(), client(), TestClient, Tests for Twilio status callback webhook., test_incoming_webhook_dedup_by_sid() (+1 more)
+Cohesion: 0.43
+Nodes (6): auth_headers(), client(), TestClient, Tests for Twilio status callback webhook., test_incoming_webhook_dedup_by_sid(), test_status_callback_updates_owner_message()
 
 ### Community 50 - "Community 50"
 Cohesion: 0.33
@@ -342,8 +345,8 @@ Cohesion: 0.40
 Nodes (5): A) Anti-patrón StreamBuilder + initialData stale (ALTA probabilidad), B) Doble suscripción que se pisa (MEDIA), C) Dependencia exclusiva de `_refresh()` ante WS (MEDIA), D) Mensajes salientes optimistas / ticks (MEDIA-BAJA, sub-síntoma), Hipótesis de causa raíz (priorizadas)
 
 ### Community 54 - "Community 54"
-Cohesion: 0.60
-Nodes (4): _fail(), main(), _ok(), Validate chatbot gateway (Fase 2) — run from final_system/.
+Cohesion: 0.20
+Nodes (12): get_bot_context(), Lazy singleton wiring for chatbot services (DB-backed, no Sheets)., Build or return cached bot services (all DB-backed)., Clear singleton (tests only)., reset_bot_context(), _fail(), main(), _ok() (+4 more)
 
 ### Community 55 - "Community 55"
 Cohesion: 0.50
@@ -356,22 +359,22 @@ Nodes (4): 1. Lista de chats no se actualiza (pero suena la push), 2. Tus mensaj
 ## Knowledge Gaps
 - **243 isolated node(s):** `HTTPAuthorizationCredentials`, `Depends`, `_bearer`, `Header`, `alias` (+238 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_bot_context()` connect `Community 13` to `Community 1`, `Community 3`, `Community 4`, `Community 40`, `Community 9`, `Community 10`, `Community 42`, `Community 44`, `Community 54`, `Community 24`, `Community 27`?**
-  _High betweenness centrality (0.085) - this node is a cross-community bridge._
-- **Why does `AdminService` connect `Community 4` to `Community 3`, `Community 9`, `Community 10`, `Community 19`, `Community 27`?**
+- **Why does `get_bot_context()` connect `Community 54` to `Community 1`, `Community 3`, `Community 4`, `Community 40`, `Community 41`, `Community 10`, `Community 11`, `Community 42`, `Community 13`, `Community 46`, `Community 24`, `Community 27`?**
+  _High betweenness centrality (0.092) - this node is a cross-community bridge._
+- **Why does `AdminService` connect `Community 4` to `Community 3`, `Community 41`, `Community 10`, `Community 9`, `Community 19`, `Community 27`?**
   _High betweenness centrality (0.077) - this node is a cross-community bridge._
-- **Why does `session_scope()` connect `Community 42` to `Community 0`, `Community 3`, `Community 7`, `Community 11`, `Community 14`, `Community 47`, `Community 49`, `Community 24`, `Community 25`, `Community 27`, `Community 30`, `Community 31`?**
-  _High betweenness centrality (0.071) - this node is a cross-community bridge._
+- **Why does `session_scope()` connect `Community 42` to `Community 0`, `Community 3`, `Community 7`, `Community 11`, `Community 14`, `Community 46`, `Community 47`, `Community 49`, `Community 24`, `Community 25`, `Community 27`, `Community 30`, `Community 31`?**
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
 - **Are the 15 inferred relationships involving `AdminService` (e.g. with `AdminService` and `Any`) actually correct?**
   _`AdminService` has 15 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 8 inferred relationships involving `FlowEngine` (e.g. with `BotContext` and `get_bot_context()`) actually correct?**
   _`FlowEngine` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Alembic environment configuration — auto-generates migrations from SQLAlchemy mo`, `FastAPI application package — Fase 4+.`, `FastAPI application entry.  Arranque:   python -m api.main  Webhook Twilio:` to the rest of the system?**
-  _420 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _421 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.0635814889336016 - nodes in this community are weakly interconnected._

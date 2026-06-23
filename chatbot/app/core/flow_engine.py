@@ -194,6 +194,7 @@ class FlowEngine:
     def _handle_repeat_order(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[Reply]:
         if not state.get("data", {}).get("awaiting_repeat_order"):
             return None
+        current_flow = state.get("flow", "idle")
         if is_confirmation(text):
             items = self.user_service.get_last_order_items(wa_id)
             if not items:
@@ -204,15 +205,17 @@ class FlowEngine:
                 cart=items,
                 awaiting_repeat_order=False,
             )
-            self.state_manager.set_step(wa_id, "order_review", "order")
-            return self._process_node(wa_id, "order_review", include_navigation=False)
+            _, review_step = self._parse_ref("order.order_review", current_flow)
+            self.state_manager.set_step(wa_id, review_step, "order")
+            return self._process_node(wa_id, review_step, include_navigation=False)
         if is_rejection(text):
             self.state_manager.patch_data(
                 wa_id,
                 awaiting_repeat_order=False,
                 skip_repeat_order_once=True,
             )
-            return self._process_node(wa_id, "start", include_navigation=True)
+            _, start_step = self._parse_ref("idle.start", current_flow)
+            return self._process_node(wa_id, start_step, include_navigation=True)
         return "Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción."
 
     def _resolve_global_command(
@@ -229,9 +232,13 @@ class FlowEngine:
         if state is None:
             state = self.state_manager.get(wa_id)
 
+        current_flow = state.get("flow", "idle")
+        target_flow, target_step = self._parse_ref(str(target), current_flow)
+
         if command == "pedido" and self._has_active_order(state):
-            self.state_manager.set_step(wa_id, "order_review", "order")
-            return self._process_node(wa_id, "order_review", include_navigation=True)
+            _, review_step = self._parse_ref("order.order_review", current_flow)
+            self.state_manager.set_step(wa_id, review_step, "order")
+            return self._process_node(wa_id, review_step, include_navigation=True)
 
         if command == "inicio" and self._has_active_order(state):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=True)
@@ -247,21 +254,21 @@ class FlowEngine:
                 "cancel_message",
                 "Proceso cancelado. Estoy aquí cuando quieras continuar.",
             )
-            start_message = self._process_node(wa_id, target, include_navigation=False)
+            start_message = self._process_node(wa_id, target_step, include_navigation=False)
             if isinstance(start_message, list):
                 combined = [cancel_message, *start_message]
             else:
                 combined = f"{cancel_message}\n\n{start_message}".strip()
-            return self._append_navigation(combined, self.nodes.get(target, {}))
+            return self._append_navigation(combined, self.nodes.get(target_step, {}))
 
         if command == "inicio":
             self.state_manager.reset(wa_id)
 
-        node = self.nodes.get(target, {})
-        self.state_manager.set_step(wa_id, target, node.get("flow", "idle"))
+        node = self.nodes.get(target_step, {})
+        self.state_manager.set_step(wa_id, target_step, node.get("flow", target_flow))
         if (
             command in {"menu", "pedido", "reservar"}
-            and target != current_step
+            and target_step != current_step
             and not (command == "pedido" and self._has_active_order(state))
         ):
             self.state_manager.patch_data(
@@ -272,7 +279,7 @@ class FlowEngine:
                 awaiting_abandon_confirm=False,
             )
 
-        return self._process_node(wa_id, target, include_navigation=True)
+        return self._process_node(wa_id, target_step, include_navigation=True)
 
     _NAV_GLOBAL_COMMANDS = frozenset({"menu", "pedido", "reservar", "inicio", "cancelar"})
 
@@ -592,14 +599,14 @@ class FlowEngine:
 
         return (
             f"Perfecto, actualicé tu pedido.{note_text}",
-            "order_review",
+            "success",
         )
 
     def _action_show_cart(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         cart = state.get("data", {}).get("cart", [])
         if not cart:
-            return "Tu carrito está vacío. Cuéntame qué te gustaría pedir.", "order_start"
+            return "Tu carrito está vacío. Cuéntame qué te gustaría pedir.", "empty_cart"
         return self.order_service.format_cart(cart), None
 
     def _action_handle_order_confirmation(
@@ -608,9 +615,9 @@ class FlowEngine:
         text: str,
     ) -> Tuple[str, Optional[str]]:
         if is_confirmation(text):
-            return "¡Excelente!", "order_delivery"
+            return "¡Excelente!", "confirmed"
         if is_rejection(text):
-            return "Claro, modifiquemos tu pedido.", "order_modify"
+            return "Claro, modifiquemos tu pedido.", "rejected"
         return (
             "Para continuar, responde *sí* para confirmar o *no* para modificar tu pedido.",
             None,
@@ -628,11 +635,11 @@ class FlowEngine:
             )
         self.state_manager.patch_data(wa_id, delivery_type=delivery)
         if delivery == "domicilio":
-            return "", "order_address"
+            return "", "domicilio"
         profile = self.user_service.get_profile(wa_id)
         if profile.get("name"):
-            return "", "order_saved"
-        return "", "order_customer_name"
+            return "", "recoger_has_name"
+        return "", "recoger_no_name"
 
     def _action_capture_address(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         profile = self.user_service.get_profile(wa_id)
@@ -647,8 +654,8 @@ class FlowEngine:
         self.state_manager.patch_data(wa_id, delivery_address=address)
         profile = self.user_service.get_profile(wa_id)
         if profile.get("name"):
-            return "", "order_saved"
-        return "Gracias. Guardé tu dirección.", "order_customer_name"
+            return "", "success_has_name"
+        return "Gracias. Guardé tu dirección.", "success_no_name"
 
     def _action_capture_customer_name(
         self, wa_id: str, text: str
@@ -657,14 +664,14 @@ class FlowEngine:
         if len(name) < 2:
             return "Por favor escribe tu nombre (mínimo 2 caracteres).", None
         self.user_service.save_name(wa_id, name)
-        return "", "order_saved"
+        return "", "success"
 
     def _action_save_order(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         data = state.get("data", {})
         cart = data.get("cart", [])
         if not cart:
-            return "No encontré productos para guardar.", "order_start"
+            return "No encontré productos para guardar.", "empty_cart"
 
         profile = self.user_service.get_profile(wa_id)
         customer_name = profile.get("name", "")
@@ -700,13 +707,13 @@ class FlowEngine:
             last_order_id=order_id,
             awaiting_repeat_order=False,
             awaiting_abandon_confirm=False,
+            skip_repeat_order_once=True,
         )
-        self.state_manager.set_step(wa_id, "start", "idle")
         return (
             f"Pedido *{order_id}* registrado correctamente.\n"
             f"Total: *${total:.2f}*\n"
             f"Estado: *pendiente* (esperando confirmación del restaurante)",
-            None,
+            "success",
         )
 
     def _action_capture_persons(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
@@ -714,7 +721,7 @@ class FlowEngine:
         if not personas:
             return "Indícame un número válido de personas (entre 1 y 30).", None
         self.state_manager.patch_data(wa_id, reservation={"personas": personas})
-        return f"Perfecto, reserva para *{personas}* personas.", "reservation_date"
+        return f"Perfecto, reserva para *{personas}* personas.", "success"
 
     def _action_capture_date(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         reservation_date = parse_date(text)
@@ -730,7 +737,7 @@ class FlowEngine:
         self.state_manager.patch_data(wa_id, reservation=reservation)
         return (
             f"Fecha registrada: *{reservation_date.strftime('%d/%m/%Y')}*.",
-            "reservation_time",
+            "success",
         )
 
     def _action_capture_time(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
@@ -742,7 +749,7 @@ class FlowEngine:
         reservation = state.get("data", {}).get("reservation", {})
         fecha_raw = reservation.get("fecha")
         if not fecha_raw:
-            return "Primero necesito la fecha de la reserva.", "reservation_date"
+            return "Primero necesito la fecha de la reserva.", "missing_date"
 
         from datetime import date
 
@@ -753,7 +760,7 @@ class FlowEngine:
 
         reservation["hora"] = reservation_time.strftime("%H:%M")
         self.state_manager.patch_data(wa_id, reservation=reservation)
-        return f"Hora registrada: *{reservation_time.strftime('%H:%M')}*.", "reservation_review"
+        return f"Hora registrada: *{reservation_time.strftime('%H:%M')}*.", "success"
 
     def _action_show_reservation_summary(
         self,
@@ -763,7 +770,7 @@ class FlowEngine:
         state = self.state_manager.get(wa_id)
         reservation = state.get("data", {}).get("reservation", {})
         if not reservation.get("personas") or not reservation.get("fecha") or not reservation.get("hora"):
-            return "Necesito completar los datos de la reserva.", "reservation_start"
+            return "Necesito completar los datos de la reserva.", "incomplete"
 
         from datetime import date, time
 
@@ -782,10 +789,10 @@ class FlowEngine:
         text: str,
     ) -> Tuple[str, Optional[str]]:
         if is_confirmation(text):
-            return "¡Perfecto!", "reservation_saved"
+            return "¡Perfecto!", "confirmed"
         if is_rejection(text):
             self.state_manager.patch_data(wa_id, reservation={})
-            return "Sin problema, empecemos de nuevo.", "reservation_start"
+            return "Sin problema, empecemos de nuevo.", "rejected"
         return (
             "Responde *sí* para confirmar la reserva o *no* para modificarla.",
             None,
@@ -800,7 +807,7 @@ class FlowEngine:
         reservation = state.get("data", {}).get("reservation", {})
         required = ("personas", "fecha", "hora")
         if not all(reservation.get(key) for key in required):
-            return "Faltan datos para completar la reserva.", "reservation_start"
+            return "Faltan datos para completar la reserva.", "incomplete"
 
         from datetime import date, time
 
@@ -814,6 +821,10 @@ class FlowEngine:
                 else reservation["hora"]
             ),
         )
-        self.state_manager.patch_data(wa_id, reservation={}, last_reservation_id=reservation_id)
-        self.state_manager.set_step(wa_id, "start", "idle")
-        return f"Reserva *{reservation_id}* confirmada.", None
+        self.state_manager.patch_data(
+            wa_id,
+            reservation={},
+            last_reservation_id=reservation_id,
+            skip_repeat_order_once=True,
+        )
+        return f"Reserva *{reservation_id}* confirmada.", "success"

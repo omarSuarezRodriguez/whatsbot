@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "chatbot/app/core/flow_engine.py": {
-    "mtime": 1782203878.3446774,
-    "ast_hash": "b015690d3270448cb5c18200d2eab864",
+    "mtime": 1782204804.8903193,
+    "ast_hash": "06ecb285e098ebcd29ff3fbad8439e32",
     "semantic_hash": ""
   },
   "chatbot/app/core/parser.py": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "flows/restaurant_flow.json": {
-    "mtime": 1782202381.84056,
-    "ast_hash": "92090971b881e5c9aef472d319b73fcf",
+    "mtime": 1782204765.5479834,
+    "ast_hash": "9040f7a9b6ee8b8ef66606cd566c65a5",
     "semantic_hash": ""
   },
   "guardar.py": {
@@ -465,8 +465,8 @@
     "semantic_hash": ""
   },
   "README_PROMPTS.md": {
-    "mtime": 1782204266.753035,
-    "ast_hash": "7f851ab65bdde2046e2855d3741fbf1c",
+    "mtime": 1782204951.58481,
+    "ast_hash": "680752dddcb0a9ebee52bb600497d0bb",
     "semantic_hash": ""
   },
   "arquitectura_del_sistema.md": {
@@ -565,8 +565,13 @@
     "semantic_hash": ""
   },
   "tutoriales/cambiar-flujo-chatbot.md": {
-    "mtime": 1782203901.4630246,
-    "ast_hash": "78540d8afccfadf493c740c7a772449a",
+    "mtime": 1782204857.1385686,
+    "ast_hash": "8aa5b69510f750f799edaafc1e6afeaf",
+    "semantic_hash": ""
+  },
+  "tests/test_flow_transitions.py": {
+    "mtime": 1782204862.9725437,
+    "ast_hash": "2c8bf7f24aa34bef3417c71c77d0e15b",
     "semantic_hash": ""
   }
 }

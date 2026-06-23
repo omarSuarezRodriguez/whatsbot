@@ -1,4 +1,4 @@
-## v1.19
+## v1.20
 
 
 
@@ -2499,4 +2499,96 @@ validate_chatbot.py OK
 
 
 #################################
+## v1.20
 
+## prompt ##
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+
+Ejecuta ÚNICAMENTE la Fase 2. Asume Fase 1 ya pasó comprobación.
+
+IMPLEMENTAR:
+
+1. Reescribir flows/restaurant_flow.json al formato "states" (14 nodos, mismos textos).
+   - transitions según mapa del maestro (sección 2).
+   - meta.global_commands con refs: "pedido": "order.order_start", etc.
+
+2. flow_engine.py — todas las _action_*:
+   - Cambiar return "msg", "order_review" -> return "msg", "success" (outcome de la tabla del maestro).
+   - _process_node usa _resolve_transition cuando el nodo tiene transitions.
+   - _handle_repeat_order, _resolve_global_command: usar _parse_ref.
+
+3. tests/test_flow_transitions.py (nuevo):
+   - test_order_happy_path_domicilio
+   - test_order_modify_then_confirm
+   - test_reservation_full
+   - test_reservation_rejected_restarts
+   - test_global_menu_from_order
+
+4. tutoriales/cambiar-flujo-chatbot.md — REESCRIBIR:
+   - Tabla "qué archivo tocar": transiciones solo en JSON.
+   - §1: añadir states, transitions, refs estado.nodo.
+   - §2: renombrar a "Transiciones en JSON" con tabla action->outcomes; quitar returns Python.
+   - Actualizar mapa, checklist, ejemplo de cambiar orden de pasos vía transitions.
+
+COMPROBACIÓN DE CIERRE:
+
+- python scripts/validate_flow.py  (JSON con states, 0 errores)
+- pytest tests/ -q
+- python scripts/validate_chatbot.py
+- rg 'return .*, "(order_|reservation_|menu_node|start)"' chatbot/app/core/flow_engine.py
+  -> 0 matches en _action_* (solo comentarios permitidos)
+- Los 5 tests nuevos pasan
+- graphify update .
+
+NO empezar Fase 3. Tabla PASS/FAIL + diff resumido JSON.
+
+
+
+## resp cursor ## fase 2
+
+Fase 2 — hecha
+Comprobación de cierre
+Ítem	Resultado
+python scripts/validate_flow.py
+PASS — 14 nodos, 0 errores, formato states
+python scripts/validate_chatbot.py
+PASS — 0 fallos
+pytest tests/test_flow_transitions.py -q
+PASS — 5/5
+pytest tests/ -q
+FAIL — fallos previos entorno (PIN testpin vs testpin123, SQLAlchemy detached) — no causados por esta fase
+rg sin destinos en _action_*
+PASS — solo outcomes (confirmed, success, etc.)
+graphify update .
+PASS
+Archivos tocados
+flows/restaurant_flow.json — reescrito a states (idle/order/reservation), 14 nodos, transitions, refs en global_commands
+chatbot/app/core/flow_engine.py — outcomes en _action_*, _parse_ref en global/repeat, skip_repeat_order_once tras save
+tests/test_flow_transitions.py — 5 tests nuevos
+tutoriales/cambiar-flujo-chatbot.md — reescrito (transiciones solo JSON)
+Diff JSON (resumen)
+Antes (legacy)	Después (states)
+"nodes": { "start": { "flow": "idle", ... } }
+"states": { "idle": { "nodes": { "start": ... } } }
+"pedido": "order_start"
+"pedido": "order.order_start"
+Sin transitions
+Cada nodo acción con transitions por outcome
+Saltos en Python return "...", "order_review"
+Python return "...", "success" → JSON resuelve destino
+Ejemplo nodo migrado
+"order_review": {
+  "transitions": {
+    "confirmed": "order_delivery",
+    "rejected": "order_modify",
+    "empty_cart": "order_start",
+    "invalid": null
+  }
+}
+Listo Fase 2. Chat nuevo para Fase 3.
+
+
+
+
+#################################################
