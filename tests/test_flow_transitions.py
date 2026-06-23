@@ -114,7 +114,7 @@ def test_idle_start_returns_single_string(engine):
     assert _step(engine, wa_id) == "start"
 
 
-def test_idle_start_no_list_after_repeat_order_reject(engine):
+def test_idle_start_ignores_last_order_items(engine):
     wa_id = "573009998876"
     engine.user_service.sheets.upsert_user(
         wa_id,
@@ -122,11 +122,13 @@ def test_idle_start_no_list_after_repeat_order_reject(engine):
         address="",
         last_order_items=[{"nombre": "Pizza Hawaiana", "cantidad": 1, "precio": 12.0}],
     )
-    engine.process_message(wa_id, "hola")
-    reply = engine.process_message(wa_id, "no")
+    reply = engine.process_message(wa_id, "hola")
 
     assert isinstance(reply, str)
     assert "Bienvenido" in reply or "bienvenido" in reply.lower()
+    assert "¿Qué te gustaría hacer hoy?" in reply
+    assert "repetir" not in reply.lower()
+    assert _step(engine, wa_id) == "start"
 
 def _step(engine, wa_id: str) -> str:
     return engine.state_manager.get(wa_id).get("step", "")

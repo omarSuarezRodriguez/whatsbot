@@ -2225,3 +2225,213 @@ Responde *sí* o *no*.
 3. *reservar* — Reservar mesa
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Deseas repetir tu pedido anterior?
+Responde *sí* o *no*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################

@@ -1,4 +1,4 @@
-## v1.26
+## v1.27
 
 
 
@@ -3113,6 +3113,211 @@ Fase 2 no tocada.
 
 
 ############################################
+## v1.27
+
+## prompt ##
+
+Ejecuta ÚNICAMENTE este parche de comportamiento en FlowEngine.
+NO es migración Fase 2. NO refactor estructural.
+ARCHIVOS PERMITIDOS:
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py
+PROHIBIDO tocar:
+- flows/restaurant_flow.json
+- StateManager, servicios, parser, gateway
+- transitions, outcomes, global_commands del JSON
+- migracion.md / README (salvo que yo lo pida)
+---
+## Contexto (bug real reproducido)
+Usuario con last_order_items en perfil:
+- `inicio` / `hola` → bienvenida + “¿repetir pedido?” + CTA apilados
+- Con `awaiting_repeat_order=true`, `menu` / `hola` / `inicio` bloqueados hasta `no`
+- Segundo `no` en `start` → fallback genérico poco útil
+- `hola` en `start` vuelve a ejecutar `_process_node("start")` vía `options.hola` → re-bienvenida completa
+Objetivo: eliminar repeat-order y estabilizar `idle.start` sin cambiar arquitectura ni JSON.
+---
+## CAMBIO A — Eliminar “repetir pedido” por completo
+### Eliminar código muerto
+1. Borrar método `_handle_repeat_order` entero (~L170–195).
+2. En `_process_message_body`, borrar:
+   - llamada a `_handle_repeat_order` (~L331–333)
+   - bloque greeting + `awaiting_repeat_order` + `skip_repeat_order_once` (~L335–342)
+### Vaciar `_action_welcome_customer`
+Dejar no-op que solo retorna `("", None)`:
+- NO leer `last_order_items` ni `user_service.get_profile` para repeat
+- NO escribir `awaiting_repeat_order` ni `skip_repeat_order_once`
+- Mantener action registrada en `_actions` y en JSON (`welcome_customer` sigue existiendo)
+### Limpiar escrituras de flags repeat (no borrar StateManager)
+Quitar de `patch_data` las claves `awaiting_repeat_order` y `skip_repeat_order_once` en:
+- `_resolve_global_command` (reset carrito al cambiar flujo)
+- `_action_save_order`
+- `_action_save_reservation`
+No hace falta migrar estado viejo en DB; solo dejar de producir/consumir esos flags.
+### Tests
+- Eliminar o reemplazar `test_idle_start_no_list_after_repeat_order_reject`
+- Añadir `test_idle_start_ignores_last_order_items`: usuario con `last_order_items` → `hola` → bienvenida + CTA, SIN “repetir”, step=`start`
+- `rg 'repeat_order|skip_repeat|last_order_items|_handle_repeat_order' chatbot/app/core/flow_engine.py` → 0 matches (excepto si queda comentario ponytail — preferible 0)
+---
+## CAMBIO B — Fallback estable en `idle.start` (sin re-ejecutar nodo)
+### Problema técnico exacto
+Hoy, input no reconocido en `step=="start"` cae en fallback genérico (~L430–434).
+Además, `options` mapea `hola|buenas|hey → start` (~L369–378): si ya estás en `start`, llama otra vez `_process_node(start)` → re-apila `message` + `welcome_customer` + `message_secondary`.
+### Comportamiento requerido
+**B1 — Input no reconocido en `start` (idle)**
+Si `current_step == "start"` y el mensaje NO fue enrutado por (en este orden):
+`abandon_confirm` → `action_on_input` → `global_commands` → `options` → intent → `free_text`
+Responder exactamente (string único, sin `_process_node`, sin cambiar step):
+Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+- NO llamar `_process_node`
+- NO apilar `message_secondary`
+- NO `set_step` / `reset`
+- `start` tiene `suppress_navigation: true` → no añadir `NAV_HINT` en este fallback
+Implementación mínima sugerida: rama en `_process_message_body` justo antes del fallback genérico, solo `current_step == "start"`.
+**B2 — Re-entrada a `start` desde `options` sin re-bienvenida**
+Si `normalized in options` y `next_step == current_step == "start"`:
+- NO llamar `_process_node`
+- Responder el mismo texto de B1 (o mensaje corto equivalente — usar el de B1 para consistencia)
+- Mantener step=`start`
+Esto cubre segundo `hola` / `buenas` / `hey` sin tocar JSON.
+**B3 — Saludo idle fuera de `options`**
+El bloque `is_greeting(text) and node.get("flow") == "idle"` (~L380–382) hoy re-ejecuta `start` desde cualquier nodo idle.
+Ajustar: si `current_step == "start"`, saltar ese bloque (ya cubierto por B2 para tokens en options; este cubre saludos no listados).
+### NO cambiar
+- Fallback de otros nodos (`menu_node`, `order_*`, etc.) — siguen con `node.fallback` o default genérico
+- Routing de `menu`, `pedido`, `reservar`, `inicio` cuando input es comando válido
+---
+## COMPROBACIÓN DE CIERRE
+```bash
+pytest tests/test_flow_transitions.py -q
+rg 'repeat_order|skip_repeat|_handle_repeat_order|last_order_items' chatbot/app/core/flow_engine.py
+Tabla manual (documentar en respuesta)
+Input	step antes	Esperado	NO debe ocurrir
+hola
+(nuevo)
+bienvenida + CTA
+“repetir pedido”
+hola
+start
+fallback B1 (no re-bienvenida)
+_process_node(start)
+menu
+start
+menú + after_action
+bloqueo repeat
+pedido
+start
+order_start
+—
+reservar
+start
+reservation_start
+—
+inicio
+order_*
+bienvenida + CTA
+“repetir pedido”
+no
+start
+fallback B1
+re-bienvenida
+ok
+start
+fallback B1
+cambio de step
+gracias
+start
+fallback B1
+cambio de step
+ENTREGABLE
+Diff mínimo (solo archivos permitidos)
+Lista archivos tocados
+Explicación breve: qué se eliminó (repeat) y qué rama nueva evita re-start
+Resultado pytest + rg
+Tabla manual PASS/FAIL
+RESTRICCIONES DE ESTILO (ponytail):
+
+Sin abstracciones nuevas
+Sin mover strings a JSON (eso es Fase 2)
+Un test por comportamiento nuevo; borrar test obsoleto de repeat
+---
+
+
+## resp cursor ##
+
+
+Qué cambió
+CAMBIO A — repeat order eliminado
+
+Borrado _handle_repeat_order y bloqueos awaiting_repeat_order / skip_repeat_order_once
+_action_welcome_customer → no-op ("", None)
+Quitadas escrituras de flags repeat en _resolve_global_command, _action_save_order, _action_save_reservation
+Test obsoleto reemplazado por test_idle_start_ignores_last_order_items
+CAMBIO B — idle.start estable
+
+Constante _START_IDLE_FALLBACK con texto B1
+B1: input no enrutado en start + start_seen → fallback sin _process_node, sin NAV_HINT
+B2: options con self-loop start + start_seen → mismo fallback (no re-bienvenida en 2º hola)
+B3: saludo idle en start ya no re-ejecuta nodo
+start_seen=True en _process_node tras primer render de start (distingue 1er hola vs re-entrada; reset() lo limpia)
+Comprobaciones
+pytest tests/test_flow_transitions.py -q
+9 passed in 0.58s
+rg 'repeat_order|skip_repeat|_handle_repeat_order|last_order_items' chatbot/app/core/flow_engine.py
+→ 0 matches
+Tabla manual
+Input	step antes	Esperado	NO debe ocurrir	Resultado
+hola (nuevo)
+—
+bienvenida + CTA
+“repetir pedido”
+PASS
+hola
+start
+fallback B1
+re-bienvenida / _process_node(start)
+PASS
+menu
+start
+menú + after_action
+bloqueo repeat
+PASS
+pedido
+start
+order_start
+—
+PASS
+reservar
+start
+reservation_start
+—
+PASS
+inicio
+order_*
+bienvenida + CTA
+“repetir pedido”
+PASS
+no
+start
+fallback B1
+re-bienvenida
+PASS
+ok
+start
+fallback B1
+cambio de step
+PASS
+gracias
+start
+fallback B1
+cambio de step
+PASS
+
+
+
+
+
+########################################
 
 
 

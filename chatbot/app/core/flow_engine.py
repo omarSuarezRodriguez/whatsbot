@@ -28,6 +28,11 @@ from app.utils.validators import (
 
 logger = logging.getLogger(__name__)
 
+_START_IDLE_FALLBACK = (
+    "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? "
+    "También puedes escribir menu, pedido o reservar."
+)
+
 
 class FlowEngine:
     def __init__(
@@ -167,33 +172,6 @@ class FlowEngine:
             return "Perfecto, continuamos con tu pedido actual."
         return "Responde *sí* para volver al inicio o *no* para continuar tu pedido."
 
-    def _handle_repeat_order(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[str]:
-        if not state.get("data", {}).get("awaiting_repeat_order"):
-            return None
-        current_flow = state.get("flow", "idle")
-        if is_confirmation(text):
-            items = self.user_service.get_last_order_items(wa_id)
-            if not items:
-                self.state_manager.patch_data(wa_id, awaiting_repeat_order=False)
-                return "No encontré tu pedido anterior."
-            self.state_manager.patch_data(
-                wa_id,
-                cart=items,
-                awaiting_repeat_order=False,
-            )
-            _, review_step = self._parse_ref("order.order_review", current_flow)
-            self.state_manager.set_step(wa_id, review_step, "order")
-            return self._process_node(wa_id, review_step, include_navigation=False)
-        if is_rejection(text):
-            self.state_manager.patch_data(
-                wa_id,
-                awaiting_repeat_order=False,
-                skip_repeat_order_once=True,
-            )
-            _, start_step = self._parse_ref("idle.start", current_flow)
-            return self._process_node(wa_id, start_step, include_navigation=True)
-        return "Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción."
-
     def _resolve_global_command(
         self,
         wa_id: str,
@@ -248,7 +226,6 @@ class FlowEngine:
                 wa_id,
                 cart=[],
                 reservation={},
-                awaiting_repeat_order=False,
                 awaiting_abandon_confirm=False,
             )
 
@@ -328,19 +305,6 @@ class FlowEngine:
         if abandon is not None:
             return abandon
 
-        repeat = self._handle_repeat_order(wa_id, text, state)
-        if repeat is not None:
-            return repeat
-
-        if state.get("data", {}).get("awaiting_repeat_order") and is_greeting(text):
-            self.state_manager.patch_data(
-                wa_id,
-                awaiting_repeat_order=False,
-                skip_repeat_order_once=True,
-            )
-            _, start_step = self._parse_ref("idle.start", state.get("flow", "idle"))
-            return self._process_node(wa_id, start_step, include_navigation=True)
-
         node = self.nodes.get(current_step)
         if not node:
             self.state_manager.reset(wa_id)
@@ -369,6 +333,11 @@ class FlowEngine:
         options = node.get("options", {})
         if normalized in options:
             next_step = options[normalized]
+            if (
+                next_step == current_step == "start"
+                and state.get("data", {}).get("start_seen")
+            ):
+                return _START_IDLE_FALLBACK
             next_node = self.nodes.get(next_step, {})
             self.state_manager.set_step(
                 wa_id,
@@ -377,7 +346,7 @@ class FlowEngine:
             )
             return self._process_node(wa_id, next_step, include_navigation=True)
 
-        if is_greeting(text) and node.get("flow") == "idle":
+        if is_greeting(text) and node.get("flow") == "idle" and current_step != "start":
             _, start_step = self._parse_ref("idle.start", node.get("flow", "idle"))
             return self._process_node(wa_id, start_step, include_navigation=True)
 
@@ -426,6 +395,9 @@ class FlowEngine:
                 "Ejemplo: *2 hamburguesas y 1 agua*",
                 node,
             )
+
+        if current_step == "start" and state.get("data", {}).get("start_seen"):
+            return _START_IDLE_FALLBACK
 
         fallback = node.get(
             "fallback",
@@ -500,6 +472,9 @@ class FlowEngine:
         if include_navigation:
             response = self._append_navigation(response, node)
 
+        if step == "start" and response:
+            self.state_manager.patch_data(wa_id, start_seen=True)
+
         return response
 
     def _build_node_context(self, wa_id: str, step: str) -> Dict[str, str]:
@@ -527,24 +502,6 @@ class FlowEngine:
         return {"welcome_line": welcome, "address_prompt": address_prompt}
 
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
-        state = self.state_manager.get(wa_id)
-        data = state.get("data", {})
-        if data.get("skip_repeat_order_once"):
-            self.state_manager.patch_data(
-                wa_id,
-                skip_repeat_order_once=False,
-                awaiting_repeat_order=False,
-            )
-            return "", None
-
-        profile = self.user_service.get_profile(wa_id)
-        last_items = profile.get("last_order_items") or []
-        if last_items:
-            self.state_manager.patch_data(wa_id, awaiting_repeat_order=True)
-            return (
-                "¿Deseas repetir tu pedido anterior?\nResponde *sí* o *no*.",
-                None,
-            )
         return "", None
 
     def _action_show_menu(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
@@ -681,9 +638,7 @@ class FlowEngine:
             delivery_type="",
             delivery_address="",
             last_order_id=order_id,
-            awaiting_repeat_order=False,
             awaiting_abandon_confirm=False,
-            skip_repeat_order_once=True,
         )
         return (
             f"Pedido *{order_id}* registrado correctamente.\n"
@@ -801,6 +756,5 @@ class FlowEngine:
             wa_id,
             reservation={},
             last_reservation_id=reservation_id,
-            skip_repeat_order_once=True,
         )
         return f"Reserva *{reservation_id}* confirmada.", "success"
