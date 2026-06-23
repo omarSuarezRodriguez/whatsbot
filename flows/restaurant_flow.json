@@ -18,6 +18,27 @@
     "start_fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.",
     "address_prompt": "Indícame la dirección de entrega a domicilio.",
     "address_prompt_saved": "Tienes guardada esta dirección:\n*{{saved_address}}*\n\n¿Deseas usarla? Responde *sí*.\nO escribe una dirección nueva.",
+    "active_order_command_targets": {
+      "pedido": "order.order_review"
+    },
+    "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
+    "capture_order_success": "Perfecto, actualicé tu pedido.",
+    "empty_cart_message": "Tu carrito está vacío. Cuéntame qué te gustaría pedir.",
+    "order_confirm_yes": "¡Excelente!",
+    "order_confirm_no": "Claro, modifiquemos tu pedido.",
+    "address_saved": "Gracias. Guardé tu dirección.",
+    "save_order_empty": "No encontré productos para guardar.",
+    "order_saved_success": "Pedido *{{order_id}}* registrado correctamente.\nTotal: *${{total}}*\nEstado: *pendiente* (esperando confirmación del restaurante)",
+    "capture_persons_success": "Perfecto, reserva para *{{personas}}* personas.",
+    "capture_date_success": "Fecha registrada: *{{date}}*.",
+    "capture_date_missing": "Primero necesito la fecha de la reserva.",
+    "capture_time_success": "Hora registrada: *{{time}}*.",
+    "reservation_incomplete": "Necesito completar los datos de la reserva.",
+    "reservation_summary_header": "*Resumen de tu reserva*\n{{summary}}",
+    "reservation_confirm_yes": "¡Perfecto!",
+    "reservation_confirm_no": "Sin problema, empecemos de nuevo.",
+    "save_reservation_incomplete": "Faltan datos para completar la reserva.",
+    "save_reservation_success": "Reserva *{{reservation_id}}* confirmada.",
     "navigation_hint": true
   },
   "states": {
@@ -29,6 +50,9 @@
           "intercept_products": true,
           "suppress_navigation": true,
           "dual_message": true,
+          "self_loop_behavior": "fallback",
+          "suppress_repeat_message": true,
+          "fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.",
           "message": "{{welcome_line}}",
           "message_secondary": "¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
           "options": {
@@ -43,13 +67,15 @@
         "menu_node": {
           "action": "show_menu",
           "intercept_products": true,
-          "greeting_ref": "start",
           "fallback": "No entendí eso. Escribe *menu*, *pedido* o *reservar*.",
           "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
           "options": {
             "pedido": "order_start",
             "reservar": "reservation_start",
-            "inicio": "start"
+            "inicio": "start",
+            "hola": "start",
+            "buenas": "start",
+            "hey": "start"
           }
         }
       }

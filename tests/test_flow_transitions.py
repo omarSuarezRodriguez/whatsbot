@@ -238,3 +238,19 @@ def test_idle_greeting_from_menu_navigates_to_start(engine):
     reply = engine.process_message(wa_id, "hola")
     assert "Bienvenido" in reply or "bienvenido" in reply.lower()
     assert _step(engine, wa_id) == "start"
+
+
+def test_idle_start_second_hola_fallback(engine):
+    wa_id = "573009998878"
+    first = engine.process_message(wa_id, "hola")
+
+    assert "Bienvenido" in first or "bienvenido" in first.lower()
+    assert "¿Qué te gustaría hacer hoy?" in first
+    data = engine.state_manager.get(wa_id).get("data", {})
+    assert "start_seen" not in data
+    assert data.get("shown_steps", {}).get("start")
+
+    second = engine.process_message(wa_id, "hola")
+    assert "¿Qué te gustaría hacer hoy?" not in second
+    assert "no logré entenderte" in second.lower()
+    assert _step(engine, wa_id) == "start"

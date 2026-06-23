@@ -177,14 +177,53 @@ class FlowEngine:
             return str(fallback)
         return _SYSTEM_TECHNICAL_FALLBACK
 
+    @staticmethod
+    def _node_message_shown(state: Dict[str, Any], step: str) -> bool:
+        shown = (state.get("data") or {}).get("shown_steps") or {}
+        return bool(shown.get(step))
+
+    def _mark_node_message_shown(self, wa_id: str, step: str) -> None:
+        state = self.state_manager.get(wa_id)
+        shown = dict((state.get("data") or {}).get("shown_steps") or {})
+        if shown.get(step):
+            return
+        shown[step] = True
+        self.state_manager.patch_data(wa_id, shown_steps=shown)
+
+    def _node_fallback_message(self, node: Dict[str, Any]) -> str:
+        return str(node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK))
+
+    def _start_ref(self) -> str:
+        return str(self.global_commands.get("inicio", "idle.start"))
+
+    def _should_self_loop_fallback(
+        self,
+        next_ref: str,
+        current_step: str,
+        node: Dict[str, Any],
+        state: Dict[str, Any],
+    ) -> bool:
+        _, target_step = self._parse_ref(
+            str(next_ref),
+            node.get("flow", state.get("flow", "idle")),
+        )
+        if target_step != current_step:
+            return False
+        if node.get("self_loop_behavior") != "fallback":
+            return False
+        if node.get("suppress_repeat_message") and not self._node_message_shown(
+            state, current_step
+        ):
+            return False
+        return True
+
     def _handle_abandon_confirm(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[str]:
         if not state.get("data", {}).get("awaiting_abandon_confirm"):
             return None
         node = self.nodes.get(state.get("step", ""), {})
         if is_confirmation(text):
             self.state_manager.reset(wa_id)
-            _, start_step = self._parse_ref("idle.start", state.get("flow", "idle"))
-            return self._process_node(wa_id, start_step, include_navigation=True)
+            return self._goto_ref(wa_id, self._start_ref())
         if is_rejection(text):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
             return self._resolve_ux_text("abandon_confirm_continue", node)
@@ -208,9 +247,10 @@ class FlowEngine:
         target_flow, target_step = self._parse_ref(str(target), current_flow)
 
         if command == "pedido" and self._has_active_order(state):
-            _, review_step = self._parse_ref("order.order_review", current_flow)
-            self.state_manager.set_step(wa_id, review_step, "order")
-            return self._process_node(wa_id, review_step, include_navigation=True)
+            active_targets = self.meta.get("active_order_command_targets") or {}
+            redirect = active_targets.get("pedido")
+            if redirect:
+                return self._goto_ref(wa_id, str(redirect), current_flow=current_flow)
 
         if command == "inicio" and self._has_active_order(state):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=True)
@@ -222,7 +262,9 @@ class FlowEngine:
             cancel_message = self._resolve_ux_text(
                 "cancel_message", self.nodes.get(target_step, {})
             )
-            start_message = self._process_node(wa_id, target_step, include_navigation=False)
+            start_message = self._goto_ref(
+                wa_id, target, current_flow=current_flow, include_navigation=False
+            )
             combined = self._join_reply(cancel_message, start_message)
             return self._append_navigation(combined, self.nodes.get(target_step, {}))
 
@@ -243,9 +285,7 @@ class FlowEngine:
                 awaiting_abandon_confirm=False,
             )
 
-        return self._process_node(wa_id, target_step, include_navigation=True)
-
-    _NAV_GLOBAL_COMMANDS = frozenset({"menu", "pedido", "reservar", "inicio", "cancelar"})
+        return self._goto_ref(wa_id, target, current_flow=current_flow)
 
     def _execute_input_action(
         self,
@@ -280,6 +320,8 @@ class FlowEngine:
                     self._join_reply(message, follow_up) if message else follow_up
                 )
                 return self._append_navigation(combined, next_node)
+        if not message:
+            message = self._node_fallback_message(node)
         return self._append_navigation(message, node)
 
     def process_message(self, wa_id: str, body: str, *, _inner: bool = False) -> str:
@@ -322,19 +364,19 @@ class FlowEngine:
         node = self.nodes.get(current_step)
         if not node:
             self.state_manager.reset(wa_id)
-            _, start_step = self._parse_ref("idle.start", "idle")
-            return self._process_node(wa_id, start_step, include_navigation=True)
+            return self._goto_ref(wa_id, self._start_ref())
 
-        if (
-            node.get("action_on_input")
-            and normalized not in self._NAV_GLOBAL_COMMANDS
-        ):
-            step_response = self._execute_input_action(
-                wa_id, text, node, current_step, state
+        options = node.get("options", {})
+        if normalized in options:
+            next_ref = options[normalized]
+            if self._should_self_loop_fallback(next_ref, current_step, node, state):
+                return self._append_navigation(self._node_fallback_message(node), node)
+            log_meta["routed"] = f"option:{normalized}"
+            return self._goto_ref(
+                wa_id,
+                next_ref,
+                current_flow=state.get("flow", "idle"),
             )
-            if step_response is not None:
-                log_meta["routed"] = node.get("action_on_input") or node.get("action")
-                return step_response
 
         if normalized in self.global_commands:
             log_meta["routed"] = normalized
@@ -343,28 +385,6 @@ class FlowEngine:
             )
             if response:
                 return response
-
-        options = node.get("options", {})
-        if normalized in options:
-            next_step = options[normalized]
-            if (
-                next_step == current_step == "start"
-                and state.get("data", {}).get("start_seen")
-            ):
-                return self._resolve_ux_text("start_fallback", node)
-            return self._goto_ref(
-                wa_id,
-                next_step,
-                current_flow=state.get("flow", "idle"),
-            )
-
-        greeting_ref = node.get("greeting_ref")
-        if greeting_ref and is_greeting(text):
-            return self._goto_ref(
-                wa_id,
-                greeting_ref,
-                current_flow=node.get("flow", state.get("flow", "idle")),
-            )
 
         menu_tokens = self.menu_service.menu_literal_tokens()
         intent = infer_user_intent(text, menu_tokens=menu_tokens)
@@ -405,13 +425,10 @@ class FlowEngine:
                 wa_id, text, node, current_step, state
             )
             if step_response is not None:
+                log_meta["routed"] = node.get("action_on_input") or node.get("action")
                 return step_response
 
-        if current_step == "start" and state.get("data", {}).get("start_seen"):
-            return self._resolve_ux_text("start_fallback", node)
-
-        fallback = node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
-        return self._append_navigation(fallback, node)
+        return self._append_navigation(self._node_fallback_message(node), node)
 
     def _process_node(
         self,
@@ -420,7 +437,7 @@ class FlowEngine:
         include_navigation: bool = False,
         user_input: str = "",
     ) -> str:
-        _, idle_start = self._parse_ref("idle.start", "idle")
+        _, idle_start = self._parse_ref(self._start_ref(), "idle")
         node = self.nodes.get(step, self.nodes.get(idle_start, {}))
         self.state_manager.set_step(wa_id, step, node.get("flow", "idle"))
 
@@ -480,8 +497,8 @@ class FlowEngine:
         if include_navigation:
             response = self._append_navigation(response, node)
 
-        if step == "start" and response:
-            self.state_manager.patch_data(wa_id, start_seen=True)
+        if response and node.get("suppress_repeat_message"):
+            self._mark_node_message_shown(wa_id, step)
 
         return response
 
@@ -513,30 +530,28 @@ class FlowEngine:
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         cart = state.get("data", {}).get("cart", [])
         result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
 
         if not result["items"]:
-            return (
-                "Aún no tengo productos en tu pedido."
-                + "\n\nCuéntame qué te gustaría ordenar.",
-                None,
-            )
+            return self._resolve_ux_text("capture_order_empty", node), None
 
         self.state_manager.patch_data(wa_id, cart=result["items"])
         notes = result.get("notes", [])
         note_text = f"\n\n{' '.join(notes)}" if notes else ""
-
-        return (
-            f"Perfecto, actualicé tu pedido.{note_text}",
-            "success",
+        success = self._render(
+            self._resolve_ux_text("capture_order_success", node),
+            {},
         )
+        return f"{success}{note_text}", "success"
 
     def _action_show_cart(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         cart = state.get("data", {}).get("cart", [])
         if not cart:
-            return "Tu carrito está vacío. Cuéntame qué te gustaría pedir.", "empty_cart"
+            node = self.nodes.get(state.get("step", ""), {})
+            return self._resolve_ux_text("empty_cart_message", node), "empty_cart"
         return self.order_service.format_cart(cart), None
 
     def _action_handle_order_confirmation(
@@ -544,25 +559,19 @@ class FlowEngine:
         wa_id: str,
         text: str,
     ) -> Tuple[str, Optional[str]]:
+        node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
         if is_confirmation(text):
-            return "¡Excelente!", "confirmed"
+            return self._resolve_ux_text("order_confirm_yes", node), "confirmed"
         if is_rejection(text):
-            return "Claro, modifiquemos tu pedido.", "rejected"
-        return (
-            "Para continuar, responde *sí* para confirmar o *no* para modificar tu pedido.",
-            None,
-        )
+            return self._resolve_ux_text("order_confirm_no", node), "rejected"
+        return "", None
 
     def _action_capture_delivery_type(
         self, wa_id: str, text: str
     ) -> Tuple[str, Optional[str]]:
         delivery = parse_delivery_type(text)
         if not delivery:
-            return (
-                "No entendí tu elección.\n"
-                "Responde *1* o *domicilio*, o *2* o *recoger*.",
-                None,
-            )
+            return "", None
         self.state_manager.patch_data(wa_id, delivery_type=delivery)
         if delivery == "domicilio":
             return "", "domicilio"
@@ -572,36 +581,39 @@ class FlowEngine:
         return "", "recoger_no_name"
 
     def _action_capture_address(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         profile = self.user_service.get_profile(wa_id)
         saved = profile.get("address", "")
         address = text.strip()
         if saved and is_confirmation(text):
             address = saved
         elif not address:
-            return "Necesito una dirección válida para el domicilio.", None
+            return "", None
 
         self.user_service.save_address(wa_id, address)
         self.state_manager.patch_data(wa_id, delivery_address=address)
         profile = self.user_service.get_profile(wa_id)
         if profile.get("name"):
             return "", "success_has_name"
-        return "Gracias. Guardé tu dirección.", "success_no_name"
+        return self._resolve_ux_text("address_saved", node), "success_no_name"
 
     def _action_capture_customer_name(
         self, wa_id: str, text: str
     ) -> Tuple[str, Optional[str]]:
         name = text.strip()
         if len(name) < 2:
-            return "Por favor escribe tu nombre (mínimo 2 caracteres).", None
+            return "", None
         self.user_service.save_name(wa_id, name)
         return "", "success"
 
     def _action_save_order(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         data = state.get("data", {})
         cart = data.get("cart", [])
         if not cart:
-            return "No encontré productos para guardar.", "empty_cart"
+            return self._resolve_ux_text("save_order_empty", node), "empty_cart"
 
         profile = self.user_service.get_profile(wa_id)
         customer_name = profile.get("name", "")
@@ -638,46 +650,55 @@ class FlowEngine:
             awaiting_abandon_confirm=False,
         )
         return (
-            f"Pedido *{order_id}* registrado correctamente.\n"
-            f"Total: *${total:.2f}*\n"
-            f"Estado: *pendiente* (esperando confirmación del restaurante)",
+            self._render(
+                self._resolve_ux_text("order_saved_success", node),
+                {"order_id": order_id, "total": f"{total:.2f}"},
+            ),
             "success",
         )
 
     def _action_capture_persons(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         personas = parse_persons(text)
         if not personas:
-            return "Indícame un número válido de personas (entre 1 y 30).", None
+            return "", None
         self.state_manager.patch_data(wa_id, reservation={"personas": personas})
-        return f"Perfecto, reserva para *{personas}* personas.", "success"
+        node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
+        return (
+            self._render(
+                self._resolve_ux_text("capture_persons_success", node),
+                {"personas": personas},
+            ),
+            "success",
+        )
 
     def _action_capture_date(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         reservation_date = parse_date(text)
         if not reservation_date:
-            return (
-                "No pude interpretar la fecha. Usa el formato *DD/MM/AAAA* "
-                "con una fecha igual o posterior a hoy.",
-                None,
-            )
+            return "", None
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         reservation = state.get("data", {}).get("reservation", {})
         reservation["fecha"] = reservation_date.isoformat()
         self.state_manager.patch_data(wa_id, reservation=reservation)
         return (
-            f"Fecha registrada: *{reservation_date.strftime('%d/%m/%Y')}*.",
+            self._render(
+                self._resolve_ux_text("capture_date_success", node),
+                {"date": reservation_date.strftime("%d/%m/%Y")},
+            ),
             "success",
         )
 
     def _action_capture_time(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         reservation_time = parse_time(text)
         if not reservation_time:
-            return "No pude interpretar la hora. Prueba con *19:30* o *7:30 pm*.", None
+            return "", None
 
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         reservation = state.get("data", {}).get("reservation", {})
         fecha_raw = reservation.get("fecha")
         if not fecha_raw:
-            return "Primero necesito la fecha de la reserva.", "missing_date"
+            return self._resolve_ux_text("capture_date_missing", node), "missing_date"
 
         from datetime import date
 
@@ -688,7 +709,13 @@ class FlowEngine:
 
         reservation["hora"] = reservation_time.strftime("%H:%M")
         self.state_manager.patch_data(wa_id, reservation=reservation)
-        return f"Hora registrada: *{reservation_time.strftime('%H:%M')}*.", "success"
+        return (
+            self._render(
+                self._resolve_ux_text("capture_time_success", node),
+                {"time": reservation_time.strftime("%H:%M")},
+            ),
+            "success",
+        )
 
     def _action_show_reservation_summary(
         self,
@@ -696,9 +723,10 @@ class FlowEngine:
         text: str = "",
     ) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         reservation = state.get("data", {}).get("reservation", {})
         if not reservation.get("personas") or not reservation.get("fecha") or not reservation.get("hora"):
-            return "Necesito completar los datos de la reserva.", "incomplete"
+            return self._resolve_ux_text("reservation_incomplete", node), "incomplete"
 
         from datetime import date, time
 
@@ -709,22 +737,26 @@ class FlowEngine:
             if len(reservation["hora"]) == 5
             else time.fromisoformat(reservation["hora"]),
         )
-        return f"*Resumen de tu reserva*\n{summary}", None
+        return (
+            self._render(
+                self._resolve_ux_text("reservation_summary_header", node),
+                {"summary": summary},
+            ),
+            None,
+        )
 
     def _action_handle_reservation_confirmation(
         self,
         wa_id: str,
         text: str,
     ) -> Tuple[str, Optional[str]]:
+        node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
         if is_confirmation(text):
-            return "¡Perfecto!", "confirmed"
+            return self._resolve_ux_text("reservation_confirm_yes", node), "confirmed"
         if is_rejection(text):
             self.state_manager.patch_data(wa_id, reservation={})
-            return "Sin problema, empecemos de nuevo.", "rejected"
-        return (
-            "Responde *sí* para confirmar la reserva o *no* para modificarla.",
-            None,
-        )
+            return self._resolve_ux_text("reservation_confirm_no", node), "rejected"
+        return "", None
 
     def _action_save_reservation(
         self,
@@ -732,10 +764,11 @@ class FlowEngine:
         text: str = "",
     ) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
         reservation = state.get("data", {}).get("reservation", {})
         required = ("personas", "fecha", "hora")
         if not all(reservation.get(key) for key in required):
-            return "Faltan datos para completar la reserva.", "incomplete"
+            return self._resolve_ux_text("save_reservation_incomplete", node), "incomplete"
 
         from datetime import date, time
 
@@ -754,4 +787,10 @@ class FlowEngine:
             reservation={},
             last_reservation_id=reservation_id,
         )
-        return f"Reserva *{reservation_id}* confirmada.", "success"
+        return (
+            self._render(
+                self._resolve_ux_text("save_reservation_success", node),
+                {"reservation_id": reservation_id},
+            ),
+            "success",
+        )

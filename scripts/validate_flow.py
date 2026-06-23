@@ -45,6 +45,24 @@ PHASE2_META_KEYS = (
     "start_fallback",
     "address_prompt",
     "address_prompt_saved",
+    "capture_order_empty",
+    "capture_order_success",
+    "empty_cart_message",
+    "order_confirm_yes",
+    "order_confirm_no",
+    "address_saved",
+    "save_order_empty",
+    "order_saved_success",
+    "capture_persons_success",
+    "capture_date_success",
+    "capture_date_missing",
+    "capture_time_success",
+    "reservation_incomplete",
+    "reservation_summary_header",
+    "reservation_confirm_yes",
+    "reservation_confirm_no",
+    "save_reservation_incomplete",
+    "save_reservation_success",
 )
 
 
@@ -89,6 +107,17 @@ def validate_flow(flow: Dict[str, Any]) -> List[str]:
         if not meta.get(key):
             errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 2)")
 
+    active_targets = meta.get("active_order_command_targets")
+    if not isinstance(active_targets, dict):
+        errors.append("meta['active_order_command_targets'] ausente o inválido")
+    else:
+        for command, target in active_targets.items():
+            if not _step_exists(nodes, str(target)):
+                errors.append(
+                    f"meta.active_order_command_targets[{command!r}] -> {target!r} "
+                    f"(nodo inexistente)"
+                )
+
     for step, node in nodes.items():
         for option, target in node.get("options", {}).items():
             if not _step_exists(nodes, str(target), node.get("flow", "idle")):
@@ -128,6 +157,17 @@ def validate_flow(flow: Dict[str, Any]) -> List[str]:
                     f"nodes[{step!r}].transitions[{outcome!r}] -> {dest!r} "
                     f"(nodo inexistente)"
                 )
+
+        self_loop = node.get("self_loop_behavior")
+        if self_loop is not None and self_loop != "fallback":
+            errors.append(
+                f"nodes[{step!r}].self_loop_behavior={self_loop!r} "
+                f"(solo 'fallback' soportado)"
+            )
+        if self_loop == "fallback" and not node.get("fallback"):
+            errors.append(
+                f"nodes[{step!r}]: self_loop_behavior='fallback' requiere node.fallback"
+            )
 
     return errors
 

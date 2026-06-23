@@ -1,4 +1,4 @@
-## v1.36
+## v1.37
 
 
 
@@ -4248,8 +4248,95 @@ TEST DE CIERRE:
 
 ## resp cursor ##
 
-2b Done
+3a Done
 
 
 
 ############################################
+## v1.37
+
+## prompt ##
+
+Ejecuta ÚNICAMENTE Fase 3B de @migracion.md (declaratizar idle.start).
+
+CONTEXTO: Fase 3A ✅. Parche start_seen + B1/B2/B3 aún en Python.
+
+ARCHIVOS:
+- flows/restaurant_flow.json
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py
+- scripts/validate_flow.py (si añades validación de campos nuevos)
+
+IMPLEMENTAR:
+
+1. Eliminar start_seen y ramas B1/B2/B3
+   - Quitar patch start_seen en _process_node
+   - Quitar ramas current_step=="start" + start_seen en _process_message_body
+   - Quitar B2 self-loop hardcode (L336–343)
+
+2. Declaratizar en JSON (nodo start):
+   - node.self_loop_behavior
+   - node.fallback (puede reutilizar texto de meta.start_fallback)
+   - node.suppress_repeat_message
+
+3. Motor: leer flags JSON para self-loop sin re-procesar nodo
+
+RESTRICCIONES:
+- NO reintroducir repeat-order
+- NO tocar StateManager ni services
+- Preservar comportamiento tabla Fase 3B
+
+TEST DE CIERRE:
+- rg 'start_seen' chatbot/app/core/flow_engine.py → 0
+- 2º "hola" no re-dispara welcome
+- no hay flags start_seen en StateManager/data
+- pytest tests/test_flow_transitions.py -q
+- Añadir test_idle_start_second_hola_fallback
+
+## prompt 3c ##
+
+
+Ejecuta ÚNICAMENTE Fase 3C de @migracion.md (limpieza final motor).
+
+CONTEXTO: Fase 3A ✅. Fase 3B ✅. Sin start_seen ni B1/B2/B3.
+
+ARCHIVOS:
+- chatbot/app/core/flow_engine.py
+- flows/restaurant_flow.json
+- tests/test_flow_transitions.py
+
+IMPLEMENTAR:
+
+1. Adelgazar _process_message_body al pipeline mínimo:
+   - handlers meta (abandon)
+   - options[normalized]
+   - global_commands
+   - intent (parser)
+   - action_on_input / free_text
+   - fallback del nodo (node.fallback)
+
+2. Eliminar routing especial residual por nombre de step o nodo
+
+3. _goto_ref único helper de navegación directa
+
+4. Mover mensajes estáticos restantes en _action_* a meta/nodo
+
+RESTRICCIONES:
+- NO tocar StateManager ni services
+- NO reintroducir repeat-order
+
+TEST FINAL:
+- Todo el flujo restaurante funciona
+- rg 'step ==|current_step ==' chatbot/app/core/flow_engine.py → 0 en routing
+- 0 hardcoding de flujo
+- pytest tests/test_flow_transitions.py -q
+- python scripts/validate_flow.py
+
+
+## resp cursor ##
+
+Fase 3C lista. Motor quedó mínimo.
+
+
+
+#####################################################
