@@ -1,4 +1,4 @@
-## v1.24
+## v1.25
 
 
 
@@ -2859,6 +2859,180 @@ Hola, Bienvenido a *La Casa del Sabor*.
 
 
 ##################################################
+## v1.25
+
+## prompt ##
+
+Quiero que analices y refactorices el sistema FlowEngine para llevarlo a una arquitectura limpia tipo:
+
+MAPA (JSON) + MOTOR (Python)
+
+OBJETIVO:
+Separar completamente:
+- JSON = definición del flujo (qué pasa)
+- FlowEngine = ejecución del flujo (cómo pasa)
+
+ARCHIVO PRINCIPAL:
+- chatbot/app/core/flow_engine.py
+
+ARCHIVO DE FLUJO:
+- flows/restaurant_flow.json
+
+---
+
+REGLAS DE ARQUITECTURA FINAL:
+
+1. JSON (MAPA) DEBE CONTENER:
+- nodos
+- mensajes
+- message / message_after_action
+- transitions (outcome → next node)
+- options
+- global_commands (solo referencias)
+
+NO lógica Python dentro del JSON.
+
+---
+
+2. FLOWENGINE (MOTOR) SOLO DEBE HACER:
+- leer nodo actual
+- ejecutar action (Python function)
+- recibir outcome
+- resolver transición desde JSON
+- cambiar estado en StateManager
+- construir respuesta final
+
+---
+
+3. PROHIBIDO en FlowEngine:
+- lógica hardcodeada por step (ej: if step == "start")
+- UX especial por nodo
+- construcción de menú o secondary messages hardcodeados
+- retornos List[str]
+- decisiones de flujo fuera de transitions del JSON
+
+---
+
+4. UX DEBE SALIR SOLO DEL JSON:
+- message
+- message_secondary (si existe)
+- message_after_action
+
+El motor NO debe inventar contenido.
+
+---
+
+5. CASO CRÍTICO A ELIMINAR:
+Eliminar toda lógica especial de:
+- idle.start
+- step == "start"
+- dual_message hardcoded
+- menú embebido en Python
+
+Todo eso debe moverse o desaparecer.
+
+---
+
+6. TRANSICIONES:
+- siempre usar node["transitions"][outcome]
+- si outcome es null → quedarse en el mismo nodo
+- no resolver next_step fuera del JSON
+
+---
+
+7. OUTPUT DEL SISTEMA:
+Debe ser SIEMPRE un único string final.
+Prohibido retornar listas o múltiples mensajes separados.
+
+---
+
+ENTREGABLE:
+
+1. Refactor de FlowEngine simplificado (código completo o patch)
+2. Eliminación de lógica hardcode UX
+3. Eliminación de casos especiales por step
+4. Garantizar que idle.start ya no tenga lógica especial en Python
+5. Confirmación de que el sistema sigue funcionando igual
+
+---
+
+RESTRICCIÓN CRÍTICA:
+No cambiar la lógica de negocio de servicios (OrderService, MenuService, etc).
+No cambiar StateManager.
+No cambiar el formato general del JSON todavía.
+Solo refactor estructural.
+
+---
+
+META:
+Dejar el sistema en arquitectura limpia:
+
+JSON = mapa del flujo
+Python = motor de ejecución
+
+ANALIZA LAS CAPAS QUE INTERVIENEN PARA QUE TODO SE IMPLEMENTE DE FORMA CORRECTA
+
+IMPORTANTE: Crea una guia .md , por fases (pocas fases, máximo 4), y que en la guía esté cada prompt que debo poner en cada chat independiente, si es necesario que sean varios prompts por fase, está bien, que sean pocos, y que por fase haya al final una comprobación, la guia se llamará: migracion.md
+
+
+
+## resp cursor ##
+
+Análisis de capas
+Sistema hoy = 3 capas mezcladas en flow_engine.py:
+
+Capa	Dónde vive	Estado
+MAPA
+restaurant_flow.json
+OK: states, transitions, options, mensajes
+MOTOR
+_process_node, _resolve_transition, _actions
+Parcial: transitions JSON sí; composición mensaje aún especial
+UX/routing ad-hoc
+_process_message_body, _as_reply, handlers abandon/repeat
+Deuda principal
+Flujo real del mensaje:
+
+gateway → FlowEngine.process_message
+  → StateManager.get(step)
+  → handlers hardcode (abandon, repeat)
+  → options / global_commands / intent / action
+  → _process_node → compose reply
+Servicios (MenuService, OrderService, etc.) y StateManager ya están bien separados. Problema = motor inventa copy y ramas por step.
+
+Deuda crítica (motor vs JSON)
+_as_reply + dual_message + step == "start" — inyecta menú vía Python; debe quedar solo show_menu en menu_node.
+Reply = Union[str, List[str]] — viola regla de un solo str.
+~15 strings UX en abandon/repeat/cancel/greeting — deben ir a meta JSON.
+Sets hardcode {"start","menu_node"}, {"order_start","order_modify"} — deben ser flags en nodo/meta.
+_action_* — outcomes OK; mensajes estáticos de validación → JSON en Fase 3; dinámicos (carrito, totales) se quedan.
+Migración previa (v1.19–v1.23) ya resolvió transitions por outcome. Esta migración = separar UX y rendering del motor.
+
+Guía creada
+Archivo: migracion.md
+
+Fase	Objetivo	Chats
+1
+Motor puro: str único, composición genérica, sin menú en start
+1A
+2
+UX estática → meta JSON
+2A (+ 2B si quedan strings)
+3
+Routing declarativo, sin steps hardcode
+3A
+4
+Tests, validate_flow, docs, checklist manual
+4A
+Cada fase incluye prompt listo para copiar, comprobación automática y manual, más prompt rescate si algo falla.
+
+Próximo paso
+Abrir chat nuevo con Prompt 1A de migracion.md. Fase 1 no toca JSON ni servicios; solo limpia el motor.
+
+
+
+
+##########################################
 
 
 
