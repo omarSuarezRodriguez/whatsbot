@@ -64,7 +64,45 @@ def init_db() -> None:
 
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
+    _apply_schema_patches(engine)
     logger.info("Database tables ensured (%d tables).", len(Base.metadata.tables))
+
+
+def _apply_schema_patches(engine) -> None:
+    """Add columns missing on DBs created before model updates (no-op if present)."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    tables = set(inspector.get_table_names())
+    statements: list[str] = []
+
+    if "businesses" in tables:
+        cols = {col["name"] for col in inspector.get_columns("businesses")}
+        if "pin_hash" not in cols:
+            statements.append("ALTER TABLE businesses ADD COLUMN pin_hash VARCHAR(128)")
+
+    if "customers" in tables:
+        cols = {col["name"] for col in inspector.get_columns("customers")}
+        if "phone" not in cols:
+            statements.append("ALTER TABLE customers ADD COLUMN phone VARCHAR(32)")
+        if "notes" not in cols:
+            statements.append("ALTER TABLE customers ADD COLUMN notes TEXT")
+        if "blocked" not in cols:
+            statements.append(
+                "ALTER TABLE customers ADD COLUMN blocked BOOLEAN NOT NULL DEFAULT 0"
+            )
+        if "last_order_items" not in cols:
+            statements.append("ALTER TABLE customers ADD COLUMN last_order_items JSON")
+        if "updated_at" not in cols:
+            statements.append(
+                "ALTER TABLE customers ADD COLUMN updated_at DATETIME "
+                "NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            )
+
+    for sql in statements:
+        with engine.begin() as conn:
+            conn.execute(text(sql))
+        logger.info("Schema patch applied: %s", sql)
 
 
 def get_db() -> Generator[Session, None, None]:

@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "chatbot/app/core/flow_engine.py": {
-    "mtime": 1781140636.6511302,
-    "ast_hash": "dca630151c9458663a3d9ef22f949586",
+    "mtime": 1782203878.3446774,
+    "ast_hash": "b015690d3270448cb5c18200d2eab864",
     "semantic_hash": ""
   },
   "chatbot/app/core/parser.py": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "flows/restaurant_flow.json": {
-    "mtime": 1781049443.7612803,
-    "ast_hash": "e90adaeb6df638558dbccd9d9099e7e4",
+    "mtime": 1782202381.84056,
+    "ast_hash": "92090971b881e5c9aef472d319b73fcf",
     "semantic_hash": ""
   },
   "guardar.py": {
@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "infrastructure/database.py": {
-    "mtime": 1781140009.9107325,
-    "ast_hash": "55b606fdc9c4b0329564e138058c6c14",
+    "mtime": 1782204306.3536127,
+    "ast_hash": "0fc871be8f89f14d9222c5189b687953",
     "semantic_hash": ""
   },
   "infrastructure/twilio_client.py": {
@@ -465,8 +465,8 @@
     "semantic_hash": ""
   },
   "README_PROMPTS.md": {
-    "mtime": 1781557434.2840972,
-    "ast_hash": "7fff18bee7e19ebde14cb44edd557093",
+    "mtime": 1782204266.753035,
+    "ast_hash": "7f851ab65bdde2046e2855d3741fbf1c",
     "semantic_hash": ""
   },
   "arquitectura_del_sistema.md": {
@@ -480,13 +480,13 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log.txt": {
-    "mtime": 1781426688.17023,
-    "ast_hash": "0c4ec0a7cae503fd2c602e225a58b430",
+    "mtime": 1782204314.6473196,
+    "ast_hash": "46af97d9638d8538f5c6ff279958af78",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_35699155990.txt": {
-    "mtime": 1781426688.171623,
-    "ast_hash": "9ab40d203391ba9b142de7c501f59ec3",
+    "mtime": 1782202381.8385606,
+    "ast_hash": "93ef5ab2be4bb2d576fc582900f388f7",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573001234567.txt": {
@@ -495,13 +495,13 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573005556677.txt": {
-    "mtime": 1781050157.3273044,
-    "ast_hash": "023b9f9ccb8d16b2ec3b415e78e0aa89",
+    "mtime": 1782204311.3925228,
+    "ast_hash": "cdfdd9b98a1340ea603925f448e96c92",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573006665544.txt": {
-    "mtime": 1781049443.6510458,
-    "ast_hash": "d92e9539ff1f4125ce26468319f387cd",
+    "mtime": 1782204312.9472804,
+    "ast_hash": "f9b5ede82017a6c258ee41bb578c2b64",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573007778899.txt": {
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573009998877.txt": {
-    "mtime": 1781049443.6656845,
-    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "mtime": 1782204314.6473196,
+    "ast_hash": "ea3ec54e4e23eeeabec4ee4e043b99c2",
     "semantic_hash": ""
   },
   "client_messages_log/client_messages_log_573009999999.txt": {
@@ -552,6 +552,21 @@
   "requirements.txt": {
     "mtime": 1781143089.0652938,
     "ast_hash": "d77abe70c622f0661c749275208f2344",
+    "semantic_hash": ""
+  },
+  "scripts/validate_flow.py": {
+    "mtime": 1782203897.395835,
+    "ast_hash": "89dd831347f367c88344e4323e0d517c",
+    "semantic_hash": ""
+  },
+  "PROMPT_MIGRACION_FLUJO_ESTADOS.md": {
+    "mtime": 1782203101.1823227,
+    "ast_hash": "0bc5aab92985c67f40cee66917b01893",
+    "semantic_hash": ""
+  },
+  "tutoriales/cambiar-flujo-chatbot.md": {
+    "mtime": 1782203901.4630246,
+    "ast_hash": "78540d8afccfadf493c740c7a772449a",
     "semantic_hash": ""
   }
 }

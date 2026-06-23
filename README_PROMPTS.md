@@ -1,4 +1,4 @@
-## v1.18
+## v1.19
 
 
 
@@ -2443,4 +2443,60 @@ options + global_commands cubren navegación usuario; faltan transitions declara
 
 
 #############################################
+## v1.19
+
+
+## prompt cursor ##
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+
+Ejecuta ÚNICAMENTE la Fase 1. NO migres restaurant_flow.json aún.
+
+IMPLEMENTAR:
+
+1. chatbot/app/core/flow_engine.py
+   - _normalize_flow(raw): si JSON tiene "states", aplanar a self.nodes + metadata; si tiene "nodes" plano, igual que hoy.
+   - _parse_ref(ref, current_state) -> (state, step): "order.order_start" -> ("order","order_start"); "start" sin prefijo -> idle o estado actual.
+   - _resolve_transition(node, outcome) -> Optional[str]: lee node.transitions[outcome]; si no hay transitions, fallback al segundo return de la acción (legacy).
+   - Durante Fase 1 las acciones pueden seguir devolviendo next_step legacy; el resolver debe soportar ambos.
+
+2. scripts/validate_flow.py (nuevo, stdlib)
+   - Carga FLOWS_PATH.
+   - Valida: options y global_commands apuntan a nodo existente.
+   - Si hay transitions: destinos existen; outcomes cubren acciones del nodo.
+   - Exit 0/1 con lista de errores.
+
+3. tutoriales/cambiar-flujo-chatbot.md
+   - Añadir al final sección "Migración en curso (formato por estados)" con nota de dual-format y comando validate_flow.py.
+   - NO borrar aún la sección de transiciones en flow_engine.py.
+
+COMPROBACIÓN DE CIERRE (ejecutar y reportar PASS/FAIL cada ítem):
+
+- python scripts/validate_flow.py
+- python scripts/validate_chatbot.py
+- pytest tests/ -q --ignore=tests/test_realtime_ws.py
+- Smoke: hola + menu vía FlowEngine (script inline o test mínimo)
+- rg "_normalize_flow|_parse_ref|_resolve_transition" chatbot/app/core/flow_engine.py
+- graphify update .
+
+NO empezar Fase 2. Al final: tabla PASS/FAIL + archivos tocados.
+
+
+## resp cursor ##
+
+Fase 1 sí — como se esperaba.
+
+Lo pedido en Prompt 1 quedó bien:
+
+Loader dual (_normalize_flow, _parse_ref, _resolve_transition)
+validate_flow.py OK con JSON legacy actual
+Tutorial con nota de migración
+restaurant_flow.json sin tocar
+Smoke hola + menu OK
+validate_chatbot.py OK
+
+
+
+
+#################################
 

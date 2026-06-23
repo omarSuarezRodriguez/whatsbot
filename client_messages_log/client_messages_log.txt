@@ -2685,3 +2685,99 @@ Cliente: ñ4
 Chatbot: Responde *sí* para repetir tu pedido anterior o *no* para elegir otra opción.
 
 #################################################################
+################################################################
+
+Cliente: Mensaje para leer
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje dedup
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje dedup
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje para leer
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje dedup
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje dedup
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Platos*
+• Sopa Gateway BD — $5.00
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################

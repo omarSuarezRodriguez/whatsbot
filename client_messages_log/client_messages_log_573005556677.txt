@@ -58,3 +58,25 @@ Cliente: Mensaje para leer
 Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
 
 #################################################################
+################################################################
+
+Cliente: Mensaje para leer
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Mensaje para leer
+
+
+-------------------------------
+
+Chatbot: No logré entender eso del todo. Puedes reformularlo o usar uno de los comandos disponibles.
+
+#################################################################

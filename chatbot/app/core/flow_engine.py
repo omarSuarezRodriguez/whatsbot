@@ -50,9 +50,7 @@ class FlowEngine:
         self.admin_service = admin_service
         self.flow_path = flow_path or str(FLOWS_PATH)
         self.flow = self._load_flow()
-        self.nodes = self.flow.get("nodes", {})
-        self.meta = self.flow.get("meta", {})
-        self.global_commands = self.meta.get("global_commands", {})
+        self._apply_flow(self.flow)
 
         self._actions: Dict[str, Callable[..., Tuple[str, Optional[str]]]] = {
             "welcome_customer": self._action_welcome_customer,
@@ -74,13 +72,58 @@ class FlowEngine:
 
     def _load_flow(self) -> Dict[str, Any]:
         with open(self.flow_path, "r", encoding="utf-8") as handle:
-            return json.load(handle)
+            raw = json.load(handle)
+        return self._normalize_flow(raw)
+
+    def _apply_flow(self, flow: Dict[str, Any]) -> None:
+        self.flow = flow
+        self.nodes = flow.get("nodes", {})
+        self.meta = flow.get("meta", {})
+        self.global_commands = self.meta.get("global_commands", {})
 
     def reload_flow(self) -> None:
-        self.flow = self._load_flow()
-        self.nodes = self.flow.get("nodes", {})
-        self.meta = self.flow.get("meta", {})
-        self.global_commands = self.meta.get("global_commands", {})
+        self._apply_flow(self._load_flow())
+
+    @staticmethod
+    def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
+        if "states" not in raw:
+            return raw
+        meta = raw.get("meta", {})
+        nodes: Dict[str, Any] = {}
+        for state_name, state_def in raw.get("states", {}).items():
+            for step, node in state_def.get("nodes", {}).items():
+                flat = dict(node)
+                flat.setdefault("flow", state_name)
+                nodes[step] = flat
+        return {"meta": meta, "nodes": nodes}
+
+    def _parse_ref(self, ref: str, current_state: str = "idle") -> Tuple[str, str]:
+        if "." in ref:
+            state, step = ref.split(".", 1)
+            return state, step
+        node = self.nodes.get(ref, {})
+        state = node.get("flow") or current_state or "idle"
+        return state, ref
+
+    def _resolve_transition(
+        self,
+        node: Dict[str, Any],
+        outcome: Optional[str],
+    ) -> Optional[str]:
+        if not outcome:
+            return None
+        transitions = node.get("transitions")
+        if transitions:
+            if outcome in transitions:
+                dest = transitions[outcome]
+                if dest is None:
+                    return None
+                _, step = self._parse_ref(dest, node.get("flow", "idle"))
+                return step
+            if outcome in self.nodes:
+                return outcome
+            return None
+        return outcome
 
     def _render(self, template: str, extra: Optional[Dict[str, Any]] = None) -> str:
         # Use per-business prompts/name from contextvar when available
@@ -247,7 +290,8 @@ class FlowEngine:
         if node.get("input_mode") != "free_text":
             return None
 
-        message, next_step = self._actions[action_name](wa_id, text)
+        message, outcome = self._actions[action_name](wa_id, text)
+        next_step = self._resolve_transition(node, outcome)
         if next_step:
             next_node = self.nodes.get(next_step, {})
             self.state_manager.set_step(
@@ -436,12 +480,13 @@ class FlowEngine:
                 and action_name == input_action
             )
             if not waiting_for_input:
-                action_message, next_step = self._actions[action_name](
+                action_message, outcome = self._actions[action_name](
                     wa_id,
                     user_input,
                 )
                 if action_message:
                     parts.append(action_message)
+                next_step = self._resolve_transition(node, outcome)
 
         after_action = node.get("message_after_action")
         if after_action:

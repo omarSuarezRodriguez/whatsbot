@@ -155,3 +155,24 @@ reservation_start → reservation_date → reservation_time → reservation_revi
 ```
 
 Comandos globales en cualquier momento: `menu`, `pedido`, `reservar`, `inicio`, `cancelar`.
+
+---
+
+## Migración en curso (formato por estados)
+
+El motor acepta **dos formatos** de `restaurant_flow.json`:
+
+| Formato | Estructura |
+|---------|------------|
+| **Legacy (actual)** | `"nodes": { "start": { ... }, ... }` |
+| **Por estados (objetivo)** | `"states": { "idle": { "nodes": { ... } }, "order": { ... } }` |
+
+En runtime ambos se normalizan al mismo mapa plano de nodos. Las transiciones declarativas (`transitions` por outcome) se activarán al migrar el JSON en la Fase 2; hasta entonces los saltos siguen en `flow_engine.py` (`return "...", "order_review"`).
+
+**Validar el JSON antes de desplegar:**
+
+```bash
+python scripts/validate_flow.py
+```
+
+Comprueba que `options` y `global_commands` apuntan a nodos existentes y, si hay `transitions`, que los destinos y outcomes son coherentes.

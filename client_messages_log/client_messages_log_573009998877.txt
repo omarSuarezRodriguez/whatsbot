@@ -1,0 +1,30 @@
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Platos*
+• Sopa Gateway BD — $5.00
+
+
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
