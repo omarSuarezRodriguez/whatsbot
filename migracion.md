@@ -454,6 +454,60 @@ Manual obligatorio:
 | Input basura en `order_review` | Texto de `node.fallback` del nodo |
 | Input basura en `reservation_time` | Texto de `node.fallback` del nodo |
 
+### Prompt 2C — Fixes contractuales de cierre (chat nuevo — copiar tal cual)
+
+```
+Ejecuta ÚNICAMENTE los fixes contractuales de cierre de Fase 2 descritos en @migracion.md
+(sección "Fase 2 — Fixes contractuales de cierre").
+
+CONTEXTO: Fase 1 ✅. Fase 2 core ✅ (abandon/cancel/greeting en meta). Parche idle.start ✅.
+Pendiente: fallback por nodo, fix L402, ampliar validador.
+
+ARCHIVOS:
+- flows/restaurant_flow.json
+- chatbot/app/core/flow_engine.py
+- scripts/validate_flow.py
+
+IMPLEMENTAR:
+
+1. flow_engine.py — fix L402 (fallback genérico):
+   Reemplazar:
+     fallback = self._resolve_ux_text("fallback", node)
+   Por:
+     fallback = node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
+   No tocar ningún otro uso de _resolve_ux_text.
+
+2. restaurant_flow.json — añadir "fallback" a cada nodo de la tabla:
+   - start: NO añadir (su fallback viene de meta.start_fallback vía _resolve_ux_text en B1/B2)
+   - menu_node: "No entendí eso. Escribe *menu*, *pedido* o *reservar*."
+   - order_start: "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*."
+   - order_review: "Responde *sí* para confirmar o *no* para modificar tu pedido."
+   - order_modify: "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar."
+   - order_delivery: "Responde *1* o *domicilio*, o *2* o *recoger*."
+   - order_address: "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada."
+   - order_customer_name: "Escribe tu nombre (mínimo 2 caracteres)."
+   - reservation_start: "Indícame un número válido de personas (entre 1 y 30)."
+   - reservation_date: "Usa el formato *DD/MM/AAAA*, con una fecha igual o posterior a hoy."
+   - reservation_time: "Prueba con *19:30* o *7:30 pm*."
+   - reservation_review: "Responde *sí* para confirmar la reserva o *no* para modificarla."
+   Textos ajustables siempre que sean UX consistente con el flujo.
+
+3. scripts/validate_flow.py — ampliar PHASE2_META_KEYS:
+   Añadir al tuple existente: "start_fallback", "address_prompt", "address_prompt_saved"
+
+RESTRICCIONES:
+- No tocar StateManager ni services.
+- No tocar lógica de Fase 3 (start_seen, ramas B1/B2, routing por step, pedido_implicito).
+- No cambiar transitions, outcomes ni options existentes.
+- No nuevas dependencias.
+
+COMPROBACIÓN DE CIERRE (todo PASS antes de terminar):
+- python scripts/validate_flow.py → 0 errores
+- pytest tests/test_flow_transitions.py -q → sin regresiones
+- rg '_resolve_ux_text\("fallback"' chatbot/app/core/flow_engine.py → 0 matches
+- Manual: input basura en menu_node → node.fallback, no "Error interno..."
+```
+
 ---
 
 ## Fase 3 — Routing declarativo y adelgazar `_process_message_body`
