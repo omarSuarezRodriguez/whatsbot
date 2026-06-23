@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from app.config import FLOWS_PATH, NAV_HINT, RESTAURANT_NAME
 from app.core.state_manager import StateManager
@@ -27,8 +27,6 @@ from app.utils.validators import (
 )
 
 logger = logging.getLogger(__name__)
-
-Reply = Union[str, List[str]]
 
 
 class FlowEngine:
@@ -141,50 +139,23 @@ class FlowEngine:
         return rendered
 
     @staticmethod
-    def _join_reply(reply: Reply) -> str:
-        if isinstance(reply, list):
-            return "\n\n".join(
-                str(part).strip() for part in reply if part and str(part).strip()
-            ).strip()
-        return str(reply).strip() if reply else ""
+    def _join_reply(*parts: str) -> str:
+        return "\n\n".join(
+            str(part).strip() for part in parts if part and str(part).strip()
+        ).strip()
 
-    def _as_reply(
-        self,
-        message: Reply,
-        node: Optional[Dict[str, Any]] = None,
-        step: str = "",
-    ) -> str:
-        text = self._join_reply(message)
-        if not node or not node.get("dual_message"):
-            return text
-
-        parts = [text] if text else []
-        if step == "start":
-            menu_text = self.menu_service.format_menu()
-            if menu_text:
-                parts.append(menu_text)
-        secondary = node.get("message_secondary")
-        if secondary:
-            parts.append(self._render(secondary))
-        return self._join_reply(parts)
-
-    def _append_navigation(self, message: Reply, node: Dict[str, Any]) -> Reply:
+    def _append_navigation(self, message: str, node: Dict[str, Any]) -> str:
         if not self.meta.get("navigation_hint", True):
             return message
         if node.get("suppress_navigation"):
             return message
-        hint = NAV_HINT
-        if isinstance(message, list):
-            if message:
-                message[-1] = f"{message[-1]}{hint}"
-            return message
-        return f"{message}{hint}"
+        return f"{message}{NAV_HINT}"
 
     def _has_active_order(self, state: Dict[str, Any]) -> bool:
         cart = state.get("data", {}).get("cart", [])
         return bool(cart) and state.get("flow") == "order"
 
-    def _handle_abandon_confirm(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[Reply]:
+    def _handle_abandon_confirm(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[str]:
         if not state.get("data", {}).get("awaiting_abandon_confirm"):
             return None
         if is_confirmation(text):
@@ -196,7 +167,7 @@ class FlowEngine:
             return "Perfecto, continuamos con tu pedido actual."
         return "Responde *sí* para volver al inicio o *no* para continuar tu pedido."
 
-    def _handle_repeat_order(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[Reply]:
+    def _handle_repeat_order(self, wa_id: str, text: str, state: Dict[str, Any]) -> Optional[str]:
         if not state.get("data", {}).get("awaiting_repeat_order"):
             return None
         current_flow = state.get("flow", "idle")
@@ -229,7 +200,7 @@ class FlowEngine:
         command: str,
         current_step: str,
         state: Optional[Dict[str, Any]] = None,
-    ) -> Optional[Reply]:
+    ) -> Optional[str]:
         target = self.global_commands.get(command)
         if not target:
             return None
@@ -260,7 +231,7 @@ class FlowEngine:
                 "Proceso cancelado. Estoy aquí cuando quieras continuar.",
             )
             start_message = self._process_node(wa_id, target_step, include_navigation=False)
-            combined = self._join_reply([cancel_message, start_message])
+            combined = self._join_reply(cancel_message, start_message)
             return self._append_navigation(combined, self.nodes.get(target_step, {}))
 
         if command == "inicio":
@@ -292,7 +263,7 @@ class FlowEngine:
         node: Dict[str, Any],
         current_step: str,
         state: Dict[str, Any],
-    ) -> Optional[Reply]:
+    ) -> Optional[str]:
         action_name = node.get("action_on_input") or node.get("action")
         if not action_name or action_name not in self._actions:
             return None
@@ -314,13 +285,13 @@ class FlowEngine:
                     next_step,
                     include_navigation=False,
                 )
-                combined = self._join_reply(
-                    [message, follow_up] if message else follow_up
+                combined = (
+                    self._join_reply(message, follow_up) if message else follow_up
                 )
                 return self._append_navigation(combined, next_node)
         return self._append_navigation(message, node)
 
-    def process_message(self, wa_id: str, body: str, *, _inner: bool = False) -> Reply:
+    def process_message(self, wa_id: str, body: str, *, _inner: bool = False) -> str:
         text = (body or "").strip()
         if not text:
             text = "hola"
@@ -352,7 +323,7 @@ class FlowEngine:
         log_meta: Dict[str, Any],
         *,
         _inner: bool,
-    ) -> Reply:
+    ) -> str:
         abandon = self._handle_abandon_confirm(wa_id, text, state)
         if abandon is not None:
             return abandon
@@ -468,7 +439,7 @@ class FlowEngine:
         step: str,
         include_navigation: bool = False,
         user_input: str = "",
-    ) -> Reply:
+    ) -> str:
         _, idle_start = self._parse_ref("idle.start", "idle")
         node = self.nodes.get(step, self.nodes.get(idle_start, {}))
         self.state_manager.set_step(wa_id, step, node.get("flow", "idle"))
@@ -502,6 +473,11 @@ class FlowEngine:
         if after_action:
             parts.append(self._render(after_action, extra))
 
+        if node.get("dual_message"):
+            secondary = node.get("message_secondary")
+            if secondary:
+                parts.append(self._render(secondary, extra))
+
         response = "\n\n".join(part for part in parts if part).strip()
 
         if next_step and next_step != step:
@@ -517,14 +493,14 @@ class FlowEngine:
                 include_navigation=False,
             )
             if follow_up:
-                response = self._join_reply(
-                    [response, follow_up] if response else follow_up
+                response = (
+                    self._join_reply(response, follow_up) if response else follow_up
                 )
 
         if include_navigation:
             response = self._append_navigation(response, node)
 
-        return self._as_reply(response, node, step=step)
+        return response
 
     def _build_node_context(self, wa_id: str, step: str) -> Dict[str, str]:
         try:

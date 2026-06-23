@@ -86,6 +86,25 @@ def _text(reply) -> str:
     return str(reply)
 
 
+def test_idle_start_no_menu_catalog(engine):
+    wa_id = "573009998875"
+    reply = engine.process_message(wa_id, "hola")
+
+    assert isinstance(reply, str)
+    assert "pizza hawaiana" not in reply.lower()
+    assert "hamburguesa" not in reply.lower()
+    assert "¿Qué te gustaría hacer hoy?" in reply
+
+
+def test_menu_shows_catalog(engine):
+    wa_id = "573009998874"
+    reply = engine.process_message(wa_id, "menu")
+
+    assert isinstance(reply, str)
+    assert "pizza" in reply.lower()
+    assert _step(engine, wa_id) == "menu_node"
+
+
 def test_idle_start_returns_single_string(engine):
     wa_id = "573009998877"
     reply = engine.process_message(wa_id, "hola")

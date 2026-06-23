@@ -1,4 +1,4 @@
-## v1.25
+## v1.26
 
 
 
@@ -3033,7 +3033,86 @@ Abrir chat nuevo con Prompt 1A de migracion.md. Fase 1 no toca JSON ni servicios
 
 
 ##########################################
+## v1.26
 
+
+## prompt ##
+
+Ejecuta ÚNICAMENTE Fase 1 de @migracion.md (Motor puro).
+
+ARCHIVOS:
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py (añadir/ajustar si hace falta)
+
+IMPLEMENTAR:
+
+1. Eliminar tipo Reply / List[str] en flow_engine.py:
+   - process_message y métodos internos retornan siempre str.
+   - _join_reply puede quedarse como helper interno; no exportar listas.
+
+2. Eliminar _as_reply() o reducirla a composición declarativa SIN:
+   - if step == "start"
+   - menu_service.format_menu() fuera de _action_show_menu
+   - ramas por nombre de nodo
+
+3. Pipeline único en _process_node (orden fijo):
+   - message (render templates)
+   - resultado de action (si hay y no es input pendiente)
+   - message_after_action
+   - message_secondary (solo si node.dual_message es true; cualquier nodo, no solo start)
+   Unir con "\n\n". Un solo str final.
+
+4. idle.start:
+   - NO inyectar menú desde Python.
+   - Salida = welcome_line + message_secondary del JSON (como está en restaurant_flow.json).
+   - dual_message sigue siendo flag JSON, no lógica especial por step.
+
+RESTRICCIONES:
+- No cambiar StateManager ni services.
+- No cambiar restaurant_flow.json en esta fase.
+- No mover textos de abandon/repeat aún (Fase 2).
+
+COMPROBACIÓN DE CIERRE (tabla PASS/FAIL):
+- pytest tests/test_flow_transitions.py -q
+- python -c "from chatbot.runtime import get_bot_context; e=get_bot_context(start_background=False).flow_engine; r=e.process_message('573009998877','hola'); assert isinstance(r,str); assert 'Bienvenido' in r or 'bienvenido' in r.lower()"
+- rg 'step == "start"|List\[str\]|Reply = Union' chatbot/app/core/flow_engine.py  → 0 matches
+- rg 'format_menu' chatbot/app/core/flow_engine.py  → solo en _action_show_menu
+- Confirmar: hola NO incluye bloque de menú completo (solo bienvenida + CTA JSON); menu sí muestra menú vía show_menu
+
+NO empezar Fase 2.
+
+
+## resp cursor ##
+
+Fase 1 hecha. Motor devuelve solo str.
+
+Cambios en flow_engine.py
+Reply / List[str] eliminados — process_message y métodos internos retornan str.
+_as_reply() eliminada — sin step == "start", sin inyectar menú desde Python.
+Pipeline único en _process_node (orden fijo):
+message → action (si no hay input pendiente) → message_after_action → message_secondary (si dual_message)
+unión con \n\n
+idle.start — bienvenida + CTA del JSON; menú solo vía show_menu en menu_node.
+Tests añadidos
+test_idle_start_no_menu_catalog — hola sin catálogo de productos
+test_menu_shows_catalog — menu sí muestra menú
+Comprobación de cierre
+Prueba	Resultado
+pytest tests/test_flow_transitions.py -q
+PASS (9/9)
+smoke hola → str + Bienvenido
+PASS
+rg 'step == "start"|List\[str\]|Reply = Union'
+PASS (0 matches)
+rg 'format_menu'
+PASS (solo _action_show_menu)
+hola sin menú completo; menu con catálogo
+PASS (en tests con mock)
+Fase 2 no tocada.
+
+
+
+############################################
 
 
 
