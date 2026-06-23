@@ -53,7 +53,9 @@
           "self_loop_behavior": "fallback",
           "suppress_repeat_message": true,
           "fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.",
-          "message": "Hola 👋 Bienvenido a nuestro restaurante 🍔?",
+          "message": "{{welcome_line}}",
+          "message": "{{welcome_line}}",
+          "message_secondary": "¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
           "options": {
             "menu": "menu_node",
             "pedido": "order_start",

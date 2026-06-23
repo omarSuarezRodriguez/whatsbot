@@ -1,4 +1,4 @@
-## v1.38 - fin de migracion.md (se dejó json para mapa y python para motor)
+## v1.39
 
 
 
@@ -4397,7 +4397,136 @@ Fase 4 cerrada. 21 tests PASS, validadores OK.
 
 
 ########################################################
+## v1.39
 
 
+## prompt ##
+
+@flows/restaurant_flow.json @chatbot/app/core/flow_engine.py 
+
+No edites código, solo revisa estos dos archivos, y dime cómo podría implementar line by line el cambio, osea muestrame pero no lo hagas, yo lo haré
+
+
+## resp cursor ##
+
+Estado actual
+Ya empezaste cambio en JSON (diff git):
+
+Antes	Ahora
+message: {{welcome_line}}
+mensaje fijo con emojis
+message_secondary: menú de opciones
+eliminado
+dual_message: true
+sigue (inconsistente)
+Motor (flow_engine.py) no requiere cambio para mensaje estático — solo compone lo que dice JSON. Pero JSON quedó a medias.
+
+Parte 1 — restaurant_flow.json (línea por línea)
+Línea 52 — dual_message
+"dual_message": true,
+Opción A (mensaje único, recomendado): borrar línea entera.
+Sin message_secondary, flag no hace nada → validate_flow.py avisa.
+
+Opción B: dejar dual_message y restaurar message_secondary (vuelves al diseño viejo de dos bloques).
+
+Línea 56 — message
+Ya tienes:
+
+"message": "Hola 👋 Bienvenido a nuestro restaurante 🍔?",
+Tres variantes según objetivo:
+
+1) Genérico (lo que tienes): dejar así.
+
+2) Nombre del restaurante — usa plantilla que motor ya renderiza:
+
+"message": "Hola 👋 Bienvenido a *{{restaurant_name}}* 🍔\n\n¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
+3) Personalizado con nombre de cliente — usa {{welcome_line}} (motor lo arma en _build_node_context ~L499–517 desde meta.welcome_with_name / welcome_without_name):
+
+"message": "{{welcome_line}}\n\n¿Qué te gustaría hacer hoy?\n\n1. *menu* — Ver el menú\n2. *pedido* — Hacer tu pedido\n3. *reservar* — Reservar mesa",
+Un solo message, sin dual_message, sin message_secondary → un str en WhatsApp. Es el patrón que describe README Fase 3.
+
+Líneas que NO tocar (salvo que quieras otro comportamiento)
+Línea	Campo	Por qué
+49
+welcome_customer
+Acción vacía; mensaje sale de message
+50–51
+intercept_products, suppress_navigation
+Productos en saludo → pedido; sin hint navegación
+53–54
+self_loop_behavior, suppress_repeat_message
+2º hola → fallback, no re-bienvenida
+55
+fallback
+Texto si input no reconocido en start
+57–64
+options
+Routing menu/pedido/reservar/hola
+Parte 2 — flow_engine.py (qué hace hoy, qué podrías tocar)
+Sin cambio obligatorio
+idle.start ya funciona así:
+
+_goto_ref → _process_node("start") (~L436)
+Lee message, pasa por _render() con contexto de _build_node_context (~L447–451)
+Ejecuta welcome_customer → "" (~L519–520)
+_compose_message (~L327–340): si dual_message + message_secondary, añade segundo bloque
+suppress_repeat_message marca paso mostrado (~L494–495)
+Con mensaje estático y sin dual_message, pasos 4 no añaden nada extra.
+
+Segundo hola en start: _should_self_loop_fallback (~L199–218) + options.hola → start (~L379–382) → fallback, no _process_node. Motor ya cubre eso.
+
+Cambios opcionales en motor (solo si quieres limpiar)
+A) Nada — si JSON queda coherente, motor sigue igual.
+
+B) Limpieza dual_message — solo si ningún flow lo usa:
+
+# L336-339 en _compose_message — borrar bloque:
+        if node.get("dual_message"):
+            secondary = node.get("message_secondary")
+            if secondary:
+                parts.append(self._render(secondary, extra))
+Y quitar "dual_message" de KNOWN_NODE_FLAGS en scripts/validate_flow.py (~L82). No hagas esto si otros flows pueden usar el flag.
+
+C) welcome_line muerto — si message ya no usa {{welcome_line}}:
+
+_build_node_context (~L502–506) sigue calculando welcome_line sin costo real
+Borrarlo solo si confirmas que ningún nodo usa {{welcome_line}}
+D) welcome_customer — acción vacía. Podrías quitar "action": "welcome_customer" del JSON (línea 49) en vez de tocar Python. Equivalente.
+
+Receta mínima recomendada (tú la aplicas)
+Solo JSON, 3 edits:
+
+L52  → borrar "dual_message": true,
+L56  → unificar welcome + CTA en un solo "message" (opción 2 o 3 arriba)
+L49  → (opcional) borrar "action": "welcome_customer",
+flow_engine.py: no tocar.
+
+Cómo verificar
+python scripts/validate_flow.py
+pytest tests/test_flow_transitions.py -q -k "idle_start"
+Manual:
+
+Input	step	Esperado
+1er hola
+start
+Un solo mensaje (welcome + CTA si lo pusiste)
+2º hola
+start
+Fallback, sin re-bienvenida
+menu
+menu_node
+Menú vía show_menu, no en start
+2 pizzas en start
+order
+intercept_products → flujo pedido
+Resumen
+Cambio real es JSON: pasar de dos bloques (message + message_secondary) a un message.
+Motor ya compone un str; tu diff dejó dual_message: true huérfano — quítalo o restaura message_secondary.
+Para personalización: {{welcome_line}} o {{restaurant_name}} en el mismo message, no en motor.
+Si quieres guía solo para variante concreta (genérico vs welcome_line vs restaurant_name), dime cuál.
+
+
+
+###########################################################
 
 

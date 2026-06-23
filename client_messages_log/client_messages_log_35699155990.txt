@@ -2435,3 +2435,347 @@ Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
 Escribe *inicio* para volver al inicio
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola *Omar Suarez*, Bienvenido a *La Casa del Sabor*.
+
+¿Qué te gustaría hacer hoy?
+
+1. *menu* — Ver el menú
+2. *pedido* — Hacer tu pedido
+3. *reservar* — Reservar mesa
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola! bienvenido, que tal todo?
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: quinientas hamburguesas de carne
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Hamburguesa de Carne x1.
+
+• 1 x Hamburguesa de Carne — $12.00
+
+*Total: $12.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: Hola! bienvenido, que tal todo?
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: 500 hamburguesas de carne
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Hamburguesa de Carne x500.
+
+• 500 x Hamburguesa de Carne — $6000.00
+
+*Total: $6000.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: Hola! bienvenido, que tal todo?
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: siete hamburguesas de carne
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Hamburguesa de Carne x7.
+
+• 7 x Hamburguesa de Carne — $84.00
+
+*Total: $84.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Responde *sí* para volver al inicio o *no* para continuar tu pedido.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Perfecto, continuamos con tu pedido actual.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a nuestro restaurante 🍔?
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
+################################################################
+
+Cliente: buenas
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
