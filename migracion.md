@@ -11,8 +11,8 @@ Guía por fases para refactor estructural. Cada fase = chat(s) independiente(s).
 | Fase / bloque | Estado | Resumen verificado en código |
 |---------------|--------|------------------------------|
 | **Fase 1** — Motor puro | ✅ **IMPLEMENTADA** | `process_message` siempre `str`; composición genérica en `_process_node`; menú solo vía `_action_show_menu`; `hola` en idle = bienvenida + CTA JSON sin catálogo |
-| **Fase 2** — UX estática al JSON | ✅ **IMPLEMENTADA** | `_resolve_ux_text`; claves meta abandon + greeting en JSON; cero UX hardcode en handlers Fase 2 |
-| **Parche crítico** — idle.start estable | ✅ **APLICADO (fuera de fases)** | `start_seen` + `_START_IDLE_FALLBACK` + ramas B1/B2/B3 en `flow_engine.py`; **no** cuenta como fase completada |
+| **Fase 2** — UX estática al JSON | ⚠️ **PARCIAL** | `_resolve_ux_text`; claves meta abandon + greeting en JSON; cero UX hardcode en handlers Fase 2; pendiente: `node.fallback` por nodo + fix L402 + ampliar validador (ver fixes contractuales) |
+| **Parche crítico** — idle.start estable | ✅ **APLICADO (fuera de fases)** | `start_seen` + `meta.start_fallback` (texto en JSON) + ramas B1/B2/B3 en `flow_engine.py`; **no** cuenta como fase completada |
 | **Fase 3** — Routing declarativo | ❌ **PENDIENTE REAL** | Steps hardcode (`start`, `menu_node`, `order_start`, `order_modify`); parche idle.start aún en Python |
 | **Fase 4** — Cierre y docs | ❌ **PENDIENTE** | `validate_flow.py` sin claves meta Fase 2/3; tutorial sin sección arquitectura motor |
 
@@ -26,12 +26,12 @@ Aplicado directo en `flow_engine.py` (independiente de Fase 2/3). Objetivo: `idl
 
 | Símbolo | Ubicación | Rol |
 |---------|-----------|-----|
-| `_START_IDLE_FALLBACK` | L31–34 | Texto fallback B1/B2 (sin `NAV_HINT`) |
+| `meta.start_fallback` | JSON L18 | Texto fallback B1/B2 (sin `NAV_HINT`); leído vía `_resolve_ux_text("start_fallback", node)` |
 | `start_seen` en `data` | `_process_node` L475–476 | `True` tras primer render exitoso de `start`; `reset()` borra `data` |
 | `_action_welcome_customer` | L504–505 | No-op (`"", None`); no lee `last_order_items` |
 | `welcome_customer` | JSON + `_actions` | Permanece por compatibilidad; sin lógica de repetición |
 
-**Texto exacto `_START_IDLE_FALLBACK`:**
+**Texto exacto (`meta.start_fallback` en JSON):**
 
 > Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
 
@@ -82,7 +82,7 @@ Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`
 | Greeting durante pedido | `_process_message_body` (`order_start` / `order_modify`) | ✅ Fase 2 | `meta.order_greeting_while_ordering` vía `_resolve_ux_text` |
 | `pedido_implicito` con steps fijos | `_process_message_body` | ❌ Fase 3 | `intercept_products` (o similar) en nodos idle |
 | Salto hardcode `idle.start` en greeting idle | `_process_message_body` | ❌ Fase 3 | `options` JSON + helper `_goto_ref` |
-| Parche `start_seen` + `_START_IDLE_FALLBACK` | L31–34, L336–340, L399–400, L475–476 | ❌ **Deuda Fase 3** | Declaratizar: `node.fallback` + flag self-loop en JSON |
+| Parche `start_seen` + texto `meta.start_fallback` | L336–340, L399–400, L475–476 (routing); texto ya en JSON | ❌ **Deuda Fase 3** | Declaratizar routing: `node.fallback` + flag self-loop en JSON |
 | `step == "start"` para `start_seen` | `_process_node` L475 | ❌ **Deuda Fase 3** | Sin nombre de step hardcode en Python |
 | Mensajes estáticos en `_action_*` | varios `_action_*` | ❌ Fase 3–4 | Estáticos → JSON; dinámicos (carrito, totales, errores con datos) quedan en action |
 | `cancel_message` | `_resolve_global_command` | ✅ Fase 2 | Lee `meta.cancel_message` vía `_resolve_ux_text` |
@@ -96,12 +96,12 @@ process_message(text) → str
   → _handle_abandon_confirm          # solo meta + is_confirmation/is_rejection (Fase 2)
   → action_on_input (si aplica)
   → global_commands                  # inicio+carrito: meta.abandon_confirm_prompt (Fase 2)
-  → options[normalized]              # B2: self-loop start + start_seen → _START_IDLE_FALLBACK
+  → options[normalized]              # B2: self-loop start + start_seen → meta.start_fallback
   → greeting idle → _parse_ref idle.start   # B3: skip si ya en start
   → intent (parser) + pedido_implicito      # current_step in {start, menu_node} hardcode
   → free_text action
   → greeting order_start/order_modify       # meta.order_greeting_while_ordering (Fase 2)
-  → B1: start + start_seen → _START_IDLE_FALLBACK
+  → B1: start + start_seen → meta.start_fallback
   → fallback del nodo
   → compose en _process_node: message + action + message_after_action + message_secondary
   → start_seen=True si step==start y response (parche)
@@ -207,7 +207,7 @@ NO empezar Fase 2.
 
 ## Fase 2 — UX estática al JSON (meta)
 
-**Estado:** ✅ **IMPLEMENTADA** — completa cuando **NO** existe string UX visible al usuario en `flow_engine.py` (salvo `_action_*` dinámicos, `NAV_HINT`, parche `_START_IDLE_FALLBACK` de Fase 3).
+**Estado:** ⚠️ **PARCIAL** — cerrada cuando **NO** existe string UX visible al usuario en `flow_engine.py` (salvo `_action_*` dinámicos, `NAV_HINT`, routing `start_seen`/B1–B2 de Fase 3) **y** los fixes contractuales de fallback están aplicados (ver sección al final de Fase 2).
 
 **Meta:** Motor cero copy estático de usuario. Todo texto UX viene del JSON (`meta` o `node.fallback`). Python solo decide **qué clave leer** y **cuándo**; nunca redacta mensajes de negocio.
 
@@ -286,7 +286,7 @@ Validadas por `scripts/validate_flow.py` (`PHASE2_META_KEYS`).
 
 ### Fuera de alcance Fase 2 (Fase 3)
 
-- `_START_IDLE_FALLBACK` y parche `start_seen` / B1–B3
+- Routing `start_seen` + ramas B1–B3 en Python (texto `meta.start_fallback` ya en JSON)
 - `pedido_implicito`, greeting idle → `idle.start`
 - Mensajes dinámicos en `_action_*`
 
@@ -298,7 +298,7 @@ Ejecuta ÚNICAMENTE Fase 2 de @migracion.md (UX en JSON).
 CONTEXTO: Fase 1 hecha. Parche crítico idle.start aplicado. repeat-order NO existe.
 
 OBJETIVO: Fase 2 100% determinista — cero string UX visible en flow_engine.py
-(salvo _action_* dinámicos, NAV_HINT, _START_IDLE_FALLBACK de Fase 3).
+(salvo _action_* dinámicos, NAV_HINT, routing start_seen/B1-B2 de Fase 3).
 
 ARCHIVOS:
 - flows/restaurant_flow.json
@@ -341,7 +341,7 @@ COMPROBACIÓN DE CIERRE (Fase 2 completa ⇔ todo PASS):
 
 ```
 Continúo Fase 2 @migracion.md. Busca strings UX restantes en flow_engine.py
-(fuera de _action_* dinámicos, NAV_HINT, _START_IDLE_FALLBACK).
+(fuera de _action_* dinámicos, NAV_HINT, routing start_seen/B1-B2).
 Muévelos a meta o node.fallback. Tabla strings movidos. Misma comprobación de cierre.
 ```
 
@@ -356,6 +356,103 @@ Muévelos a meta o node.fallback. Tabla strings movidos. Misma comprobación de 
 | `hola` con `last_order_items` | Bienvenida normal, sin “repetir” | ✅ |
 | `hola` durante `order_start` | `meta.order_greeting_while_ordering` | ✅ |
 | `cancelar` mid-order | `meta.cancel_message` + start | ✅ |
+| Input basura en `menu_node` | `node.fallback` del nodo (no `"Error interno..."`) | ❌ Pendiente |
+
+---
+
+### Fase 2 — Fixes contractuales de cierre (obligatorio)
+
+> Este bloque es parte del contrato de Fase 2. No es Fase 3 ni parche externo.
+> Fase 2 queda **cerrada** cuando todos los ítems a continuación estén ✅.
+
+#### Regla única de fallback
+
+- `node.fallback` es la **única** fuente oficial de fallback por nodo.
+- `meta.fallback` **no existe** y nunca se usa como fallback genérico.
+- Prohibido: `self.meta.get("fallback", "texto…")` o cualquier default de string UX en Python para el path de fallback.
+
+#### Regla de cobertura de nodos
+
+Todo nodo del JSON **debe** definir `fallback`, **excepto** nodos action-only determinísticos (nodos que siempre transicionan vía `outcome` y nunca pueden recibir input no enrutado — e.g. `order_saved`, `reservation_saved`).
+
+Nodos que requieren `fallback` obligatorio:
+
+| Nodo | Motivo |
+|------|--------|
+| `start` | Recibe input libre (cubierto por `meta.start_fallback` vía `_resolve_ux_text`) |
+| `menu_node` | Sin `input_mode: free_text`; input no reconocido llega a L402 |
+| `order_start` | `free_text` pero puede recibir input sin productos |
+| `order_review` | Input no confirmación/rechazo llega a fallback |
+| `order_modify` | Igual que `order_start` |
+| `order_delivery` | Input no reconocido por `parse_delivery_type` |
+| `order_address` | Input vacío o inválido |
+| `order_customer_name` | Input < 2 chars llega al action, no al fallback; definir por cobertura |
+| `reservation_start` | Input inválido para `parse_persons` |
+| `reservation_date` | Input inválido para `parse_date` |
+| `reservation_time` | Input inválido para `parse_time` |
+| `reservation_review` | Input no confirmación/rechazo |
+
+#### Contrato de implementación en `flow_engine.py`
+
+Única forma válida de resolver fallback genérico (actualmente L402):
+
+```python
+fallback = node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
+return self._append_navigation(fallback, node)
+```
+
+**Prohibido** en el path de fallback genérico:
+- `self._resolve_ux_text("fallback", node)` con clave `"fallback"` inexistente en meta.
+- Cualquier string UX literal en Python como default.
+
+> **Nota:** `_resolve_ux_text` sigue siendo el mecanismo correcto para claves meta explícitas (abandon, greeting, cancel, welcome, address). El fallback genérico de nodo es la excepción: su fuente es `node.fallback`, no meta.
+
+#### Validación — ampliar `PHASE2_META_KEYS`
+
+En `scripts/validate_flow.py`, `PHASE2_META_KEYS` debe incluir:
+
+```python
+PHASE2_META_KEYS = (
+    "cancel_message",
+    "abandon_confirm_prompt",
+    "abandon_confirm_continue",
+    "abandon_confirm_invalid",
+    "order_greeting_while_ordering",
+    "welcome_with_name",
+    "welcome_without_name",
+    "start_fallback",        # añadir
+    "address_prompt",        # añadir
+    "address_prompt_saved",  # añadir
+)
+```
+
+Opcional (warning, no error): nodo sin `input_mode: free_text` y sin `fallback` definido.
+
+#### Correcciones de coherencia del sistema
+
+| Ítem | Acción | Archivo |
+|------|--------|---------|
+| L14: "Fase 2 IMPLEMENTADA" | Cambiar a **parcial** hasta cierre contractual de fallbacks | `migracion.md` |
+| L92: pipeline dice "Fase 2 ⚠️ parcial" | Queda correcta; actualizar a ✅ al completar este bloque | `migracion.md` |
+| L29–36 y L99–109: referencia a `_START_IDLE_FALLBACK` | Reemplazar por `meta.start_fallback`; la constante no existe en código actual | `migracion.md` |
+| L366: referencia a `_START_IDLE_FALLBACK` en Fase 3 | Reemplazar por `meta.start_fallback` + parche `start_seen` | `migracion.md` |
+
+> **Separación Fase 2 / Fase 3:** El **texto** de `start_fallback` ya está en `meta.start_fallback` (JSON). Lo que queda para Fase 3 es declaratizar el **routing** (`start_seen`, ramas B1/B2, `step == "start"` hardcode en Python). No son deuda de Fase 2.
+
+#### Comprobación de cierre contractual
+
+```bash
+python scripts/validate_flow.py          # 0 errores, incluye claves nuevas
+pytest tests/test_flow_transitions.py -q # sin regresiones
+```
+
+Manual obligatorio:
+
+| Prueba | Esperado |
+|--------|----------|
+| Input basura en `menu_node` | Texto de `node.fallback` del nodo, no `"Error interno..."` |
+| Input basura en `order_review` | Texto de `node.fallback` del nodo |
+| Input basura en `reservation_time` | Texto de `node.fallback` del nodo |
 
 ---
 
@@ -363,7 +460,7 @@ Muévelos a meta o node.fallback. Tabla strings movidos. Misma comprobación de 
 
 **Estado:** ❌ **PENDIENTE REAL** — no iniciada en código.
 
-**Meta:** Decisiones de flujo solo vía JSON (`options`, `transitions`, `global_commands`, flags de nodo). Motor sin listas de steps hardcode ni parche `start_seen` / `_START_IDLE_FALLBACK` en Python.
+**Meta:** Decisiones de flujo solo vía JSON (`options`, `transitions`, `global_commands`, flags de nodo). Motor sin listas de steps hardcode ni routing `start_seen` / B1–B2 en Python (texto `meta.start_fallback` ya en JSON desde Fase 2).
 
 **Sigue en Python hoy:** `pedido_implicito`, greeting idle → `idle.start`, parche B1/B2/B3, `step == "start"` para `start_seen`. Greeting order ya en meta (Fase 2 ✅).
 
@@ -388,7 +485,7 @@ IMPLEMENTAR:
    - Campo JSON (ej. order_greeting_on_greeting: true) o meta.order_greeting_while_ordering
    - Mover string hardcode a meta JSON (cierra deuda Fase 2 parcial si aplica)
 3. idle.start parche → JSON
-   - Quitar _START_IDLE_FALLBACK constante y ramas start_seen / current_step=="start" en _process_message_body
+   - Quitar ramas start_seen / current_step=="start" en _process_message_body (constante `_START_IDLE_FALLBACK` ya eliminada; texto vive en `meta.start_fallback`)
    - Quitar patch start_seen en _process_node
    - Solución declarativa mínima, ejemplos:
      - node.fallback en nodo start con texto actual de B1

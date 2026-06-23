@@ -1,4 +1,4 @@
-## v1.31
+## v1.32
 
 
 
@@ -3802,6 +3802,91 @@ node.get("fallback") solo queda dentro de _resolve_ux_text (L164) — punto úni
 
 
 #########################
+## v1.32
+
+
+## prompt ##
+
+En base a la propuesta de “Cerrar Fase 2 — propuesta mínima” y las recomendaciones asociadas, integra estos fixes como el ÚLTIMO inciso oficial dentro de la sección Fase 2 del archivo migracion.md.
+
+Este inciso debe quedar como parte del contrato de la fase (no como Fase 3 ni parche externo), bajo un bloque titulado:
+
+### Fase 2 — Fixes contractuales de cierre (obligatorio)
+
+Incluir explícitamente:
+
+- Regla única de fallback:
+  node.fallback es la única fuente oficial de fallback.
+  meta.fallback NO existe ni se usa como fallback genérico.
+
+- Regla de cobertura de nodos:
+  Todo nodo debe definir fallback, excepto nodos action-only determinísticos.
+
+- Contrato de implementación en flow_engine.py:
+  node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK) es la única forma válida de resolver fallback.
+
+- Validación:
+  Ampliar PHASE2_META_KEYS en validate_flow.py incluyendo:
+  start_fallback
+  address_prompt
+  address_prompt_saved
+  fallback
+
+- Correcciones de coherencia del sistema:
+  - L14 de migracion.md debe indicar Fase 2 parcial hasta cierre contractual de fallbacks.
+  - Unificar L92 con el pipeline real actual del motor.
+  - Reemplazar referencia a _START_IDLE_FALLBACK por meta.start_fallback como estándar de texto.
+
+RESTRICCIONES IMPORTANTES:
+- No modificar lógica de Fase 3 (start_seen, B1/B2, routing por step, intent logic).
+- No modificar StateManager ni servicios.
+- Mantener compatibilidad total con tests actuales.
+- Ajustes en validate_flow.py solo si son necesarios para reflejar contrato.
+
+OBJETIVO:
+Dejar Fase 2 cerrada contractualmente, con reglas de fallback consistentes, sin introducir refactors adicionales ni cambios de arquitectura.
+
+
+
+
+## resp cursor ##
+
+Hecho. Resumen de cambios en migracion.md:
+
+Cambio	Líneas afectadas
+Nuevo bloque ### Fase 2 — Fixes contractuales de cierre
+Insertado tras tabla comprobación manual
+Fila comprobación manual: test fallback menu_node añadido
++1 fila tabla
+L14: Fase 2 ✅ IMPLEMENTADA → ⚠️ PARCIAL
+Tabla estado inicial
+L15: parche crítico — _START_IDLE_FALLBACK → meta.start_fallback
+Tabla estado inicial
+L29: tabla parche crítico — símbolo actualizado
+Sección parche crítico
+L34: encabezado texto _START_IDLE_FALLBACK → meta.start_fallback
+Sección parche crítico
+L85: tabla deuda — parche actualizado
+Deuda conocida
+L99, L104: pipeline actual — comentarios B1/B2
+Pipeline actual
+L210: estado Fase 2 — ⚠️ PARCIAL + referencia a fixes
+Encabezado Fase 2
+L289: "Fuera de alcance" — _START_IDLE_FALLBACK → routing start_seen
+Fuera de alcance Fase 2
+L301, L344: prompts históricos — objetivo actualizado
+Prompt 2A / 2B
+L463: meta Fase 3 — _START_IDLE_FALLBACK → routing
+Encabezado Fase 3
+L488: prompt 3A — nota histórica añadida
+Prompt 3A
+
+
+
+
+
+#####################################################
+
 
 
 
