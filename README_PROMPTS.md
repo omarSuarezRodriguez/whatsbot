@@ -1,4 +1,4 @@
-## v1.17.
+## v1.18
 
 
 
@@ -2294,4 +2294,153 @@ Aplicar → reiniciar el servicio del bot tras guardar
 
 
 ###########################################################
-## 
+## v1.17
+
+
+############################
+## v1.18
+
+PROMPT_MIGRACION_FLUJO_ESTADOS.md
+
+si, y dime cómo ir pidiendo cada prompt y si es en chat independiente o cómo
+
+## resp cursor ##
+
+Archivo creado: PROMPT_MIGRACION_FLUJO_ESTADOS.md
+
+Cómo pedir cada fase
+Flujo recomendado
+Chat nuevo → opcional V0 (solo lectura, sin tocar código)
+Chat nuevo → Prompt 1 (Fase 1)
+Comprobación PASS → chat nuevo → Prompt 2
+PASS → chat nuevo → Prompt 3
+Cada mensaje empieza así:
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+Ejecuta ÚNICAMENTE la Fase 1 del plan de migración.
+...
+O pega el bloque completo de la sección 5 del archivo (ya viene listo).
+
+¿Chat independiente o mismo?
+Situación	Chat
+Fase 1 → 2 → 3 sin problemas
+Nuevo por fase
+Comprobación FAIL
+Mismo chat + Prompt U1 (pegas el error)
+Retomas otro día
+Nuevo chat + Prompt U2 (dices qué fase toca)
+Solo curiosear antes de migrar
+V0, cualquier chat, sin cambios
+Por qué chat nuevo por fase: menos ruido de contexto, diff acotado, comprobación de cierre clara. Mismo patrón que PROMPTS_LISTOS.md + PROMPT_EVOLUCION_SAAS_WHATSBOT.md.
+
+Secuencia mínima (3 mensajes en 3 chats)
+Chat A
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+[Pega Prompt 1 completo]
+Chat B (solo si A reportó todo PASS)
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+[Pega Prompt 2 completo]
+Chat C
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+[Pega Prompt 3 completo]
+Si algo falla
+Mismo chat donde falló:
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+[Pega Prompt U1 + tabla PASS/FAIL o error]
+Qué exigir al agente al cerrar cada fase
+Tabla PASS/FAIL por ítem de comprobación
+Lista de archivos tocados
+No avanzar a la siguiente fase en el mismo mensaje
+Si quieres, en el siguiente paso añado entrada en PROMPTS_LISTOS.md apuntando a este archivo.
+
+
+
+
+## otro prompt ##
+
+@PROMPT_MIGRACION_FLUJO_ESTADOS.md
+[@PROMPT_MIGRACION_FLUJO_ESTADOS.md (147-154) ]
+
+## resp cursor 
+
+1. Nodos y flow (restaurant_flow.json)
+Nodo	flow
+start
+idle
+menu_node
+idle
+order_start
+order
+order_review
+order
+order_modify
+order
+order_delivery
+order
+order_address
+order
+order_customer_name
+order
+order_saved
+idle
+reservation_start
+reservation
+reservation_date
+reservation
+reservation_time
+reservation
+reservation_review
+reservation
+reservation_saved
+idle
+14 nodos. 3 estados: idle (4), order (7), reservation (3).
+
+2. _action_* con 2º valor = nombre de nodo
+Acción	Destinos devueltos
+_action_capture_order
+order_review
+_action_show_cart
+order_start (carrito vacío)
+_action_handle_order_confirmation
+order_delivery, order_modify
+_action_capture_delivery_type
+order_address, order_saved, order_customer_name
+_action_capture_address
+order_saved, order_customer_name
+_action_capture_customer_name
+order_saved
+_action_save_order
+order_start (carrito vacío)
+_action_capture_persons
+reservation_date
+_action_capture_date
+reservation_time
+_action_capture_time
+reservation_date, reservation_review
+_action_show_reservation_summary
+reservation_start
+_action_handle_reservation_confirmation
+reservation_saved, reservation_start
+_action_save_reservation
+reservation_start
+Sin destino nodo (2º = None): _action_welcome_customer, _action_show_menu. Éxito en _action_save_order / _action_save_reservation hace set_step(..., "start", "idle") y retorna None.
+
+3. Tests de flujo conversacional
+No existen. Solo tests/test_order_confirmation_flow.py (admin CONFIRMAR → cliente). tests/test_flow_transitions.py no está. Hay que crearlos en Fase 2.
+
+4. Gap JSON actual vs states + transitions (5 líneas)
+Hoy: nodes plano + flow por nodo; objetivo: states.idle|order|reservation con initial y nodos anidados.
+Saltos post-acción viven en Python (return msg, "order_delivery"), no en transitions del JSON por outcome.
+Refs cruzadas son nombres sueltos (order_start); objetivo usa calificados (order.order_start, idle.start).
+Acciones devuelven destino nodo, no vocabulario fijo (confirmed, domicilio, empty_cart, etc.).
+options + global_commands cubren navegación usuario; faltan transitions declarativas que el engine resuelva tras cada outcome.
+
+
+
+
+#############################################
+
