@@ -1,4 +1,4 @@
-## v1.22. - graphify removed
+## v1.23
 
 
 
@@ -2729,6 +2729,45 @@ Pendiente fuera de alcance Fase 3: arreglar entorno tests (WHATSBOT_OWNER_PIN/te
 
 ##################################################
 ## v1.23
+
+## prompt ##
+
+Ahora que el sistema está completamente basado en states en restaurant_flow.json, explícame cómo debo editar el flujo de forma segura y fácil sin romper el sistema.
+
+Necesito una guía práctica que incluya:
+
+Cómo agregar un nuevo nodo correctamente
+Cómo modificar un flujo existente (ej: order o reservation)
+Cómo cambiar transiciones sin afectar otros estados
+Cómo agregar un nuevo “outcome” desde Python correctamente conectado al JSON
+Cómo evitar errores comunes (refs inválidas, loops, estados huérfanos)
+Reglas mínimas para mantener consistencia del JSON
+
+Quiero una guía tipo “manual de operación” para poder editar el flujo sin necesidad de tocar código Python, guardado en /tutoriales como un .md , fácil y práctico
+
+
+## resp cursor ##
+
+Manual listo: tutoriales/editar-flujo-restaurant.md
+
+Qué cubre
+
+Anatomía — meta, states, campos de nodo (action, transitions, options, etc.)
+Rutina segura — backup → editar → python scripts/validate_flow.py → reiniciar bot → probar chat
+Nuevo nodo — ejemplo order_tip entre confirmación y entrega
+Editar order/reservation — solo copy vs reordenar pasos vs saltar de estado
+Transiciones aisladas — tocar solo el nodo que dispara; refs estado.nodo cross-state
+Outcomes — tabla completa acción ↔ outcomes obligatorios en JSON
+Nuevo outcome — checklist 3 sitios: flow_engine.py, ACTION_OUTCOMES en validador, transitions en JSON
+Errores típicos — refs rotas, outcomes faltantes, nombres duplicados, huérfanos, loops, JSON mal formado, olvidar reinicio
+Reglas mínimas — 8 puntos de consistencia
+Mapa visual — flujo actual idle / order / reservation
+Idea central: Python devuelve outcome ("confirmed", "success"…); JSON elige destino. Sin outcome nuevo → no toques Python.
+
+
+
+##################################################
+
 
 
 
