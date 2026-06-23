@@ -1,4 +1,4 @@
-## v1.33.
+## v1.34
 
 
 
@@ -3917,6 +3917,95 @@ rg '_resolve_ux_text("fallback"'
 
 
 ##############################3
+## v1.34
 
 
+## prompt ##
+
+Refactoriza @migracion.md para alinearlo con el estado REAL del sistema.
+
+CONTEXTO REAL (NO TEÓRICO):
+- Fase 2 contractual fixes YA ESTÁ COMPLETA Y VERIFICADA
+- flow_engine.py L402 ya usa node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
+- restaurant_flow.json ya tiene fallback en 11 nodos
+- validate_flow.py pasa (0 errores)
+- tests pasan (9/9)
+- no existe _resolve_ux_text("fallback") en código
+- start no tiene fallback (usa meta.start_fallback)
+
+OBJETIVO:
+Actualizar la documentación para que refleje el estado real del sistema y eliminar contradicciones entre:
+
+- “Fase 2 parcial”
+- “Fase 2 pendiente”
+- “fallback contractuales incompletos”
+
+Esto ya NO es cierto → debe corregirse.
+
+REGLAS:
+- NO cambiar código
+- SOLO ajustar migracion.md
+- NO reabrir Fase 2
+- NO reintroducir meta fallback genérico
+- NO modificar arquitectura ya cerrada
+
+CAMBIOS OBLIGATORIOS EN migracion.md:
+
+1. FASE 2:
+   Cambiar estado a:
+
+   Fase 2 — COMPLETA (contractual fixes aplicados)
+
+2. ELIMINAR TODAS las referencias a:
+   - Fase 2 parcial
+   - fixes pendientes de fallback
+   - _resolve_ux_text("fallback")
+   - “deuda contractual Fase 2”
+
+3. REDEFINIR claramente fallback:
+
+   - fallback es EXCLUSIVAMENTE:
+     node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
+
+   - meta NO participa en fallback genérico
+
+4. CLARIFICAR meta:
+
+   meta:
+   - SOLO textos UX estáticos
+   - NO routing
+   - NO fallback
+   - NO lógica de flujo
+
+5. ESTADO DE SISTEMA ACTUALIZADO:
+
+   Fase 1 → COMPLETA
+   Fase 2 → COMPLETA (validada con tests)
+   Fase 3 → PENDIENTE
+   Fase 4 → PENDIENTE
+
+6. ELIMINAR contradicciones en pipeline:
+   - cualquier referencia a fallback híbrido
+   - cualquier referencia a Fase 2 incompleta
+
+7. Mantener intacto:
+   - concepto JSON = mapa
+   - motor = Python
+   - actions = servicios
+
+ENTREGABLE:
+- migracion.md consistente con código real
+- Fase 2 marcada como COMPLETA
+- fallback definido de forma única
+- meta sin ambigüedad
+- cero referencias a lógica ya eliminada
+
+
+## resp cursor ##
+
+Perfecto. Estado del sistema ahora consistente con código real:
+
+
+
+######################################
 
