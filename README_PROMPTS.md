@@ -1,4 +1,4 @@
-## v1.34
+## v1.35
 
 
 
@@ -4008,4 +4008,201 @@ Perfecto. Estado del sistema ahora consistente con código real:
 
 
 ######################################
+## v1.35
 
+
+## prompt ##
+
+Actualiza @migracion.md con las siguientes mejoras estructurales y de precisión. 
+El objetivo es que el documento quede CONSISTENTE con el estado real del sistema y además que la Fase 3 quede dividida en 3 sub-fases ejecutables (3A, 3B, 3C).
+
+REGLAS:
+- No cambies Fases 1, 2 ni 4 salvo correcciones menores de coherencia.
+- No elimines contenido histórico salvo contradicciones claras con el estado actual del código.
+- Mantén formato, tablas y estructura general.
+- Prioriza consistencia con el runtime real descrito (Fase 1 y 2 ya implementadas + parche idle.start existente).
+
+---
+
+## 1. CORRECCIONES OBLIGATORIAS EN EL DOCUMENTO
+
+### 1.1 Parche idle.start
+Actualizar sección para reflejar con precisión:
+
+- `start_seen` ES estado transitorio real en runtime actual.
+- B1/B2/B3 siguen existiendo en Python (NO están declarativizados aún).
+- `meta.start_fallback` ya está en JSON y es usado correctamente.
+- El parche NO pertenece a Fase 2 ni Fase 3: es “parche intermedio crítico”.
+
+Añadir tabla clara:
+
+| Componente | Estado real |
+|------------|------------|
+| start_seen | activo en runtime |
+| B1/B2/B3 routing | hardcode en Python |
+| start_fallback | JSON meta |
+| objetivo | eliminar en Fase 3 |
+
+---
+
+### 1.2 Repeat-order
+Confirmar explícitamente:
+
+- Eliminado completamente del sistema
+- No forma parte de ninguna fase futura
+- No debe reintroducirse en prompts
+
+Agregar sección: “Decisión irreversible del sistema”.
+
+---
+
+### 1.3 Fase 2 precisión
+Corregir ambigüedad:
+
+- Fallback genérico SI depende de `node.fallback`
+- `meta` NO participa en fallback genérico
+- `_resolve_ux_text` solo aplica a claves explícitas
+
+---
+
+## 2. REESCRIBIR FASE 3 COMPLETA (DIVIDIDA EN 3 SUB-PROMPTS)
+
+Eliminar Fase 3 actual y reemplazarla por esta estructura:
+
+---
+
+# FASE 3A — ELIMINACIÓN DE HARDROUTING (CORE DECAPLING)
+
+OBJETIVO:
+Eliminar toda dependencia de steps hardcode en Python.
+
+CAMBIOS:
+
+- Quitar:
+  - `current_step == "start"`
+  - `current_step == "menu_node"`
+  - `current_step == "order_start"`
+  - `current_step == "order_modify"`
+- El routing debe depender SOLO de:
+  - `node.options`
+  - `node.transitions`
+  - `intent parser`
+- `pedido_implicito` sigue existiendo pero como lógica intermedia, NO como step filter.
+
+TEST DE CIERRE:
+- 0 referencias a steps en flow_engine routing
+- pytest OK
+- menu/start/order siguen funcionando sin lógica por step
+
+---
+
+# FASE 3B — DECLARATIVIZAR idle.start (START SEEN REMOVAL)
+
+OBJETIVO:
+Eliminar completamente el parche `start_seen` y B1/B2/B3.
+
+CAMBIOS:
+
+- Eliminar:
+  - `start_seen`
+  - ramas B1/B2/B3
+- Reemplazar por lógica declarativa:
+
+EN JSON:
+- `node.self_loop_behavior`
+- `node.fallback`
+- `node.suppress_repeat_message`
+
+COMPORTAMIENTO:
+
+| Input repetido | Resultado |
+|---------------|----------|
+| hola (1º) | bienvenida |
+| hola (2º) | fallback JSON (sin re-bienvenida) |
+| no/ok | fallback JSON |
+
+TEST:
+- 2º “hola” no re-dispara welcome
+- no hay flags en StateManager
+
+---
+
+# FASE 3C — LIMPIEZA FINAL DEL MOTOR
+
+OBJETIVO:
+Dejar FlowEngine sin lógica de flujo.
+
+CAMBIOS:
+
+- `_process_message_body` debe quedar mínimo:
+  - intent parse
+  - action execution
+  - transition apply
+- eliminar:
+  - cualquier referencia a step naming
+  - cualquier routing especial por nodo
+- `_goto_ref` es el único helper de navegación directa permitido
+
+RESULTADO FINAL:
+
+FlowEngine = motor puro:
+- input → intent → action → node transition → compose → return str
+
+TEST FINAL:
+- todo el flujo del restaurante funciona
+- 0 hardcoding de flujo
+- 0 lógica por step
+
+---
+
+## 3. ACTUALIZAR CHECKLIST GENERAL
+
+Actualizar orden de ejecución:
+
+| Fase | Estado |
+|------|--------|
+| 1 | DONE |
+| 2 | DONE |
+| Parche intermedio | DONE (fuera de fases) |
+| 3A | PENDING |
+| 3B | PENDING |
+| 3C | PENDING |
+| 4 | PENDING |
+
+---
+
+## 4. AÑADIR SECCIÓN “ARQUITECTURA REAL (POST FASE 2)”
+
+Definir claramente:
+
+- JSON = flujo
+- Python = ejecución
+- Estado = solo contexto
+- Prohibido: lógica de flujo en steps
+
+---
+
+## 5. VALIDACIÓN FINAL DEL DOCUMENTO
+
+- coherencia entre fases y runtime real
+- no contradicciones entre parche y Fase 3
+- no duplicación de responsabilidades
+- no referencias a repeat-order
+- no ambigüedad de fallback vs meta
+
+---
+
+SALIDA:
+- devolver migracion.md actualizado completo
+- mantener formato original
+- sin explicación adicional
+
+
+## resp cursor ##
+
+migracion.md actualizado.
+
+
+
+
+######################################

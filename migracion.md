@@ -8,26 +8,50 @@ Guía por fases para refactor estructural. Cada fase = chat(s) independiente(s).
 
 ## Estado implementado (runtime actual)
 
+### Checklist general de ejecución
+
+| Fase | Estado |
+|------|--------|
+| 1 | DONE |
+| 2 | DONE |
+| Parche intermedio | DONE (fuera de fases) |
+| 3A | PENDING |
+| 3B | PENDING |
+| 3C | PENDING |
+| 4 | PENDING |
+
 | Fase / bloque | Estado | Resumen verificado en código |
 |---------------|--------|------------------------------|
-| **Fase 1** — Motor puro | ✅ **IMPLEMENTADA** | `process_message` siempre `str`; composición genérica en `_process_node`; menú solo vía `_action_show_menu`; `hola` en idle = bienvenida + CTA JSON sin catálogo |
-| **Fase 2** — UX estática al JSON | ✅ **COMPLETA** | `_resolve_ux_text` para claves meta; `node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)` en L402; fallback en 11 nodos JSON; `validate_flow.py` 0 errores; 9/9 tests |
-| **Parche crítico** — idle.start estable | ✅ **APLICADO (fuera de fases)** | `start_seen` + `meta.start_fallback` (texto en JSON) + ramas B1/B2/B3 en `flow_engine.py`; **no** cuenta como fase completada |
-| **Fase 3** — Routing declarativo | ❌ **PENDIENTE REAL** | Steps hardcode (`start`, `menu_node`, `order_start`, `order_modify`); parche idle.start aún en Python |
-| **Fase 4** — Cierre y docs | ❌ **PENDIENTE** | `validate_flow.py` sin claves meta Fase 2/3; tutorial sin sección arquitectura motor |
+| **Fase 1** — Motor puro | ✅ **DONE** | `process_message` siempre `str`; composición genérica en `_process_node`; menú solo vía `_action_show_menu`; `hola` en idle = bienvenida + CTA JSON sin catálogo |
+| **Fase 2** — UX estática al JSON | ✅ **DONE** | `_resolve_ux_text` solo para claves meta explícitas; fallback genérico vía `node.fallback` (L402); `meta` no participa en fallback genérico; `validate_flow.py` 0 errores; 9/9 tests |
+| **Parche intermedio crítico** — idle.start estable | ✅ **DONE (fuera de fases)** | `start_seen` transitorio en runtime; B1/B2/B3 hardcode en Python; `meta.start_fallback` en JSON y usado correctamente; **no** es Fase 2 ni Fase 3 |
+| **Fase 3A** — Eliminación hardrouting | ❌ **PENDING** | Steps hardcode (`start`, `menu_node`, `order_start`, `order_modify`) en routing |
+| **Fase 3B** — Declaratizar idle.start | ❌ **PENDING** | Eliminar `start_seen` + ramas B1/B2/B3; reemplazar por flags JSON |
+| **Fase 3C** — Limpieza final motor | ❌ **PENDING** | `_process_message_body` mínimo; 0 lógica de flujo por step |
+| **Fase 4** — Cierre y docs | ❌ **PENDING** | `validate_flow.py` ampliado; tutorial con sección arquitectura motor |
 
 **Tests:** `pytest tests/test_flow_transitions.py -q` → **9 passed** (verificado).
 
-### Parche crítico aplicado fuera de fases
+### Parche intermedio crítico (fuera de fases)
 
-Aplicado directo en `flow_engine.py` (independiente de Fase 2/3). Objetivo: `idle.start` estable sin re-bienvenida en self-loop ni en input no reconocido.
+Parche aplicado directo en `flow_engine.py`. **No pertenece a Fase 2 ni a Fase 3.** Objetivo: `idle.start` estable sin re-bienvenida en self-loop ni en input no reconocido.
+
+**Estado real de componentes:**
+
+| Componente | Estado real |
+|------------|-------------|
+| `start_seen` | activo en runtime (estado transitorio en `data`; `reset()` lo borra) |
+| B1/B2/B3 routing | hardcode en Python (L336–340, L399–400, L349–351) |
+| `start_fallback` | JSON `meta` (L18); usado vía `_resolve_ux_text("start_fallback", node)` |
+| objetivo | eliminar en Fase 3 |
 
 **Componentes en código:**
 
 | Símbolo | Ubicación | Rol |
 |---------|-----------|-----|
 | `meta.start_fallback` | JSON L18 | Texto fallback B1/B2 (sin `NAV_HINT`); leído vía `_resolve_ux_text("start_fallback", node)` |
-| `start_seen` en `data` | `_process_node` L475–476 | `True` tras primer render exitoso de `start`; `reset()` borra `data` |
+| `start_seen` en `data` | `_process_node` L472–473 | `True` tras primer render exitoso de `start`; estado transitorio real; `reset()` borra `data` |
+| Ramas B1/B2/B3 | `_process_message_body` | Routing hardcode en Python; **no** declarativizado aún |
 | `_action_welcome_customer` | L504–505 | No-op (`"", None`); no lee `last_order_items` |
 | `welcome_customer` | JSON + `_actions` | Permanece por compatibilidad; sin lógica de repetición |
 
@@ -54,9 +78,15 @@ Tests de regresión existentes: `test_idle_start_ignores_last_order_items`, `tes
 
 ## Decisiones removidas del sistema
 
-**Repeat-order:** eliminado del runtime. **No** forma parte de ninguna fase pendiente. **No** reimplementar.
+### Decisión irreversible del sistema — repeat-order
 
-Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`, `awaiting_repeat_order`, `skip_repeat_order_once`, claves `repeat_order_*`). Borrado en el parche crítico idle.start. Motivo: re-bienvenida / UX inconsistente. Hoy: `welcome_customer` = no-op; `last_order_items` en perfil **no** dispara prompt de repetición.
+**Repeat-order eliminado completamente del sistema.**
+
+- No forma parte de ninguna fase futura (1, 2, 3A, 3B, 3C ni 4).
+- No debe reintroducirse en prompts, código ni JSON.
+- `last_order_items` en perfil **no** dispara prompt de repetición.
+
+Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`, `awaiting_repeat_order`, `skip_repeat_order_once`, claves `repeat_order_*`). Borrado en el parche intermedio idle.start. Motivo: re-bienvenida / UX inconsistente. Hoy: `welcome_customer` = no-op.
 
 ---
 
@@ -64,12 +94,12 @@ Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`
 
 | Capa | Hoy (runtime real) | Objetivo |
 |------|-------------------|----------|
-| `flows/restaurant_flow.json` | Nodos, transitions, options, mensajes; `meta` con UX estática (abandon, greeting, cancel, welcome, start_fallback); `fallback` por nodo (Fase 2 ✅) | Igual + routing declarativo (Fase 3) |
-| `flow_engine.py` | Motor + routing con steps hardcode + parche `start_seen`; UX abandon/greeting/cancel/fallback en JSON (Fase 2 ✅) | Solo: leer nodo → action → outcome → transition → estado → **un** `str` |
+| `flows/restaurant_flow.json` | Nodos, transitions, options, mensajes; `meta` con UX estática (abandon, greeting, cancel, welcome, start_fallback); `fallback` por nodo (Fase 2 ✅) | Igual + flags declarativos de routing (Fase 3A–3B) |
+| `flow_engine.py` | Motor + routing con steps hardcode + parche `start_seen`; UX abandon/greeting/cancel en JSON (Fase 2 ✅); fallback genérico vía `node.fallback` | Solo: input → intent → action → transition → compose → **un** `str` |
 | `StateManager` | `flow`, `step`, `data` (incl. `start_seen`, `awaiting_abandon_confirm` transitorios) | Sin cambios de contrato |
 | `gateway.py` | Acepta `str \| list[str]` | Sigue funcionando; motor solo devuelve `str` |
 | `parser.py` | `infer_user_intent` | Sin cambios de negocio |
-| `scripts/validate_flow.py` | Valida refs, transitions, outcomes de acciones | Ampliar en Fase 4 (claves meta Fase 2/3) |
+| `scripts/validate_flow.py` | Valida refs, transitions, outcomes de acciones | Ampliar en Fase 4 (claves meta Fase 2 + campos Fase 3B) |
 
 ### Deuda conocida en `flow_engine.py`
 
@@ -79,17 +109,19 @@ Antes existía flujo “¿repetir tu pedido anterior?” (`_handle_repeat_order`
 | Menú inyectado en `start` desde Python | — | ✅ Resuelto (Fase 1) | `format_menu` solo en `_action_show_menu` |
 | Repeat-order | — | ✅ Eliminado (parche) | No reintroducir |
 | UX abandonar pedido | `_handle_abandon_confirm`; `_resolve_global_command` `inicio`+carrito | ✅ Fase 2 | `meta.abandon_confirm_*` vía `_resolve_ux_text` |
-| Greeting durante pedido | `_process_message_body` (`order_start` / `order_modify`) | ✅ Fase 2 | `meta.order_greeting_while_ordering` vía `_resolve_ux_text` |
-| `pedido_implicito` con steps fijos | `_process_message_body` | ❌ Fase 3 | `intercept_products` (o similar) en nodos idle |
-| Salto hardcode `idle.start` en greeting idle | `_process_message_body` | ❌ Fase 3 | `options` JSON + helper `_goto_ref` |
-| Parche `start_seen` + texto `meta.start_fallback` | L336–340, L399–400, L475–476 (routing); texto ya en JSON | ❌ **Deuda Fase 3** | Declaratizar routing: `node.fallback` + flag self-loop en JSON |
-| `step == "start"` para `start_seen` | `_process_node` L475 | ❌ **Deuda Fase 3** | Sin nombre de step hardcode en Python |
-| Mensajes estáticos en `_action_*` | varios `_action_*` | ❌ Fase 3–4 | Estáticos → JSON; dinámicos (carrito, totales, errores con datos) quedan en action |
+| Greeting durante pedido — texto | `_resolve_ux_text("order_greeting_while_ordering")` | ✅ Fase 2 | Texto en meta; sin hardcode UX |
+| Greeting durante pedido — routing | `_process_message_body` L388–390 | ❌ Fase 3A | Quitar step filter; flag JSON en nodo |
+| `pedido_implicito` con steps fijos | `_process_message_body` L375–386 | ❌ Fase 3A | `intercept_products` en nodos idle; lógica intermedia, no step filter |
+| Salto hardcode `idle.start` en greeting idle | `_process_message_body` L352–354 | ❌ Fase 3A | `options` JSON + helper `_goto_ref` |
+| Parche `start_seen` + ramas B1/B2/B3 | L336–340, L399–400, L472–473 | ❌ **Fase 3B** | `node.self_loop_behavior`, `node.fallback`, `node.suppress_repeat_message` |
+| `step == "start"` para `start_seen` | `_process_node` L472 | ❌ **Fase 3B** | Sin nombre de step hardcode en Python |
+| `_process_message_body` con lógica de flujo | varios bloques | ❌ **Fase 3C** | Pipeline mínimo: intent → action → transition |
+| Mensajes estáticos en `_action_*` | varios `_action_*` | ❌ Fase 3C–4 | Estáticos → JSON; dinámicos (carrito, totales, errores con datos) quedan en action |
 | `cancel_message` | `_resolve_global_command` | ✅ Fase 2 | Lee `meta.cancel_message` vía `_resolve_ux_text` |
 
 ### Pipeline del motor
 
-**Pipeline actual** (Fase 1 ✅ + Fase 2 ✅ + parche crítico ✅):
+**Pipeline actual** (Fase 1 ✅ + Fase 2 ✅ + parche intermedio ✅):
 
 ```
 process_message(text) → str
@@ -108,20 +140,40 @@ process_message(text) → str
   → append NAV_HINT si meta lo permite
 ```
 
-**Pipeline objetivo** (post Fase 3–4):
+**Pipeline objetivo** (post Fase 3A–3C + Fase 4):
 
 ```
 process_message(text) → str
   → handlers meta (abandon)          # solo leen JSON + StateManager
-  → options[normalized]              # self-loop / fallback desde JSON
+  → options[normalized]              # self-loop / fallback desde JSON (Fase 3B)
   → global_commands                  # refs + reglas mínimas de estado
-  → intent (parser)                  # intercept_products por nodo, sin steps hardcode
+  → intent (parser)                  # intercept_products por nodo, sin steps hardcode (Fase 3A)
   → action_on_input / free_text        # outcome → transitions JSON
-  → fallback del nodo                  # incl. idle.start 2º hola
+  → fallback del nodo                  # node.fallback; meta no participa
   → compose: message + action_msg + message_after_action + message_secondary
   → append NAV_HINT si meta lo permite
   → return str
 ```
+
+---
+
+## Arquitectura real (post Fase 2)
+
+Estado verificado del sistema tras Fase 1 + Fase 2 + parche intermedio:
+
+| Capa | Responsabilidad | Prohibido |
+|------|-----------------|-----------|
+| **JSON** (`restaurant_flow.json`) | Flujo: nodos, `transitions`, `options`, `meta` (UX estática), `node.fallback` | Lógica de ejecución |
+| **Python** (`flow_engine.py`) | Ejecución: leer nodo → intent → action → outcome → transition → compose → `str` | Lógica de flujo por nombre de step |
+| **Estado** (`StateManager`) | Solo contexto: `flow`, `step`, `data` (flags transitorios como `start_seen`, `awaiting_abandon_confirm`) | Decisiones de routing de negocio |
+
+**Separación de fallback (sin ambigüedad):**
+
+- Fallback genérico de nodo → `node.fallback` exclusivamente (L402).
+- `meta` → solo claves explícitas vía `_resolve_ux_text` (abandon, greeting, cancel, welcome, `start_fallback` en B1/B2 del parche).
+- `meta` **no** participa en el path de fallback genérico.
+
+**Deuda explícita (Fase 3A–3C):** routing por step name, `start_seen`, B1/B2/B3, `pedido_implicito` con step filter — todo hardcode Python pendiente de declarativización.
 
 ### Capas que intervienen (no romper)
 
@@ -229,10 +281,11 @@ fallback = node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
 return self._append_navigation(fallback, node)
 ```
 
-- `node.fallback` = fuente exclusiva del fallback por nodo (definido en JSON por nodo)
+- `node.fallback` = fuente **exclusiva** del fallback genérico por nodo (definido en JSON por nodo)
 - `_SYSTEM_TECHNICAL_FALLBACK` = solo si el nodo no tiene `fallback` (error de configuración)
-- `meta` **no participa** en el path de fallback genérico
-- `start` es la única excepción: su fallback usa `meta.start_fallback` vía `_resolve_ux_text` en ramas B1/B2 (routing Python Fase 3)
+- `meta` **no participa** en el path de fallback genérico (L402)
+- `_resolve_ux_text` aplica **solo** a claves meta explícitas nombradas en el código (abandon, greeting, cancel, welcome, `start_fallback`, address)
+- Excepción temporal del parche: B1/B2 usan `meta.start_fallback` vía `_resolve_ux_text` — routing Python, deuda Fase 3B (no es fallback genérico de nodo)
 
 ### Reglas de resolución de UX (obligatorias)
 
@@ -244,7 +297,7 @@ return self._append_navigation(fallback, node)
 | 2 | `node.fallback` | Clave meta ausente o vacía en el nodo actual |
 | 3 | `_SYSTEM_TECHNICAL_FALLBACK` | Solo error técnico de configuración; **prohibido** como UX de negocio |
 
-**Implementación:** helper `_resolve_ux_text(meta_key, node)` en `flow_engine.py`. Un solo punto de resolución; prohibido `self.meta.get(key, "texto…")` con default UX en Python.
+**Implementación:** helper `_resolve_ux_text(meta_key, node)` en `flow_engine.py`. Un solo punto de resolución para claves meta **explícitas**; prohibido usarlo como proxy de fallback genérico. Prohibido `self.meta.get(key, "texto…")` con default UX en Python.
 
 **Qué NO es UX estática (queda en `_action_*`):** mensajes con datos dinámicos (carrito, totales, dirección, resumen reserva, errores de validación con contexto). Esos strings son salida de acción, no meta.
 
@@ -307,11 +360,12 @@ Al cerrar Fase 2, **eliminar** de `flow_engine.py` (no dejar híbrido):
 
 Validadas por `scripts/validate_flow.py` (`PHASE2_META_KEYS`).
 
-### Fuera de alcance Fase 2 (Fase 3)
+### Fuera de alcance Fase 2 (Fase 3A–3B)
 
-- Routing `start_seen` + ramas B1–B3 en Python (texto `meta.start_fallback` ya en JSON)
-- `pedido_implicito`, greeting idle → `idle.start`
-- Mensajes dinámicos en `_action_*`
+- Routing `start_seen` + ramas B1–B3 en Python (texto `meta.start_fallback` ya en JSON — Fase 2 ✅)
+- `pedido_implicito` con step filter, greeting idle → `idle.start` (Fase 3A)
+- Declaratización idle.start (Fase 3B)
+- Mensajes dinámicos en `_action_*` (Fase 3C–4)
 
 ### Prompt 2A (referencia — ya aplicado)
 
@@ -321,7 +375,7 @@ Ejecuta ÚNICAMENTE Fase 2 de @migracion.md (UX en JSON).
 CONTEXTO: Fase 1 hecha. Parche crítico idle.start aplicado. repeat-order NO existe.
 
 OBJETIVO: Fase 2 100% determinista — cero string UX visible en flow_engine.py
-(salvo _action_* dinámicos, NAV_HINT, routing start_seen/B1-B2 de Fase 3).
+(salvo _action_* dinámicos, NAV_HINT, routing start_seen/B1-B2 del parche intermedio — Fase 3B).
 
 ARCHIVOS:
 - flows/restaurant_flow.json
@@ -450,7 +504,7 @@ PHASE2_META_KEYS = (
 
 Opcional (warning, no error): nodo sin `input_mode: free_text` y sin `fallback` definido.
 
-> **Separación Fase 2 / Fase 3:** El **texto** de `start_fallback` ya está en `meta.start_fallback` (JSON). Lo que queda para Fase 3 es declaratizar el **routing** (`start_seen`, ramas B1/B2, `step == "start"` hardcode en Python). No son deuda de Fase 2.
+> **Separación Fase 2 / Fase 3B:** El **texto** de `start_fallback` ya está en `meta.start_fallback` (JSON, Fase 2 ✅). Lo que queda para **Fase 3B** es eliminar el **routing** (`start_seen`, ramas B1/B2/B3, `step == "start"` hardcode). No es deuda de Fase 2.
 
 #### Comprobación de cierre contractual
 
@@ -512,7 +566,7 @@ IMPLEMENTAR:
 
 RESTRICCIONES:
 - No tocar StateManager ni services.
-- No tocar lógica de Fase 3 (start_seen, ramas B1/B2, routing por step, pedido_implicito).
+- No tocar lógica de Fase 3A–3B (start_seen, ramas B1/B2, routing por step, pedido_implicito).
 - No cambiar transitions, outcomes ni options existentes.
 - No nuevas dependencias.
 
@@ -525,77 +579,225 @@ COMPROBACIÓN DE CIERRE (todo PASS antes de terminar):
 
 ---
 
-## Fase 3 — Routing declarativo y adelgazar `_process_message_body`
+## Fase 3A — Eliminación de hardrouting (core decoupling)
 
-**Estado:** ❌ **PENDIENTE REAL** — no iniciada en código.
+**Estado:** ❌ **PENDING**
 
-**Meta:** Decisiones de flujo solo vía JSON (`options`, `transitions`, `global_commands`, flags de nodo). Motor sin listas de steps hardcode ni routing `start_seen` / B1–B2 en Python (texto `meta.start_fallback` ya en JSON desde Fase 2).
+**Objetivo:** Eliminar toda dependencia de steps hardcode en Python para routing.
 
-**Sigue en Python hoy:** `pedido_implicito`, greeting idle → `idle.start`, parche B1/B2/B3, `step == "start"` para `start_seen`. Greeting order ya en meta (Fase 2 ✅).
+**Cambios:**
+
+- Quitar:
+  - `current_step == "start"`
+  - `current_step == "menu_node"`
+  - `current_step == "order_start"`
+  - `current_step == "order_modify"`
+- El routing debe depender **solo** de:
+  - `node.options`
+  - `node.transitions`
+  - intent parser
+- `pedido_implicito` sigue existiendo pero como lógica intermedia (ej. `intercept_products` en JSON), **no** como step filter.
+
+**Sigue en Python hoy:** steps hardcode L340, L352, L378, L388, L399; greeting order ya resuelve texto vía meta (Fase 2 ✅).
 
 ### Prompt 3A (chat nuevo — copiar tal cual)
 
 ```
-Ejecuta ÚNICAMENTE Fase 3 de @migracion.md (routing declarativo).
-CONTEXTO: Fase 1 hecha. Fase 2 completa. Parche crítico idle.start
-aplicado (start_seen + B1/B2/B3 en Python). Esta fase declaratiza routing y el parche idle.start.
+Ejecuta ÚNICAMENTE Fase 3A de @migracion.md (eliminación hardrouting).
+
+CONTEXTO: Fase 1 ✅. Fase 2 ✅. Parche intermedio idle.start ✅ (start_seen + B1/B2/B3 — NO tocar en esta fase).
+
+ARCHIVOS:
+- flows/restaurant_flow.json
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py
+
+IMPLEMENTAR:
+
+1. pedido_implicito sin step filter
+   - Quitar current_step in {"start", "menu_node"}
+   - Campo JSON en nodo idle (ej. intercept_products: true) en start y menu_node
+   - Motor: si nodo tiene intercept_products y intent tiene productos → pedido
+
+2. Greeting en order sin step hardcode
+   - Quitar current_step in {"order_start", "order_modify"}
+   - Campo JSON (ej. order_greeting_on_greeting: true) en nodos order
+   - Texto ya en meta.order_greeting_while_ordering (Fase 2 ✅)
+
+3. Greeting idle sin hardcode de step
+   - Quitar condición current_step != "start" y _parse_ref suelto
+   - Usar options JSON + helper _goto_ref(wa_id, ref) si reduce duplicación
+
+RESTRICCIONES:
+- NO tocar start_seen, B1/B2/B3 (Fase 3B)
+- NO tocar StateManager ni services
+- NO cambiar transitions/outcomes semántica
+
+TEST DE CIERRE:
+- rg '"start"|"menu_node"|"order_start"|"order_modify"' chatbot/app/core/flow_engine.py → 0 en _process_message_body (routing)
+- pytest tests/test_flow_transitions.py -q
+- menu/start/order siguen funcionando sin lógica por step name
+```
+
+### Comprobación manual Fase 3A
+
+| Prueba | Esperado |
+|--------|----------|
+| `2 pizza hawaiana` sin decir pedido (desde idle) | Entra flujo order |
+| `hola` en `order_modify` | Mensaje meta, no salto raro |
+| `hola` desde `menu_node` | Navega a start con bienvenida (B3 intacto hasta 3B) |
+
+---
+
+## Fase 3B — Declaratizar idle.start (start_seen removal)
+
+**Estado:** ❌ **PENDING**
+
+**Objetivo:** Eliminar completamente el parche `start_seen` y ramas B1/B2/B3.
+
+**Cambios:**
+
+- Eliminar:
+  - `start_seen` (flag en `data`)
+  - ramas B1/B2/B3 en `_process_message_body`
+  - `step == "start"` en `_process_node` para setear `start_seen`
+- Reemplazar por lógica declarativa en JSON:
+  - `node.self_loop_behavior`
+  - `node.fallback`
+  - `node.suppress_repeat_message`
+
+**Comportamiento a preservar:**
+
+| Input repetido | Resultado |
+|----------------|-----------|
+| hola (1º) | bienvenida |
+| hola (2º) | fallback JSON (sin re-bienvenida) |
+| no/ok | fallback JSON |
+
+### Prompt 3B (chat nuevo — copiar tal cual)
+
+```
+Ejecuta ÚNICAMENTE Fase 3B de @migracion.md (declaratizar idle.start).
+
+CONTEXTO: Fase 3A ✅. Parche start_seen + B1/B2/B3 aún en Python.
+
 ARCHIVOS:
 - flows/restaurant_flow.json
 - chatbot/app/core/flow_engine.py
 - tests/test_flow_transitions.py
 - scripts/validate_flow.py (si añades validación de campos nuevos)
+
 IMPLEMENTAR:
-1. pedido_implicito declarativo
-   - Quitar current_step in {"start", "menu_node"}
-   - Campo JSON en nodo idle (ej. intercept_products: true) en start y menu_node
-   - Motor: si nodo tiene intercept_products y intent tiene productos → pedido
-2. Greeting en order declarativo
-   - Quitar current_step in {"order_start", "order_modify"} hardcode
-   - Campo JSON (ej. order_greeting_on_greeting: true) o meta.order_greeting_while_ordering
-   - El string ya está en `meta.order_greeting_while_ordering` (Fase 2 ✅); esta sub-tarea es declaratizar el routing del step hardcode
-3. idle.start parche → JSON
-   - Quitar ramas start_seen / current_step=="start" en _process_message_body (constante `_START_IDLE_FALLBACK` ya eliminada; texto vive en `meta.start_fallback`)
+
+1. Eliminar start_seen y ramas B1/B2/B3
    - Quitar patch start_seen en _process_node
-   - Solución declarativa mínima, ejemplos:
-     - node.fallback en nodo start con texto actual de B1
-     - flag JSON tipo suppress_self_reprocess o equivalente para self-loop options sin re-bienvenida
-   - Comportamiento a preservar (tabla):
-     | Input | step | Esperado |
-     | hola (1ª vez) | start | bienvenida + CTA |
-     | hola (2ª vez) | start | fallback B1, sin re-bienvenida |
-     | no/ok/gracias | start | fallback B1 |
-     | menu/pedido/reservar | start | routing normal |
-   - Añadir tests que cubran 2º hola y input no reconocido en start
-4. Greeting idle sin hardcode de step
-   - Quitar _parse_ref("idle.start") suelto en _process_message_body
-   - Helper único _goto_ref(wa_id, ref) si reduce duplicación (mínimo)
-5. Mensajes estáticos restantes en _action_* y abandon
-   - Mover a meta/nodo donde sea estático
-   - Dejar en action solo dinámicos (carrito, totales, errores con datos)
+   - Quitar ramas current_step=="start" + start_seen en _process_message_body
+   - Quitar B2 self-loop hardcode (L336–343)
+
+2. Declaratizar en JSON (nodo start):
+   - node.self_loop_behavior
+   - node.fallback (puede reutilizar texto de meta.start_fallback)
+   - node.suppress_repeat_message
+
+3. Motor: leer flags JSON para self-loop sin re-procesar nodo
+
 RESTRICCIONES:
+- NO reintroducir repeat-order
 - NO tocar StateManager ni services
-- NO cambiar transitions/outcomes semántica
-- Formato states intacto
-COMPROBACIÓN DE CIERRE:
+- Preservar comportamiento tabla Fase 3B
+
+TEST DE CIERRE:
+- rg 'start_seen' chatbot/app/core/flow_engine.py → 0
+- 2º "hola" no re-dispara welcome
+- no hay flags start_seen en StateManager/data
 - pytest tests/test_flow_transitions.py -q
-- python scripts/validate_flow.py
-- rg 'start_seen|_START_IDLE_FALLBACK' chatbot/app/core/flow_engine.py → 0
-- rg '"start"|"menu_node"|"order_start"|"order_modify"' chatbot/app/core/flow_engine.py → 0 en _process_message_body
-- rg 'current_step == "start"' chatbot/app/core/flow_engine.py → 0
-- Tests existentes PASS + nuevos tests idle.start fallback
+- Añadir test_idle_start_second_hola_fallback
 ```
 
-### Comprobación manual Fase 3
+### Comprobación manual Fase 3B
 
 | Prueba | Esperado |
 |--------|----------|
-| `2 pizza hawaiana` sin decir pedido (desde idle) | Entra flujo order |
 | `hola` (1ª vez) en start | Bienvenida + CTA |
-| `hola` (2ª vez) en start | Fallback B1, sin re-bienvenida |
-| `no` / `ok` / `gracias` en start | Fallback B1 |
+| `hola` (2ª vez) en start | Fallback JSON, sin re-bienvenida |
+| `no` / `ok` / `gracias` en start | Fallback JSON |
 | `menu` / `pedido` / `reservar` en start | Routing normal |
-| `hola` en `order_modify` | Mensaje meta, no salto raro |
+
+---
+
+## Fase 3C — Limpieza final del motor
+
+**Estado:** ❌ **PENDING**
+
+**Objetivo:** Dejar `FlowEngine` sin lógica de flujo residual.
+
+**Cambios:**
+
+- `_process_message_body` debe quedar mínimo:
+  - intent parse
+  - action execution
+  - transition apply
+- Eliminar:
+  - cualquier referencia a step naming en routing
+  - cualquier routing especial por nodo no cubierto por JSON
+- `_goto_ref` es el único helper de navegación directa permitido
+- Mensajes estáticos restantes en `_action_*` → meta/nodo donde sea estático
+
+**Resultado final:**
+
+```
+FlowEngine = motor puro:
+  input → intent → action → node transition → compose → return str
+```
+
+### Prompt 3C (chat nuevo — copiar tal cual)
+
+```
+Ejecuta ÚNICAMENTE Fase 3C de @migracion.md (limpieza final motor).
+
+CONTEXTO: Fase 3A ✅. Fase 3B ✅. Sin start_seen ni B1/B2/B3.
+
+ARCHIVOS:
+- chatbot/app/core/flow_engine.py
+- flows/restaurant_flow.json
+- tests/test_flow_transitions.py
+
+IMPLEMENTAR:
+
+1. Adelgazar _process_message_body al pipeline mínimo:
+   - handlers meta (abandon)
+   - options[normalized]
+   - global_commands
+   - intent (parser)
+   - action_on_input / free_text
+   - fallback del nodo (node.fallback)
+
+2. Eliminar routing especial residual por nombre de step o nodo
+
+3. _goto_ref único helper de navegación directa
+
+4. Mover mensajes estáticos restantes en _action_* a meta/nodo
+
+RESTRICCIONES:
+- NO tocar StateManager ni services
+- NO reintroducir repeat-order
+
+TEST FINAL:
+- Todo el flujo restaurante funciona
+- rg 'step ==|current_step ==' chatbot/app/core/flow_engine.py → 0 en routing
+- 0 hardcoding de flujo
+- pytest tests/test_flow_transitions.py -q
+- python scripts/validate_flow.py
+```
+
+### Comprobación manual Fase 3C
+
+| Prueba | Esperado |
+|--------|----------|
+| Flujo pedido domicilio completo | Sin regresión |
+| Flujo reserva completo | Sin regresión |
 | `cancelar` mid-order | `cancel_message` + idle.start |
+| Input basura en cualquier nodo | `node.fallback` del nodo |
 
 ---
 
@@ -610,7 +812,7 @@ COMPROBACIÓN DE CIERRE:
 ```
 Ejecuta ÚNICAMENTE Fase 4 de @migracion.md (cierre).
 
-CONTEXTO: Fases 1–3 completas. Parche idle.start ya declarativizado en Fase 3.
+CONTEXTO: Fases 1–2 completas. Fases 3A–3C completas. Parche idle.start eliminado en 3B.
 
 ARCHIVOS:
 - chatbot/app/core/flow_engine.py
@@ -692,14 +894,16 @@ RESTRICCIONES: no tocar StateManager ni services; no refactor extra.
 
 | Chat | Fase | Estado | Prompt |
 |------|------|--------|--------|
-| 1 | 1 | ✅ Hecha | 1A (referencia) |
-| 2 | 2 core | ✅ Hecha | 2A (referencia) |
-| 2C | 2 contractual (fallback/nodos) | ✅ Hecha | 2C (referencia) |
-| — | Parche crítico | ✅ Hecho (fuera de fases) | — |
-| 3 | 3 | ❌ Pendiente real | **3A** |
-| 4 | 4 | ❌ Pendiente | 4A |
+| 1 | 1 | ✅ DONE | 1A (referencia) |
+| 2 | 2 core | ✅ DONE | 2A (referencia) |
+| 2C | 2 contractual (fallback/nodos) | ✅ DONE | 2C (referencia) |
+| — | Parche intermedio crítico | ✅ DONE (fuera de fases) | — |
+| 3A | 3A — hardrouting | ❌ PENDING | **3A** |
+| 3B | 3B — idle.start | ❌ PENDING | **3B** |
+| 3C | 3C — limpieza motor | ❌ PENDING | **3C** |
+| 4 | 4 | ❌ PENDING | 4A |
 
-**Dependencias:** 2 requiere 1; 3 requiere 2 ✅; 4 requiere 3.
+**Dependencias:** 2 requiere 1; 3A requiere 2 ✅; 3B requiere 3A; 3C requiere 3B; 4 requiere 3C.
 
 ---
 
@@ -709,7 +913,7 @@ RESTRICCIONES: no tocar StateManager ni services; no refactor extra.
 - Cambiar formato `states` → otro schema.
 - Mover lógica de `OrderService.parse_order_text` al JSON.
 - Hot-reload de flujo sin reiniciar bot.
-- Repeat-order (ver [Decisiones removidas](#decisiones-removidas-del-sistema)).
+- Repeat-order (ver [Decisión irreversible](#decisión-irreversible-del-sistema--repeat-order)).
 
 ---
 
