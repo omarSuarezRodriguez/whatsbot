@@ -28,10 +28,6 @@ from app.utils.validators import (
 
 logger = logging.getLogger(__name__)
 
-_START_IDLE_FALLBACK = (
-    "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? "
-    "También puedes escribir menu, pedido o reservar."
-)
 _SYSTEM_TECHNICAL_FALLBACK = "Error interno: texto no configurado."
 
 
@@ -344,7 +340,7 @@ class FlowEngine:
                 next_step == current_step == "start"
                 and state.get("data", {}).get("start_seen")
             ):
-                return _START_IDLE_FALLBACK
+                return self._resolve_ux_text("start_fallback", node)
             next_node = self.nodes.get(next_step, {})
             self.state_manager.set_step(
                 wa_id,
@@ -401,9 +397,9 @@ class FlowEngine:
                 return step_response
 
         if current_step == "start" and state.get("data", {}).get("start_seen"):
-            return _START_IDLE_FALLBACK
+            return self._resolve_ux_text("start_fallback", node)
 
-        fallback = node.get("fallback") or _SYSTEM_TECHNICAL_FALLBACK
+        fallback = self._resolve_ux_text("fallback", node)
         return self._append_navigation(fallback, node)
 
     def _process_node(
@@ -487,14 +483,15 @@ class FlowEngine:
             {"name": name},
         )
 
-        address_prompt = "Indícame la dirección de entrega a domicilio."
+        node = self.nodes.get(step, {})
         saved_address = profile.get("address", "")
         if saved_address:
-            address_prompt = (
-                f"Tienes guardada esta dirección:\n*{saved_address}*\n\n"
-                "¿Deseas usarla? Responde *sí*.\n"
-                "O escribe una dirección nueva."
+            address_prompt = self._render(
+                self._resolve_ux_text("address_prompt_saved", node),
+                {"saved_address": saved_address},
             )
+        else:
+            address_prompt = self._resolve_ux_text("address_prompt", node)
         return {"welcome_line": welcome, "address_prompt": address_prompt}
 
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:

@@ -15,6 +15,9 @@
     "order_greeting_while_ordering": "¡Hola! Cuando quieras, cuéntame qué deseas ordenar.\nEjemplo: *2 hamburguesas y 1 agua*",
     "welcome_with_name": "Hola *{{name}}*, Bienvenido a *{{restaurant_name}}*.",
     "welcome_without_name": "Hola, Bienvenido a *{{restaurant_name}}*.",
+    "start_fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.",
+    "address_prompt": "Indícame la dirección de entrega a domicilio.",
+    "address_prompt_saved": "Tienes guardada esta dirección:\n*{{saved_address}}*\n\n¿Deseas usarla? Responde *sí*.\nO escribe una dirección nueva.",
     "navigation_hint": true
   },
   "states": {

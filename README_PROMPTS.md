@@ -1,4 +1,4 @@
-## v1.30
+## v1.31
 
 
 
@@ -3670,7 +3670,138 @@ Fase 2 marcada ✅ IMPLEMENTADA
 
 
 ##############################################
+## v1.31
 
+
+## prompt ##
+
+
+Ejecuta ÚNICAMENTE limpieza de residuos de UX de Fase 2 en flow_engine.py y restaurant_flow.json.
+
+CONTEXTO:
+- Fase 1: completa
+- Fase 2: funcionalmente implementada (meta + _resolve_ux_text OK)
+- Problema: quedan residuos de UX hardcode en Python que violan el objetivo de pureza arquitectónica
+
+OBJETIVO:
+Eliminar TODA UX de usuario restante en Python SIN cambiar arquitectura, sin refactor, sin tocar lógica de routing.
+
+RESTRICCIONES CRÍTICAS:
+- NO modificar StateManager
+- NO modificar services
+- NO modificar transitions/outcomes
+- NO reescribir flujo
+- NO introducir nuevas fases
+- NO cambiar comportamiento observable del bot
+- SOLO mover texto UX a JSON o reemplazar por _resolve_ux_text
+
+---
+
+ARCHIVOS:
+- chatbot/app/core/flow_engine.py
+- flows/restaurant_flow.json
+
+---
+
+ELEMENTOS A ELIMINAR O MIGRAR:
+
+1. _START_IDLE_FALLBACK (OBLIGATORIO)
+   Ubicación: flow_engine.py (constante global)
+
+   ACCIÓN:
+   - Mover texto a JSON como:
+     meta.start_fallback
+
+   IMPLEMENTACIÓN:
+   - Reemplazar uso en B1/B2 (idle.start fallback)
+   - Siempre usar:
+     _resolve_ux_text("start_fallback", node)
+   - Si no existe meta → usar node.fallback
+
+---
+
+2. address_prompt (OBLIGATORIO)
+   Ubicación: _build_node_context en flow_engine.py
+
+   ACCIÓN:
+   - Eliminar string hardcode:
+     "Indícame la dirección de entrega a domicilio."
+
+   OPCIÓN CORRECTA:
+   - mover a:
+     meta.address_prompt
+
+   IMPLEMENTACIÓN:
+   - reemplazar construcción directa por:
+     _resolve_ux_text("address_prompt", node)
+
+   - fallback si no existe:
+     node.fallback o _SYSTEM_TECHNICAL_FALLBACK
+
+---
+
+3. FALLBACK DE NODO (NORMALIZACIÓN)
+   Ubicación: lógica donde se usa node.get("fallback")
+
+   ACCIÓN:
+   - Asegurar que TODOS los fallbacks pasen por:
+     _resolve_ux_text("fallback", node)
+     o node.fallback directo SOLO si ya es JSON controlado
+
+   IMPORTANTE:
+   - NO introducir lógica nueva
+   - SOLO unificar acceso al fallback
+
+---
+
+VALIDACIÓN FINAL (OBLIGATORIA):
+
+- grep NO debe encontrar:
+  "Disculpa, no logré entenderte"
+  "Indícame la dirección"
+
+- python scripts/validate_flow.py → OK
+- pytest tests/test_flow_transitions.py -q → 9/9 OK
+
+---
+
+REGLA DE ORO:
+Si un texto es visible para usuario → NO puede estar hardcode en Python.
+Solo puede existir en:
+- restaurant_flow.json (meta o node.fallback)
+- o _resolve_ux_text()
+
+
+
+
+## resp cursor ##
+
+Cambios
+restaurant_flow.json — meta nuevas:
+
+start_fallback — texto B1/B2 (antes _START_IDLE_FALLBACK)
+address_prompt — dirección sin guardada
+address_prompt_saved — variante con {{saved_address}} (evita strings sueltos en Python)
+flow_engine.py
+
+Eliminada constante _START_IDLE_FALLBACK (L31–34)
+B1/B2 → _resolve_ux_text("start_fallback", node) (L343, L400)
+Fallback nodo → _resolve_ux_text("fallback", node) (L402)
+_build_node_context → _resolve_ux_text + _render para address (L486–494)
+Validación
+Check	Resultado
+rg 'Disculpa, no logré entenderte|Indícame la dirección' flow_engine.py
+0 matches
+python scripts/validate_flow.py
+OK
+pytest tests/test_flow_transitions.py -q
+9/9
+node.get("fallback") solo queda dentro de _resolve_ux_text (L164) — punto único de resolución.
+
+
+
+
+#########################
 
 
 
