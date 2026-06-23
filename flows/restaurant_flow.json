@@ -41,6 +41,7 @@
         },
         "menu_node": {
           "action": "show_menu",
+          "fallback": "No entendí eso. Escribe *menu*, *pedido* o *reservar*.",
           "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
           "options": {
             "pedido": "order_start",
@@ -55,6 +56,7 @@
       "nodes": {
         "order_start": {
           "message": "Perfecto, vamos con tu pedido.\n\nCuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:\n• *2 pizza hawaiana, 1 coca cola*\n• *una hamburguesa y dos aguas*\n\nTambién puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.",
+          "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
           "action": "capture_order",
           "transitions": {
@@ -67,6 +69,7 @@
         },
         "order_review": {
           "action": "show_cart",
+          "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
           "message_after_action": "\n\n¿Confirmamos tu pedido?\nResponde *sí* para confirmar o *no* para modificarlo.",
           "input_mode": "free_text",
           "action_on_input": "handle_order_confirmation",
@@ -83,6 +86,7 @@
         },
         "order_modify": {
           "message": "Sin problema. Dime qué quieres agregar, quitar o cambiar.\n\nEjemplo: *agrega una ensalada* o *quita la coca cola*.",
+          "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "input_mode": "free_text",
           "action": "capture_order",
           "transitions": {
@@ -95,6 +99,7 @@
         },
         "order_delivery": {
           "message": "¿Cómo prefieres recibir tu pedido?\n\n1. *Domicilio*\n2. *Recoger en tienda*\n\nResponde con el número o escribe *domicilio* / *recoger*.",
+          "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "input_mode": "free_text",
           "action": "capture_delivery_type",
           "transitions": {
@@ -109,6 +114,7 @@
         },
         "order_address": {
           "message": "{{address_prompt}}",
+          "fallback": "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada.",
           "input_mode": "free_text",
           "action": "capture_address",
           "transitions": {
@@ -122,6 +128,7 @@
         },
         "order_customer_name": {
           "message": "Para identificar tu pedido, ¿cuál es tu nombre?",
+          "fallback": "Escribe tu nombre (mínimo 2 caracteres).",
           "input_mode": "free_text",
           "action": "capture_customer_name",
           "transitions": {
@@ -154,6 +161,7 @@
       "nodes": {
         "reservation_start": {
           "message": "Con gusto te ayudo con tu reserva.\n\n¿Para cuántas personas será?",
+          "fallback": "Indícame un número válido de personas (entre 1 y 30).",
           "input_mode": "free_text",
           "action": "capture_persons",
           "transitions": {
@@ -166,6 +174,7 @@
         },
         "reservation_date": {
           "message": "Excelente. ¿Qué fecha prefieres?\n\nFormato sugerido: *DD/MM/AAAA* (ejemplo: 15/06/2026)",
+          "fallback": "Usa el formato *DD/MM/AAAA*, con una fecha igual o posterior a hoy.",
           "input_mode": "free_text",
           "action": "capture_date",
           "transitions": {
@@ -178,6 +187,7 @@
         },
         "reservation_time": {
           "message": "Perfecto. ¿A qué hora te gustaría la reserva?\n\nFormato sugerido: *19:30* o *7:30 pm*",
+          "fallback": "Prueba con *19:30* o *7:30 pm*.",
           "input_mode": "free_text",
           "action": "capture_time",
           "transitions": {
@@ -191,6 +201,7 @@
         },
         "reservation_review": {
           "action": "show_reservation_summary",
+          "fallback": "Responde *sí* para confirmar la reserva o *no* para modificarla.",
           "message_after_action": "\n\n¿Confirmamos la reserva?\nResponde *sí* para confirmar o *no* para modificarla.",
           "input_mode": "free_text",
           "action_on_input": "handle_reservation_confirmation",

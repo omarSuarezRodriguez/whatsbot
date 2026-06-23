@@ -399,7 +399,7 @@ class FlowEngine:
         if current_step == "start" and state.get("data", {}).get("start_seen"):
             return self._resolve_ux_text("start_fallback", node)
 
-        fallback = self._resolve_ux_text("fallback", node)
+        fallback = node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
         return self._append_navigation(fallback, node)
 
     def _process_node(

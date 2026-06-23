@@ -1,4 +1,4 @@
-## v1.33
+## v1.33.
 
 
 
@@ -3886,10 +3886,37 @@ Prompt 3A
 
 
 #####################################################
-## v1.33
+## v1.33.
 
 ## prompt ##
 
+Fase 2 contractual fixes — done. Checks PASS.
+
+1. flow_engine.py L402
+
+_resolve_ux_text("fallback", node) → node.get("fallback", _SYSTEM_TECHNICAL_FALLBACK)
+Fallback por nodo; sin lookup meta genérico
+2. restaurant_flow.json
+
+fallback en 11 nodos (menu, order_, reservation_)
+start sin fallback (sigue meta.start_fallback)
+3. validate_flow.py
+
+PHASE2_META_KEYS + start_fallback, address_prompt, address_prompt_saved
+Comprobación
+
+Check	Resultado
+python scripts/validate_flow.py
+0 errores, 14 nodos
+pytest tests/test_flow_transitions.py -q
+9 passed
+rg '_resolve_ux_text("fallback"'
+0 matches
+
+
+
+
+##############################3
 
 
 

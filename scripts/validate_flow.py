@@ -42,6 +42,9 @@ PHASE2_META_KEYS = (
     "order_greeting_while_ordering",
     "welcome_with_name",
     "welcome_without_name",
+    "start_fallback",
+    "address_prompt",
+    "address_prompt_saved",
 )
 
 
