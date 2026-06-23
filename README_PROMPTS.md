@@ -1,4 +1,4 @@
-## v1.27
+## v1.28
 
 
 
@@ -3318,6 +3318,236 @@ PASS
 
 
 ########################################
+## v1.28
+
+
+## prompt ##
+
+Actualiza COMPLETAMENTE `migracion.md` para que refleje el estado REAL del proyecto.
+NO modificar código, tests, JSON ni otros archivos. SOLO `migracion.md`.
+## Objetivo
+La guía hoy describe un plan futuro desactualizado. Debe quedar como:
+- mapa de migración (idea original intacta: JSON = mapa, Python = motor)
+- registro de qué fases YA están hechas vs pendientes
+- documentación del fix runtime post-Fase 2 (aplicado en engine, no es fase nueva)
+- Prompts 3A y 4A listos para copiar en chats nuevos SIN editar nada más
+## PASO 1 — Analizar el sistema (obligatorio antes de escribir)
+Lee y contrasta con `migracion.md` actual:
+| Archivo | Para qué |
+|---------|----------|
+| `chatbot/app/core/flow_engine.py` | estado motor, deuda, parche |
+| `flows/restaurant_flow.json` | qué hay en meta/nodos |
+| `tests/test_flow_transitions.py` | tests vigentes |
+| `scripts/validate_flow.py` | qué valida hoy |
+| `migracion.md` | archivo a reescribir |
+Ejecuta y usa resultados en la doc:
+```bash
+rg 'repeat_order|skip_repeat|_handle_repeat_order|awaiting_repeat_order|last_order_items' chatbot/app/core/flow_engine.py
+rg 'start_seen|_START_IDLE_FALLBACK|welcome_customer' chatbot/app/core/flow_engine.py
+rg 'current_step in|step ==' chatbot/app/core/flow_engine.py
+rg 'List\[str\]|Reply = Union|_as_reply' chatbot/app/core/flow_engine.py
+rg 'format_menu' chatbot/app/core/flow_engine.py
+rg 'Tienes un pedido|repetir' chatbot/app/core/flow_engine.py
+rg 'repeat_order|abandon_confirm' flows/restaurant_flow.json
+pytest tests/test_flow_transitions.py -q
+Documenta SOLO lo que el código confirme. Si algo difiere de lo listado abajo, prioriza el código.
+
+PASO 2 — Estado real a reflejar (baseline verificado en este proyecto)
+✅ Fase 1 — IMPLEMENTADA
+process_message retorna siempre str (sin Reply / List[str])
+Composición genérica en _process_node: message → action → message_after_action → message_secondary (dual_message)
+Menú solo vía _action_show_menu / nodo menu_node
+hola en idle: bienvenida + CTA del JSON, sin catálogo de productos
+⚠️ Fase 2 — PARCIAL
+Textos abandon/inicio siguen hardcode en Python (_handle_abandon_confirm, _resolve_global_command)
+Greeting en order_start/order_modify sigue hardcode
+Claves abandon_confirm_* / order_greeting_while_ordering NO están en restaurant_flow.json meta
+Repeat-order NUNCA se migró a meta — fue ELIMINADO (ver parche)
+✅ Parche post-Fase 2 (fix runtime, NO es fase nueva)
+Aplicado directo en flow_engine.py:
+
+Eliminado repeat-order por completo:
+
+Borrado _handle_repeat_order
+_action_welcome_customer → no-op ("", None); no lee last_order_items
+No produce ni consume awaiting_repeat_order / skip_repeat_order_once
+welcome_customer sigue en _actions y JSON por compatibilidad
+idle.start estable:
+
+data.start_seen: True tras primer render exitoso de start en _process_node; reset() lo borra
+_START_IDLE_FALLBACK (hardcode Python): Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+B1: input no enrutado en step=="start" con start_seen=True → fallback directo, sin _process_node, sin cambiar step, sin NAV_HINT (suppress_navigation: true)
+B2: options self-loop (hola/buenas/hey → start) con start_seen=True → mismo fallback (no re-bienvenida)
+B3: saludo idle no re-ejecuta _process_node(start) si current_step=="start"
+Test: test_idle_start_ignores_last_order_items (usuario con last_order_items → bienvenida sin “repetir”)
+
+❌ Fase 3 — PENDIENTE
+Deuda actual en _process_message_body:
+
+current_step in {"start", "menu_node"} → pedido_implicito
+current_step in {"order_start", "order_modify"} → greeting hardcode
+_parse_ref("idle.start") en bloque greeting idle
+start_seen + _START_IDLE_FALLBACK + ramas current_step == "start" (parche a declarativizar)
+step == "start" en _process_node para setear start_seen
+❌ Fase 4 — PENDIENTE
+PASO 3 — Reescribir migracion.md (estructura obligatoria)
+Mantener tono guía por fases. Reorganizar así:
+
+1. Intro (breve, conservar idea MAPA+MOTOR)
+2. ## Estado implementado (runtime actual) — NUEVA
+Tabla fases + parche post-Fase 2 con bullets B1/B2/B3 y texto exacto fallback.
+
+3. ## Decisiones removidas del sistema — NUEVA
+Repeat-order cancelado permanentemente. No reimplementar.
+
+4. ## Estado actual vs objetivo — ACTUALIZAR
+Columna "Hoy" con resumen real (Fase 1 ✅, Fase 2 ⚠️, parche ✅, Fase 3–4 ❌).
+
+5. ### Deuda conocida en flow_engine.py — REESCRIBIR COMPLETA
+Quitar filas obsoletas (Reply, _as_reply, repeat-order, líneas viejas)
+Marcar resuelto: Fase 1 items, repeat-order eliminado
+Listar deuda REAL pendiente con ubicación actual (sin números de línea obsoletos; usar nombres de método)
+Incluir deuda del parche (start_seen, _START_IDLE_FALLBACK) como pendiente Fase 3
+6. ### Pipeline del motor — REESCRIBIR
+Dos diagramas:
+
+Pipeline actual (con parche, abandon sí, repeat no, start_seen, B1/B2)
+Pipeline objetivo (post Fase 3–4)
+7. ### Capas que intervienen — mantener/ajustar si hace falta
+8. Secciones Fase 1 y Fase 2 — ACTUALIZAR (no borrar)
+Fase 1: marcar ✅ IMPLEMENTADA; Prompt 1A puede quedar como referencia histórica o con nota “ya aplicado”
+Fase 2: marcar ⚠️ PARCIAL; Prompt 2A sin repeat_order_* ni _handle_repeat_order; nota de que repeat fue cancelado por parche; comprobaciones y tabla manual actualizadas (test_idle_start_ignores_last_order_items en lugar de repetir sí/no)
+9. ## Fase 3 — REESCRIBIR COMPLETA incluyendo Prompt 3A
+El Prompt 3A dentro del doc debe ser autocontenido y copiable tal cual a un chat nuevo. Debe incluir:
+
+Ejecuta ÚNICAMENTE Fase 3 de @migracion.md (routing declarativo).
+CONTEXTO: Fase 1 hecha. Fase 2 parcial. Parche post-Fase 2 aplicado (repeat eliminado;
+start_seen + fallback B1/B2 en Python). Esta fase declaratiza routing y el parche idle.start.
+ARCHIVOS:
+- flows/restaurant_flow.json
+- chatbot/app/core/flow_engine.py
+- tests/test_flow_transitions.py
+- scripts/validate_flow.py (si añades validación de campos nuevos)
+IMPLEMENTAR:
+1. pedido_implicito declarativo
+   - Quitar current_step in {"start", "menu_node"}
+   - Campo JSON en nodo idle (ej. intercept_products: true) en start y menu_node
+   - Motor: si nodo tiene intercept_products y intent tiene productos → pedido
+2. Greeting en order declarativo
+   - Quitar current_step in {"order_start", "order_modify"} hardcode
+   - Campo JSON (ej. order_greeting_on_greeting: true) o meta.order_greeting_while_ordering
+   - Mover string hardcode a meta JSON (cierra deuda Fase 2 parcial si aplica)
+3. idle.start parche → JSON
+   - Quitar _START_IDLE_FALLBACK constante y ramas start_seen / current_step=="start" en _process_message_body
+   - Quitar patch start_seen en _process_node
+   - Solución declarativa mínima, ejemplos:
+     - node.fallback en nodo start con texto actual de B1
+     - flag JSON tipo suppress_self_reprocess o equivalente para self-loop options sin re-bienvenida
+   - Comportamiento a preservar (tabla):
+     | Input | step | Esperado |
+     | hola (1ª vez) | start | bienvenida + CTA |
+     | hola (2ª vez) | start | fallback B1, sin re-bienvenida |
+     | no/ok/gracias | start | fallback B1 |
+     | menu/pedido/reservar | start | routing normal |
+   - Añadir tests que cubran 2º hola y input no reconocido en start
+4. Greeting idle sin hardcode de step
+   - Quitar _parse_ref("idle.start") suelto en _process_message_body
+   - Helper único _goto_ref(wa_id, ref) si reduce duplicación (mínimo)
+5. Mensajes estáticos restantes en _action_* y abandon
+   - Mover a meta/nodo donde sea estático
+   - Dejar en action solo dinámicos (carrito, totales, errores con datos)
+RESTRICCIONES:
+- NO reintroducir repeat-order
+- NO tocar StateManager ni services
+- NO cambiar transitions/outcomes semántica
+- Formato states intacto
+COMPROBACIÓN DE CIERRE:
+- pytest tests/test_flow_transitions.py -q
+- python scripts/validate_flow.py
+- rg 'start_seen|_START_IDLE_FALLBACK|_handle_repeat_order|repeat_order|skip_repeat' chatbot/app/core/flow_engine.py → 0
+- rg '"start"|"menu_node"|"order_start"|"order_modify"' chatbot/app/core/flow_engine.py → 0 en _process_message_body
+- rg 'current_step == "start"' chatbot/app/core/flow_engine.py → 0
+- Tests existentes PASS + nuevos tests idle.start fallback
+Tabla manual Fase 3 actualizada (incluir filas del parche + pedido_implicito + cancelar).
+
+10. ## Fase 4 — REESCRIBIR COMPLETA incluyendo Prompt 4A
+Prompt 4A copiable tal cual, asumiendo Fase 3 hecha:
+
+validate_flow.py: claves meta Fase 2/3
+Tests: always str, cancelar mid-order, abandon confirm, idle.start 2º hola, last_order_items sin repetir
+Tutorial tutoriales/editar-flujo-restaurant.md sección arquitectura motor
+Limpieza código muerto
+Checklist manual SIN “repetir pedido sí/no”; CON filas parche idle.start
+11. Actualizar también
+Tabla ## Orden de chats recomendado (Fase 1–2 hechas/parcial, siguiente = 3)
+## Prompt de rescate (sin referencias repeat)
+### Checklist manual final Fase 4 (sin repeat, con parche)
+## Qué NO es esta migración — intacto salvo si contradice realidad
+## Referencias — intacto
+PASO 4 — Limpiar contenido obsoleto
+En TODO migracion.md, eliminar o corregir:
+
+Referencias a _handle_repeat_order, awaiting_repeat_order, skip_repeat_order_once, repeat_order_* meta (excepto mención histórica UNA VEZ en “Decisiones removidas”)
+Números de línea obsoletos (L199–224, etc.)
+Pipeline con handler repeat
+Checklist “repetir pedido sí/no”
+Prompt 2A pidiendo implementar repeat
+Filas deuda ya resueltas (Reply, _as_reply, menú en start Python)
+Cualquier texto que diga Fase 1/2 como “por hacer” si ya están hechas/parciales
+PASO 5 — Comprobación de cierre (documentación)
+rg -i 'awaiting_repeat_order|skip_repeat_order_once|_handle_repeat_order' migracion.md
+# → solo en "Decisiones removidas" (contexto eliminado), 0 en prompts ejecutables
+rg 'repetir pedido' migracion.md
+# → 0 fuera de "Decisiones removidas"
+rg 'L199|L224|_as_reply|Reply = Union' migracion.md
+# → 0
+# Verificar que existen secciones:
+# - Estado implementado
+# - Decisiones removidas
+# - Prompt 3A con start_seen/fallback
+# - Prompt 4A actualizado
+# - Fase 1 marcada implementada
+# - Fase 2 marcada parcial
+ENTREGABLE
+migracion.md reescrito completo (un solo archivo modificado)
+Resumen ≤10 bullets de qué cambió
+Resultado de los rg de cierre
+Confirmación: NO se modificó código
+Indicar explícitamente: “Prompt 3A y 4A listos para copiar en chat nuevo”
+
+
+## resp cursor ##
+
+Qué cambió (≤10 bullets)
+Nueva sección Estado implementado (runtime actual) — tabla fases + parche B1/B2/B3 + texto exacto _START_IDLE_FALLBACK.
+Nueva Decisiones removidas — repeat-order cancelado para siempre.
+Estado actual vs objetivo — columna “Hoy” alineada con código real (Fase 1 ✅, 2 ⚠️, parche ✅, 3–4 ❌).
+Deuda en flow_engine.py reescrita — sin líneas obsoletas; resuelto Fase 1 + repeat eliminado; pendiente real por método.
+Dos pipelines — actual (con parche) vs objetivo post Fase 3–4.
+Fase 1 marcada ✅; Prompt 1A como referencia histórica.
+Fase 2 marcada ⚠️; Prompt 2A sin repeat_order_*; checklist con test_idle_start_ignores_last_order_items.
+Fase 3 y 4 reescritas — Prompt 3A y 4A autocontenidos, copiables tal cual.
+Orden de chats, rescate, checklist Fase 4 — sin repeat; con filas parche idle.start.
+Basado en pytest → 9 passed; validate_flow.py solo refs/transitions/outcomes hoy.
+Resultado rg cierre
+Comando	Resultado
+rg -i 'awaiting_repeat_order|skip_repeat_order_once|_handle_repeat_order' migracion.md
+L46 (Decisiones removidas); L235/L317 (restricción/rg en prompts 2A/3A — no pide implementar)
+rg 'repetir pedido' migracion.md
+0
+rg 'L199|L224|_as_reply|Reply = Union' migracion.md
+Solo tabla deuda resuelta + prompts históricos/cierre Fase 4 — sin L199/L224
+Secciones requeridas
+✅ Estado implementado, Decisiones removidas, Prompt 3A, Prompt 4A, Fase 1 ✅, Fase 2 ⚠️
+Confirmación
+NO se modificó código, tests, JSON ni otros archivos.
+Prompt 3A y 4A listos para copiar en chat nuevo — bloques en ## Fase 3 y ## Fase 4, sin editar nada más.
+
+
+
+
+
+######################
 
 
 
