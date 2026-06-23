@@ -1,4 +1,4 @@
-## v1.28
+## v1.29
 
 
 
@@ -3548,6 +3548,115 @@ Prompt 3A y 4A listos para copiar en chat nuevo — bloques en ## Fase 3 y ## Fa
 
 
 ######################
+## v1.29
+
+## prompt ##
+
+Analiza el estado ACTUAL del proyecto (especialmente flow_engine.py y migracion.md) y corrige la migración para que coincida con el comportamiento deseado.
+
+IMPORTANTE:
+- No continuar fases nuevas.
+- No reescribir arquitectura completa.
+- No agregar complejidad innecesaria.
+- Solo corregir inconsistencias entre:
+  (1) lo que dice migracion.md
+  (2) lo que realmente hace el código
+  (3) lo que yo quiero como comportamiento final
+
+CONTEXTO:
+- Fase 1 ya está implementada correctamente (motor devuelve solo string y composición genérica).
+- Fase 2 está parcialmente implementada (UX parcialmente en JSON, pero aún hay lógica hardcode en abandon/greeting/order).
+- Se aplicó un parche posterior en FlowEngine que eliminó repeat-order y estabilizó idle.start.
+
+PROBLEMAS A RESOLVER:
+
+1. migracion.md está desactualizado:
+   - Describe repeat-order como parte de la migración o fases → debe eliminarse completamente.
+   - Debe reflejar que repeat-order ya fue eliminado del sistema.
+   - Debe reflejar el parche de idle.start (fallback B1/B2/B3).
+   - Debe reflejar estado real: Fase 1 completa, Fase 2 parcial, Fase 3 pendiente.
+
+2. Fase 2 no está completa en código:
+   - abandon_confirm sigue parcialmente hardcodeado
+   - order_greeting_while_ordering sigue hardcodeado
+   - migracion.md debe marcarlo claramente como deuda pendiente (no como implementado)
+
+3. El documento debe alinearse con el comportamiento real:
+   - idle.start NO re-ejecuta nodo en self-loop
+   - saludo repetido no re-renderiza bienvenida
+   - fallback B1 existe y es comportamiento crítico del motor
+
+INSTRUCCIONES:
+
+A) Actualiza migracion.md para que:
+- refleje exactamente el runtime actual del sistema
+- elimine cualquier referencia a repeat-order
+- agregue sección clara: "Parche crítico aplicado fuera de fases"
+- marque Fase 2 como parcial (no completa)
+- marque Fase 3 como pendiente real
+
+B) No modifiques código funcional salvo inconsistencias obvias de documentación.
+C) No propongas nuevas fases ni rediseño.
+D) Mantén estructura de migración, solo corrige realidad vs documento.
+
+ENTREGABLE:
+- diff de migracion.md
+- resumen de discrepancias encontradas
+- lista de cambios aplicados
+
+
+
+## resp cursor ##
+
+Discrepancias encontradas
+Área	Doc decía / implicaba	Runtime real (flow_engine.py)
+B3
+No re-ejecutar start si ya en start
+B3 = saludo idle fuera de start (ej. menu_node) → navega a idle.start (L349–351). Anti re-bienvenida = B1 + B2
+Parche
+“Parche post-Fase 2”, mezclado con repeat-order
+Parche independiente de fases: start_seen, _START_IDLE_FALLBACK, B1/B2/B3
+Repeat-order
+Citado en prompts Fase 2/3/4
+Eliminado del código; solo histórico en “Decisiones removidas”
+Fase 2
+Parcial pero poco concreta
+Solo cancel_message en JSON; abandon L172–173, L199–203 y greeting order L392–396 hardcode
+Fase 3
+“Pendiente” genérico
+Pendiente real: steps hardcode + parche idle.start sigue en Python
+Tests
+Implícito cobertura 2º hola
+test_idle_start_second_hola_fallback no existe (9 tests PASS)
+Comportamiento crítico verificado en código:
+
+B2 (L336–340): self-loop hola→start con start_seen → fallback, sin _process_node
+B1 (L399–400): input no enrutado en start + start_seen → mismo fallback
+welcome_customer = no-op (L504–505); last_order_items no dispara repetición
+Cambios aplicados en migracion.md
+Tabla estado: Fase 2 parcial con líneas exactas; parche = “fuera de fases”; Fase 3 = PENDIENTE REAL
+Nueva sección “Parche crítico aplicado fuera de fases” — componentes, texto fallback, tabla B1/B2/B3 corregida, flujo 1er/2º hola
+B3 corregido — ya no confunde con anti re-bienvenida
+Repeat-order fuera de fases/prompts — solo en “Decisiones removidas”
+Tabla deuda Fase 2 con 4 strings hardcode + claves meta objetivo (incl. abandon_confirm_continue)
+Fase 3: lista explícita de lógica que sigue en Python
+Prompts 2A/3A/4A: contexto parche crítico; quitadas restricciones repeat-order redundantes
+Orden chats: fila parche crítico separada
+Test test_idle_start_second_hola_fallback marcado pendiente
+Diff
+Solo migracion.md (~+80 / −50 líneas). Ver con:
+
+git diff migracion.md
+Código
+Sin cambios — doc y runtime ya coincidían salvo B3 mal documentado y deuda Fase 2 poco explícita.
+
+Siguiente lógico (no hecho): Prompt 2A — mover abandon + order_greeting_while_ordering a restaurant_flow.json meta.
+
+
+
+
+
+####################################
 
 
 
