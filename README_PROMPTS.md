@@ -1,4 +1,4 @@
-## v1.21
+## v1.22 - graphify removed
 
 
 
@@ -2722,5 +2722,7 @@ Pendiente fuera de alcance Fase 3: arreglar entorno tests (WHATSBOT_OWNER_PIN/te
 
 
 ####################################################
+## v1.22 - graphify removed
+
 
 
