@@ -3576,3 +3576,397 @@ Cliente: buenas
 Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+¿Qué necesitas hoy? Escríbeme una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir menu, pedido o reservar.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅¿Qué necesitas hoy? Escríbeme una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅¿Qué necesitas hoy? Escríbeme una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅¿Qué necesitas hoy? Escríbeme una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: buenas
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: hol
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: holaa
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉*Pedido*
+👉*Reservar*
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbeme una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbe una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbe una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbe una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbe una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón
+
+Aquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒
+Rápido, seguro y sin filas ✨
+
+✅ ¿Qué necesitas hoy? Escríbe una opción:
+
+👉 *Menú* (ver productos)
+👉 *Pedido* (haz tu pedido)
+👉 *Reservar* (reserva pedido)
+
+#################################################################
+################################################################
+
+Cliente: Hi
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉 *Pedido*
+👉 *Reservar*
+
+#################################################################
+################################################################
+
+Cliente: Menú
+
+
+-------------------------------
+
+Chatbot: *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
+
+---
+Escribe *inicio* para volver al inicio
+
+#################################################################

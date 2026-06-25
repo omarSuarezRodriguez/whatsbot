@@ -1,4 +1,4 @@
-## v1.40.
+## v1.41
 
 
 
@@ -4559,6 +4559,14 @@ restaurant_flow.json: opcional quitar hola/buenas/hey de options — intent los 
 
 
 #####################################################
+## v1.41
+
+Se agrega ARCHITECTURE_LAW.MD y validate_architecture.py
+
+Architecture_law.md contiene las directrices de la arquitectura, pensado para que no se vaya a romper
+
+con validate_architecture.py puedo auditar la arquitectura post cambio y verificar que se mantenga consistente respecto a la original que yo diseñé
 
 
 
+###################################################################
