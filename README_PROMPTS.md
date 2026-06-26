@@ -1,4 +1,5 @@
-## v1.42
+## v1.43 Se añadieron validaciones para la arquitectura, se comienza el desarrollo de los menús del chatbot, las mejoras arquitectonicas restantes se irán debugeando más adelante
+
 
 
 
@@ -4574,4 +4575,9 @@ con validate_architecture.py puedo auditar la arquitectura post cambio y verific
 
 
 Se arregló consistencia en el json del flujo /flows
+
+
+
+############################################################
+## v1.43 Se añadieron validaciones para la arquitectura, se comienza el desarrollo de los menús del chatbot, las mejoras arquitectonicas restantes se irán debugeando más adelante
 
