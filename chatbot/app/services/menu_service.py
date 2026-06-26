@@ -52,7 +52,7 @@ class MenuService:
             category = item.get("categoria") or "General"
             grouped.setdefault(category, []).append(item)
 
-        lines = ["*Nuestro menú*\n"]
+        lines = []
         for category, items in grouped.items():
             lines.append(f"*{category}*")
             for item in items:

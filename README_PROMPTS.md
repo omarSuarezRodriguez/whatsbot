@@ -5638,5 +5638,181 @@ Pruebas de carga.
 
 
 
-#########################################
 
+
+#########################################
+## v1.53 - Pendientes para lanzar App (/6)
+
+
+## Flujo para lanzar el sistema 
+
+1. Pulir el flujo (saludo, menú, textos y experiencia del usuario).
+2. Completar funcionalidades (flujos pendientes e integraciones necesarias).
+3. Pulir la aplicación (UI, validaciones y corrección de bugs).
+4. Pruebas end-to-end (probar el flujo completo de principio a fin).
+5. Preparar la demo (datos de prueba y presentación del sistema).
+6. Presentar el producto (mostrar el funcionamiento completo).
+
+# Después:
+
+- Requerimientos no funcionales (seguridad, rendimiento, monitoreo, etc.).
+- Nuevas funcionalidades (categorías, pagos, reportes, etc.).
+
+
+
+
+## segundo prompt ##
+
+Lee primero `architecture_law.md` y úsalo como autoridad principal.
+
+Quiero refactorizar `NAV_HINT` para que sea completamente multi-tenant.
+
+El estado final debe ser este:
+
+* El `FlowEngine` no debe depender de ninguna constante global (`NAV_HINT`).
+* El mensaje de navegación debe vivir exclusivamente en el flujo JSON de cada negocio.
+* Cada tenant debe poder editarlo simplemente cambiando:
+
+```json
+"meta": {
+  "navigation_hint": "Escribe *inicio* para volver al inicio"
+}
+```
+
+o dejarlo vacío:
+
+```json
+"meta": {
+  "navigation_hint": ""
+}
+```
+
+Si está vacío, no debe mostrarse ningún mensaje.
+
+Quiero la solución con **el mínimo número de cambios posibles**, respetando `architecture_law.md`. Si puede resolverse modificando un solo archivo, mejor.
+
+Antes de modificar nada:
+
+1. Analiza si esta solución es correcta arquitectónicamente.
+2. Busca todas las referencias de `NAV_HINT`.
+3. Explica exactamente qué archivos cambiarías y por qué.
+4. Espera mi aprobación.
+
+Después de implementar el cambio, realiza una auditoría basada en `architecture_law.md` para verificar que:
+
+* no quedó ninguna dependencia de `NAV_HINT`,
+* el sistema sigue siendo multi-tenant,
+* el comportamiento es correcto,
+* y no existe una solución con menos cambios.
+
+
+
+
+
+## resp cursor ##
+
+Paso a paso (5 archivos, orden recomendado)
+Paso 1 — chatbot/app/core/flow_engine.py
+1a. Línea 9, reemplaza import:
+
+from app.config import FLOWS_PATH, RESTAURANT_NAME
+1b. Líneas 160–165, reemplaza método completo:
+
+    def _append_navigation(self, message: str, node: Dict[str, Any]) -> str:
+        if node.get("suppress_navigation"):
+            return message
+        hint = self.meta.get("navigation_hint", "")
+        if not hint:
+            return message
+        return f"{message}{hint}"
+Paso 2 — flows/restaurant_flow.json
+Línea 43, cambia:
+
+    "navigation_hint": true
+por:
+
+    "navigation_hint": "\n\n---\nEscribe *inicio* para volver al inicio\n"
+Para desactivar hint en un tenant:
+
+    "navigation_hint": ""
+Si usas flows/restaurant_flow copy.json como flujo activo (FLOWS_PATH), mismo cambio ahí.
+
+Paso 3 — config/bot_config.py
+3a. Borra líneas 13–18 (NAV_HINT = ...) y línea 18 (NAVIGATION_HINT_ENABLED = True).
+
+Queda así el bloque superior:
+
+GLOBAL_COMMANDS = frozenset({"menu", "pedido", "reservar", "inicio", "cancelar"})
+CANCEL_MESSAGE_DEFAULT = get_prompt(
+    "cancel_message",
+    "Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.",
+)
+3b. Comentario guía (líneas 37–41), actualiza:
+
+# -----------------------------------------------------------------------------
+# GUÍA RÁPIDA
+# - Entrada: FLOWS_PATH en .env o flows/restaurant_flow.json bajo final_system/.
+# - Salida: FLOWS_PATH, RESTAURANT_NAME para flow_engine.
+# - navigation_hint vive en meta del JSON del flujo (multi-tenant).
+# - El dueño edita textos en Flutter; flujo JSON/BD en fases posteriores.
+# -----------------------------------------------------------------------------
+Paso 4 — chatbot/app/config.py
+4a. Borra línea 26:
+
+NAV_HINT = bot_config.NAV_HINT
+4b. En __all__, quita "NAV_HINT", (línea 50).
+
+Paso 5 — scripts/validate_flow.py
+Líneas 128–130, reemplaza el loop Fase 3:
+
+    for key in PHASE3_META_KEYS:
+        if key == "navigation_hint":
+            if key not in meta or meta.get(key) is None:
+                errors.append(f"meta[{key!r}] ausente (requerido Fase 3)")
+            continue
+        if key not in meta or meta.get(key) in (None, ""):
+            errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 3)")
+"" válido para navigation_hint. active_order_command_targets sigue obligatorio y no vacío.
+
+Paso 6 — Verificar
+Desde raíz del repo:
+
+python scripts/validate_flow.py
+python validar_arquitectura.py
+pytest
+Buscar restos de NAV_HINT:
+
+rg NAV_HINT --glob "*.py"
+Debe dar 0 en .py.
+
+Paso 7 — Reiniciar bot
+Si .\start.ps1 corre, reinicia para cargar cambios.
+
+Checklist rápido
+#	Archivo	Qué hace
+1
+flow_engine.py
+Lee hint de meta, sin constante global
+2
+restaurant_flow.json
+Texto del hint (o "")
+3
+bot_config.py
+Elimina NAV_HINT muerto
+4
+app/config.py
+Quita re-export
+5
+validate_flow.py
+Permite navigation_hint: ""
+Comportamiento esperado
+Nodo sin suppress_navigation + hint con texto → se concatena al mensaje.
+"navigation_hint": "" → ningún hint en todo el flujo.
+Nodo con "suppress_navigation": true → sin hint en ese nodo (p. ej. inicio/home).
+Si algo falla en validadores o tests, pega el error y lo vemos.
+
+
+
+
+
+##########################################
