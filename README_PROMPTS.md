@@ -1,4 +1,4 @@
-## v1.43 Se añadieron validaciones para la arquitectura, se comienza el desarrollo de los menús del chatbot, las mejoras arquitectonicas restantes se irán debugeando más adelante
+## v1.44 - guía para finalizar correctamente arquitectura 
 
 
 
@@ -4580,4 +4580,112 @@ Se arregló consistencia en el json del flujo /flows
 
 ############################################################
 ## v1.43 Se añadieron validaciones para la arquitectura, se comienza el desarrollo de los menús del chatbot, las mejoras arquitectonicas restantes se irán debugeando más adelante
+
+
+
+
+
+
+########################################################
+## v1.44
+
+Orden senior — producto primero, arquitectura solo como guardrail.
+
+Fase 0 — Línea base (1 sesión, no features)
+Congelar estado “sano” antes de tocar menú:
+
+Correr y guardar resultado:
+python validar_arquitectura.py
+python pruebas/validar_json.py
+python pruebas/validar_motor_python.py
+Probar un mensaje real: hola → menu → pedido con menú actual.
+Anotar qué falla hoy (no arreglar motor salvo que bloquee el flujo).
+Criterio de salida: sabes qué funciona y qué no, sin nuevos validadores.
+
+Fase 1 — Fuente de verdad del menú (DB)
+El bot debe leer menú de BD por business_id, no de JSON hardcodeado ni cache viejo.
+
+Un negocio de prueba con business_id claro.
+Menú real en BD: categorías, nombres, precios, disponible.
+Ver cadena: PUT /whatsbot/business/menu → list_menu_items → business_context → MenuService.get_available_menu().
+Criterio de salida: cambias un precio en API/BD y format_menu() en WhatsApp refleja el cambio sin redeploy.
+
+Fase 2 — Edición para usuario final (app o API)
+No perfeccionar editor; que el dueño pueda operar solo.
+
+Flujo dueño: login JWT → ver menú → editar → guardar.
+Campos mínimos: nombre, precio, categoría, disponible on/off.
+Validación servidor: precio > 0, nombre no vacío, sin duplicados absurdos.
+Criterio de salida: dueño edita menú sin tocar código ni SQL manual.
+
+Fase 3 — Flujo conversacional con menú real
+Aquí validas producto, no arquitectura.
+
+menu → lista coincide con BD.
+pedido + texto natural → parser reconoce ítems del menú cargado.
+Carrito, confirmación, domicilio/recoger con ítems reales.
+Casos borde: ítem no disponible, nombre ambiguo, menú vacío.
+Criterio de salida: pedido completo end-to-end con menú editado en Fase 2.
+
+Fase 4 — Copy y presentación (capa config, no motor)
+Títulos/formato del menú (*Nuestro menú*, etc.) → prompts o template configurable, no FlowEngine.
+Mensajes del flujo (capture_order_empty, etc.) → meta del JSON o PUT /whatsbot/business/prompts.
+Solo si hace falta: ajustar flows/restaurant_flow.json (nodos/transiciones), no Python.
+Criterio de salida: dueño puede cambiar textos sin tocar flow_engine.py.
+
+Fase 5 — Multi-tenant de verdad
+Con un menú estable en un negocio:
+
+Segundo business_id con menú distinto.
+Mismo flujo WhatsApp: cada número/negocio ve su menú.
+App: JWT scoped — negocio A no edita menú de B.
+Criterio de salida: dos restaurantes, dos menús, sin cruce.
+
+Fase 6 — Hardening ligero (solo lo que duele)
+No refactor grande. Solo si bloquea producción:
+
+Prioridad	Qué	Cuándo
+Alta
+on_order_pending fuera de _action_save_order
+Si notificaciones fallan o acoplan motor
+Media
+flow == "order" hardcodeado
+Si añades flujos distintos por negocio
+Baja
+CC de _process_message_body
+Solo si vas a tocar routing
+Baja
+admin_service._resolve_e164_digits privado
+Al tocar guardado de pedidos
+Regla: deuda del motor se paga en el mismo PR que toca esa zona.
+
+Fase 7 — Checklist pre-“listo para cliente”
+
+ Dueño edita menú desde app
+
+ WhatsApp muestra menú actualizado en < 1 min
+
+ Pedido con ítems reales funciona
+
+ Ítem disponible: false no se ofrece / no se parsea
+
+ Validadores en verde (o FAIL documentados y aceptados)
+
+ Un walkthrough grabado o escrito para el dueño
+Qué NO hacer ahora
+Nuevos validadores o más ARCHITECTURE_LAW
+Refactor de FlowEngine “por limpieza”
+Sheets, segundo sistema de menú, abstracciones nuevas
+Flutter perfecto antes de que BD → WhatsApp funcione
+Regla de un senior
+Primero el circuito cerrado: BD → bot → pedido.
+Después la UX bonita.
+Arquitectura = tests que corren; no un fin en sí.
+
+Si solo una cosa esta semana: Fase 1 + Fase 3 — menú real en BD y un pedido completo por WhatsApp. Todo lo demás orbita eso.
+
+
+
+
+###########################################
 
