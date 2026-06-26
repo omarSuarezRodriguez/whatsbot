@@ -375,46 +375,58 @@ class FlowEngine:
             current_step,
         )
 
-    def _process_message_body(
+    def _try_missing_node_recovery(
+        self, wa_id: str, node: Optional[Dict[str, Any]]
+    ) -> Optional[str]:
+        if node:
+            return None
+        self.state_manager.reset(wa_id)
+        return self._goto_ref(wa_id, self._start_ref())
+
+    def _try_node_options(
         self,
         wa_id: str,
-        text: str,
         normalized: str,
-        state: Dict[str, Any],
         current_step: str,
-    ) -> str:
-        abandon = self._handle_abandon_confirm(wa_id, text, state)
-        if abandon is not None:
-            return abandon
-
-        node = self.nodes.get(current_step)
-        if not node:
-            self.state_manager.reset(wa_id)
-            return self._goto_ref(wa_id, self._start_ref())
-
+        node: Dict[str, Any],
+        state: Dict[str, Any],
+    ) -> Optional[str]:
         options = node.get("options", {})
-        if normalized in options:
-            next_ref = options[normalized]
-            if self._should_self_loop_fallback(next_ref, current_step, node, state):
-                return self._append_navigation(self._node_fallback_message(node), node)
-            return self._goto_ref(
-                wa_id,
-                next_ref,
-                current_flow=state.get("flow", "idle"),
-            )
+        if normalized not in options:
+            return None
+        next_ref = options[normalized]
+        if self._should_self_loop_fallback(next_ref, current_step, node, state):
+            return self._append_navigation(self._node_fallback_message(node), node)
+        return self._goto_ref(
+            wa_id,
+            next_ref,
+            current_flow=state.get("flow", "idle"),
+        )
 
-        if normalized in self.global_commands:
-            response = self._resolve_global_command(
-                wa_id, normalized, current_step, state
-            )
-            if response:
-                return response
+    def _try_normalized_global_command(
+        self,
+        wa_id: str,
+        normalized: str,
+        current_step: str,
+        state: Dict[str, Any],
+    ) -> Optional[str]:
+        if normalized not in self.global_commands:
+            return None
+        response = self._resolve_global_command(
+            wa_id, normalized, current_step, state
+        )
+        if response:
+            return response
+        return None
 
-        menu_tokens = self.menu_service.menu_literal_tokens()
-        intent = infer_user_intent(text, menu_tokens=menu_tokens)
-        intent_command = intent.get("command")
-        if intent_command in {"pedido", "menu", "reservar"} and is_confirmation(text):
-            intent_command = None
+    def _try_intent_global_command(
+        self,
+        wa_id: str,
+        intent_command: Optional[str],
+        current_step: str,
+        state: Dict[str, Any],
+        intent: Dict[str, Any],
+    ) -> Optional[str]:
         if (
             intent_command
             and intent_command in self.global_commands
@@ -425,7 +437,18 @@ class FlowEngine:
             )
             if response:
                 return response
+        return None
 
+    def _try_product_intercept(
+        self,
+        wa_id: str,
+        text: str,
+        node: Dict[str, Any],
+        current_step: str,
+        state: Dict[str, Any],
+        intent_command: Optional[str],
+        intent: Dict[str, Any],
+    ) -> Optional[str]:
         if (
             not intent_command
             and intent.get("has_products")
@@ -436,17 +459,82 @@ class FlowEngine:
             )
             if response:
                 return self.process_message(wa_id, text)
+        return None
 
-        if node.get("order_greeting_on_greeting") and is_greeting(text):
-            greeting = self._resolve_ux_text("order_greeting_while_ordering", node)
-            return self._append_navigation(greeting, node)
+    def _try_order_greeting(self, text: str, node: Dict[str, Any]) -> Optional[str]:
+        if not (node.get("order_greeting_on_greeting") and is_greeting(text)):
+            return None
+        greeting = self._resolve_ux_text("order_greeting_while_ordering", node)
+        return self._append_navigation(greeting, node)
 
-        if node.get("input_mode") == "free_text":
-            step_response = self._execute_input_action(
-                wa_id, text, node, current_step, state
-            )
-            if step_response is not None:
-                return step_response
+    def _try_free_text_input(
+        self,
+        wa_id: str,
+        text: str,
+        node: Dict[str, Any],
+        current_step: str,
+        state: Dict[str, Any],
+    ) -> Optional[str]:
+        if node.get("input_mode") != "free_text":
+            return None
+        return self._execute_input_action(wa_id, text, node, current_step, state)
+
+    def _process_message_body(
+        self,
+        wa_id: str,
+        text: str,
+        normalized: str,
+        state: Dict[str, Any],
+        current_step: str,
+    ) -> str:
+        response = self._handle_abandon_confirm(wa_id, text, state)
+        if response is not None:
+            return response
+
+        node = self.nodes.get(current_step)
+        response = self._try_missing_node_recovery(wa_id, node)
+        if response is not None:
+            return response
+
+        response = self._try_node_options(
+            wa_id, normalized, current_step, node, state
+        )
+        if response is not None:
+            return response
+
+        response = self._try_normalized_global_command(
+            wa_id, normalized, current_step, state
+        )
+        if response is not None:
+            return response
+
+        menu_tokens = self.menu_service.menu_literal_tokens()
+        intent = infer_user_intent(text, menu_tokens=menu_tokens)
+        intent_command = intent.get("command")
+        if intent_command in {"pedido", "menu", "reservar"} and is_confirmation(text):
+            intent_command = None
+
+        response = self._try_intent_global_command(
+            wa_id, intent_command, current_step, state, intent
+        )
+        if response is not None:
+            return response
+
+        response = self._try_product_intercept(
+            wa_id, text, node, current_step, state, intent_command, intent
+        )
+        if response is not None:
+            return response
+
+        response = self._try_order_greeting(text, node)
+        if response is not None:
+            return response
+
+        response = self._try_free_text_input(
+            wa_id, text, node, current_step, state
+        )
+        if response is not None:
+            return response
 
         return self._append_navigation(self._node_fallback_message(node), node)
 

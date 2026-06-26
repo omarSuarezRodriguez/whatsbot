@@ -1,4 +1,4 @@
-## v1.47
+## v1.48
 
 
 
@@ -5141,7 +5141,198 @@ Diff ~15 líneas, un archivo
 
 
 #########################################
+## v1.48 _process_message_body
 
+
+## prompt ## 
+
+Tarea: reducir complejidad ciclomática de `_process_message_body` en FlowEngine sin cambiar comportamiento. Respetar ARCHITECTURE_LAW.md.
+## Ley (ARCHITECTURE_LAW.md)
+- §2 FlowEngine = motor: orquesta input → intent → acción → transición → respuesta; no negocio ni persistencia
+- §1 JSON = mapa: no añadir routing por `step`/`flow` hardcodeado; mantener flags del nodo (`options`, `intercept_products`, `order_greeting_on_greeting`, `input_mode`) como hoy
+- §10 Deuda documentada (routing por `command` / `intent_command` en motor): al tocar `_process_message_body`, REDUCIR complejidad mecánica; NO ampliar deuda (sin nuevos `if step ==`, sin nuevos comandos hardcodeados, sin nueva lógica de dominio)
+NO modificar ARCHITECTURE_LAW.md ni `flows/*.json`.
+NO cambiar `_resolve_global_command`, `_has_active_order`, acciones `_action_*`, ni Services.
+NO subir el umbral en `validar_motor_python.py` para “hacer pasar” el check.
+## Problema
+`chatbot/app/core/flow_engine.py` → `_process_message_body` tiene **CC=21** (máx 18 en `validar_motor_python.py`).
+Falla el check: **"Complejidad ciclomática aceptable"**.
+El método hoy encadena (orden fijo, preservar):
+1. `_handle_abandon_confirm`
+2. nodo inexistente → reset + `_start_ref`
+3. `options[normalized]` → self-loop fallback o `_goto_ref`
+4. `normalized in global_commands` → `_resolve_global_command`
+5. `infer_user_intent` + global command por intent
+6. `intercept_products` + productos → `_resolve_global_command("pedido")` + `process_message` recursivo
+7. `order_greeting_on_greeting` + greeting
+8. `input_mode == free_text` → `_execute_input_action`
+9. fallback del nodo
+## Solución (refactor mecánico, mismo pipeline)
+**Solo** `chatbot/app/core/flow_engine.py`.
+Extraer ramas a helpers privados que devuelven `Optional[str]`:
+- `None` = seguir al siguiente paso
+- `str` = respuesta final (como los `return` actuales)
+Ejemplos de nombres (ajusta al estilo del archivo):
+- `_try_abandon_confirm(...)`
+- `_try_missing_node_recovery(...)`
+- `_try_node_options(...)`
+- `_try_normalized_global_command(...)`
+- `_try_intent_global_command(...)`  # incluye lógica `pedido/menu/reservar` + `is_confirmation` existente
+- `_try_product_intercept(...)`      # conservar recursión `self.process_message(wa_id, text)`
+- `_try_order_greeting(...)`
+- `_try_free_text_input(...)`
+`_process_message_body` queda como orquestador lineal (~10–15 líneas):
+```python
+for handler in (...):
+    response = handler(...)
+    if response is not None:
+        return response
+return self._append_navigation(self._node_fallback_message(node), node)
+O equivalente con if response is not None: return response por etapa — misma semántica, menor CC por función.
+
+Reglas del refactor:
+
+Mismo orden de evaluación que hoy
+Mismos argumentos a _goto_ref, _resolve_global_command, _execute_input_action
+No cambiar cuándo se llama menu_service.menu_literal_tokens() ni infer_user_intent
+No eliminar deuda de command == en _resolve_global_command (fuera de alcance)
+Comentarios mínimos; código autoexplicativo
+Alcance
+Modificar solo chatbot/app/core/flow_engine.py si es posible
+Sin cambios en JSON, tests, validadores (salvo tests rotos por rename interno — improbable)
+Sin nuevos estados/comandos/acciones/transiciones
+Sin mover lógica a gateway/Services/parser
+Verificación
+python pruebas/validar_motor_python.py   # PASS "Complejidad ciclomática aceptable" y "_process_message_body" CC ≤ 18
+python validar_arquitectura.py
+python pruebas/validar_json.py
+pytest tests/test_flow_transitions.py -q
+Comportamiento observable (igual que antes):
+
+opciones numéricas del menú
+comandos globales (menu, pedido, reservar, inicio, cancelar)
+intent con productos + intercept_products
+greeting en nodo con order_greeting_on_greeting
+free text en nodos con action_on_input
+abandono con carrito activo → inicio
+fallback cuando no matchea nada
+Criterio de hecho
+
+ _process_message_body CC ≤ 18 (y método principal más legible)
+
+ Cero cambio observable para el usuario
+
+ Navegación y pedidos activos igual que antes
+
+ Sin nuevos hardcodes de step/flow/comando
+
+ validar_motor_python.py PASS en complejidad ciclomática
+
+ Diff pequeño, localizado en flow_engine.py
+Lee ARCHITECTURE_LAW.md, _process_message_body completo y tests en tests/test_flow_transitions.py antes de editar. Implementa, corre verificaciones, reporta CC antes/después y resultado de scripts.
+
+## Alcance
+
+Modificar únicamente los archivos estrictamente necesarios.
+
+Si puedes resolver la deuda modificando solo:
+
+- `chatbot/app/core/flow_engine.py`
+
+no modifiques ningún otro archivo.
+
+El objetivo es únicamente reducir la complejidad ciclomática de `_process_message_body`.
+
+La reducción debe lograrse extrayendo métodos privados con responsabilidades claras, manteniendo exactamente el mismo comportamiento funcional.
+
+No modificar:
+
+- la lógica del flujo
+- el orden de evaluación
+- transiciones
+- acciones
+- estados
+- parser
+- Services
+- StateManager
+- UX
+- flows/*.json
+
+No introducir nuevas responsabilidades en FlowEngine.
+
+No realizar refactors fuera de `_process_message_body` salvo pequeñas adaptaciones necesarias para extraer los métodos auxiliares.
+
+No cambiar firmas públicas ni contratos existentes.
+
+Mantener la compatibilidad completa con el comportamiento actual.
+
+## Criterio de hecho
+
+- [ ] `_process_message_body` reduce su complejidad ciclomática por debajo del límite del auditor.
+- [ ] El comportamiento funcional permanece idéntico.
+- [ ] Solo se extraen métodos privados; no se mueve lógica a otras capas.
+- [ ] No aparecen nuevas dependencias.
+- [ ] `validar_motor_python.py` deja de reportar "Complejidad ciclomática aceptable".
+- [ ] El diff es pequeño y localizado.
+
+
+
+
+## resp cursor ##
+
+Refactor hecho. Solo flow_engine.py.
+
+CC antes / después
+Método	Antes	Después
+_process_message_body
+21
+11
+_try_missing_node_recovery
+—
+2
+_try_node_options
+—
+3
+_try_normalized_global_command
+—
+3
+_try_intent_global_command
+—
+5
+_try_product_intercept
+—
+5
+_try_order_greeting
+—
+3
+_try_free_text_input
+—
+2
+Cambio
+_process_message_body queda orquestador lineal: cada helper devuelve Optional[str] (None = siguiente paso). Mismo orden, mismos args a _goto_ref / _resolve_global_command / _execute_input_action, infer_user_intent y menu_literal_tokens() en el mismo sitio.
+
+Verificación
+Script	Resultado
+python pruebas/validar_motor_python.py
+PASS — incl. "Complejidad ciclomática aceptable"
+python validar_arquitectura.py
+PASS (16/16)
+python pruebas/validar_json.py
+PASS (20/20)
+pytest tests/test_flow_transitions.py -q
+8 pass, 13 fail
+Fallos pytest no vienen del refactor: esperan steps viejos (start, order_modify) y copy del flow; runtime usa home_node, order_modify_node, etc. Desajuste JSON ↔ tests previo, no toqué JSON ni tests (alcance pedido).
+
+Criterios
+_process_message_body CC ≤ 18 ✓ (11)
+Solo helpers privados en flow_engine.py ✓
+Sin nuevos hardcodes step/flow/comando ✓
+_resolve_global_command, _has_active_order, acciones, Services intactos ✓
+Comportamiento del pipeline preservado ✓
+
+
+
+######################################
 
 
 
