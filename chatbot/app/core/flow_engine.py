@@ -164,9 +164,26 @@ class FlowEngine:
             return message
         return f"{message}{NAV_HINT}"
 
+    def _cart_guard_flows(self) -> frozenset[str]:
+        """Flows inferred from meta.active_order_command_targets; empty meta → no active order."""
+        targets = self.meta.get("active_order_command_targets") or {}
+        flows: set[str] = set()
+        for target in targets.values():
+            if not isinstance(target, str) or "." not in target:
+                continue
+            flow_name, _ = self._parse_ref(target)
+            if flow_name:
+                flows.add(flow_name)
+        return frozenset(flows)
+
     def _has_active_order(self, state: Dict[str, Any]) -> bool:
         cart = state.get("data", {}).get("cart", [])
-        return bool(cart) and state.get("flow") == "order"
+        if not cart:
+            return False
+        guard_flows = self._cart_guard_flows()
+        if not guard_flows:
+            return False
+        return state.get("flow") in guard_flows
 
     def _resolve_ux_text(self, meta_key: str, node: Dict[str, Any]) -> str:
         text = self.meta.get(meta_key)

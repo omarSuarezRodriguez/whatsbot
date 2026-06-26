@@ -1,4 +1,4 @@
-## v1.46
+## v1.47
 
 
 
@@ -5005,8 +5005,142 @@ Criterio de hecho
 
 
  ############################################
+## v1.47 - 
 
- 
+## prompt ##
+
+Tarea: eliminar `flow == "order"` hardcodeado en FlowEngine usando Opción B (derivar del JSON existente, sin nueva clave meta). Respetar ARCHITECTURE_LAW.md.
+## Ley (ARCHITECTURE_LAW.md)
+- §1 JSON = mapa; Python no hardcodea nombres de estado/flow
+- §2 FlowEngine = motor; prohibido `if flow == "order"` y literales de dominio similares
+- §3 Acciones/orquestación delgada; decisión “pedido activo” desde config del flujo + state
+- §10 Al tocar deuda de routing: reducir hardcode, no ampliarlo
+NO modificar ARCHITECTURE_LAW.md ni `flows/*.json` (Opción B no requiere cambios en JSON).
+NO nuevos estados, comandos, acciones ni transiciones.
+NO refactors ajenos ni mover lógica a Services.
+## Problema
+`chatbot/app/core/flow_engine.py`:
+```python
+def _has_active_order(self, state):
+    cart = state.get("data", {}).get("cart", [])
+    return bool(cart) and state.get("flow") == "order"
+Usado en _resolve_global_command (redirect pedido, abandono en inicio, limpieza de carrito).
+
+validar_motor_python.py falla: "Sin estados hardcodeados".
+
+Solución — Opción B
+Derivar flows con carrito activo desde meta.active_order_command_targets (ya en JSON), ej.:
+
+"active_order_command_targets": { "pedido": "order.order_review_node" }
+En flow_engine.py solo:
+
+Helper _cart_guard_flows() -> frozenset[str]:
+
+targets = self.meta.get("active_order_command_targets") or {}
+Por cada target string con ".", tomar prefijo (order.order_review_node → order)
+Ignorar vacíos / sin punto
+Devolver conjunto único
+Reemplazar _has_active_order:
+
+def _has_active_order(self, state: Dict[str, Any]) -> bool:
+    cart = state.get("data", {}).get("cart", [])
+    if not cart:
+        return False
+    guard_flows = self._cart_guard_flows()
+    if not guard_flows:
+        return False
+    return state.get("flow") in guard_flows
+Sin comparar nunca "order", "reservation", "menu", "home" en Python.
+
+Docstring corto: flows inferidos de active_order_command_targets; si meta vacío → no hay pedido activo.
+
+Comportamiento con JSON actual debe ser idéntico al de hoy.
+
+Alcance
+Modificar solo chatbot/app/core/flow_engine.py si es posible.
+Otro archivo solo si indispensable (mínimo, solo esta deuda).
+Sin cambios en flows/*.json.
+Sin cambio observable para el usuario.
+Verificación
+python pruebas/validar_motor_python.py
+python validar_arquitectura.py
+python pruebas/validar_json.py
+pytest tests/test_flow_transitions.py -q
+Casos:
+
+pedido → ítem → pedido → redirect según active_order_command_targets
+carrito activo → inicio → confirmación abandono
+carrito → menu/reservar → carrito se limpia como hoy
+Criterio de hecho
+
+ FlowEngine no compara flow == "order"
+
+ Navegación igual que antes
+
+ Pedidos activos OK
+
+ Sin cambio observable UX
+
+ validar_motor_python PASS en "Sin estados hardcodeados"
+
+ Diff pequeño y localizado
+Lee ARCHITECTURE_LAW.md, _has_active_order, _resolve_global_command y el meta del flow cargado. Implementa, corre verificaciones, reporta resultado.
+
+
+
+## resp cursor ##
+
+Opción B en solo flow_engine.py. Sin flow == "order".
+
+
+flow_engine.py
+Lines 167-186
+    def _cart_guard_flows(self) -> frozenset[str]:
+        """Flows inferred from meta.active_order_command_targets; empty meta → no active order."""
+        targets = self.meta.get("active_order_command_targets") or {}
+        flows: set[str] = set()
+        for target in targets.values():
+            if not isinstance(target, str) or "." not in target:
+                continue
+            flow_name, _ = self._parse_ref(target)
+            if flow_name:
+                flows.add(flow_name)
+        return frozenset(flows)
+    def _has_active_order(self, state: Dict[str, Any]) -> bool:
+        cart = state.get("data", {}).get("cart", [])
+        if not cart:
+            return False
+        guard_flows = self._cart_guard_flows()
+        if not guard_flows:
+            return False
+        return state.get("flow") in guard_flows
+Con JSON actual ("pedido": "order.order_review_node") → guard_flows = frozenset({"order"}). Mismo comportamiento que antes.
+
+Verificación
+Script	Resultado
+validar_arquitectura.py
+PASS (16/16)
+validar_json.py
+PASS (20/20)
+validar_motor_python.py
+"Sin estados hardcodeados" PASS
+pytest tests/test_flow_transitions.py
+8 pass / 13 fail
+validar_motor_python: criterio de tarea cumplido. Queda 1 error previo: _process_message_body CC=21 (máx 18), no tocado.
+
+pytest: fallos por nombres de step (order_review_node vs order_review, home_node vs start) y copy UX — no por este cambio.
+
+Smoke test _cart_guard_flows + _has_active_order: OK.
+
+Criterios
+FlowEngine no compara flow == "order"
+Sin cambios en flows/*.json
+_resolve_global_command intacto; solo usa _has_active_order derivado de meta
+Diff ~15 líneas, un archivo
+
+
+
+#########################################
 
 
 
