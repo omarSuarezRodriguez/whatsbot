@@ -1,4 +1,4 @@
-## v1.48
+## v1.49
 
 
 
@@ -5333,8 +5333,259 @@ Comportamiento del pipeline preservado ✓
 
 
 ######################################
+## v1.50 - auditoria
+
+
+
+## prompt ##
+
+Tarea: AUDITORÍA ARQUITECTÓNICA INTEGRAL del repositorio whatsbot según ARCHITECTURE_LAW.md.
+## Modo de trabajo (obligatorio)
+- **SOLO AUDITORÍA — READ ONLY**
+- NO implementar fixes
+- NO modificar código, tests, JSON, validadores ni ARCHITECTURE_LAW.md
+- NO crear commits ni PRs
+- Si detectas problemas, repórtalos; no los corrijas en esta tarea
+## Fuente de verdad
+Prioridad estricta:
+1. `ARCHITECTURE_LAW.md` (raíz del repo) — criterio legal de la auditoría
+2. Código runtime real: `chatbot/`, `api/`, `services/`, `flows/`, `models/`
+3. Validadores existentes (evidencia automatizada, no sustituyen la ley)
+4. Documentación secundaria (README, tutoriales) — solo contexto, no anula la ley
+## Marco legal a auditar
+Evaluar cumplimiento de **cada invariante** y secciones relevantes:
+| ID | Sección ARCHITECTURE_LAW | Tema |
+|----|--------------------------|------|
+| L0 | Decisión central | Twilio → API → gateway → business_scope → FlowEngine → StateManager → Services → DB |
+| L1 | §1 JSON es el mapa | estados, nodos, transiciones, comandos, copy en JSON; sin mapa duplicado en Python |
+| L2 | §2 Python es el motor | FlowEngine orquesta; sin negocio/BD/copy largo/tenant en motor |
+| L3 | §3 Acciones delgadas | `_action_*` → Service + StateManager → `(mensaje, outcome)` |
+| L4 | §4 Services = negocio | pedidos, menú, reservas, persistencia, notificaciones en Services |
+| L5 | §5 StateManager | única mutación de flow/step/data conversacional |
+| L6 | §6 Multi-tenant | business_scope / business_id; sin `if business_id ==` en motor |
+| L7 | §7 Gateway único | WhatsApp solo vía `gateway.handle_incoming_message` |
+| L8 | §8 Una fuente de verdad | navegación JSON; global_commands en meta; sin decisiones duplicadas |
+| L9 | §9 Cambios incrementales | (evaluar estado actual del código, no historial git salvo que aporte evidencia) |
+| L10 | §10 Deuda aceptada | deuda documentada no cuenta como incumplimiento si no creció |
+## Clasificación de hallazgos (obligatoria)
+Cada hallazgo va en **exactamente una** categoría:
+### ✅ CUMPLIMIENTO
+Regla de la ley satisfecha. Incluir evidencia concreta (archivo, símbolo, línea o resultado de validador).
+### ⚠️ OBSERVACIÓN
+- Deuda **documentada** en §10 (routing por command, parser grande, legacy admin, etc.)
+- WARNING de validadores sin violar invariante
+- Riesgo futuro o ambigüedad — **no** es violación de la ley hoy
+- Duplicación config/BD/JSON dentro de lo tolerado por §8 como semillas vs runtime
+### ❌ INCUMPLIMIENTO
+Violación **clara** de un invariante. Obligatorio en cada uno:
+- **Regla citada** (ej. «§2 Python es el motor — No debe escribir directamente en BD»)
+- **Evidencia** (`ruta:linea` o fragmento verificable)
+- **Por qué rompe la ley** (1–2 frases)
+- **Capa afectada** (JSON / Motor / Services / StateManager / Gateway / Multi-tenant)
+**Prohibido** reportar como incumplimiento:
+- Deuda listada explícitamente en §10 sin evidencia de que **creció**
+- Preferencias de estilo no escritas en ARCHITECTURE_LAW.md
+- Hipótesis sin evidencia en código
+- Fallos de validador que sean bug del validador (marcar como observación aparte)
+## Áreas de inspección manual (además de validadores)
+Revisar evidencia en código para:
+**Motor (`chatbot/app/core/flow_engine.py`)**
+- hardcode `step`, `flow`, rutas, comandos fuera de deuda §10
+- copy UX largo / DOMAIN strings
+- imports prohibidos (models, sqlalchemy, SessionLocal, persistencia)
+- acciones con persistencia, notificaciones o navegación directa
+- APIs privadas `._*` de otros módulos
+- CC/tamaño solo como observación salvo que contradiga §2/§3
+**JSON (`flows/*.json`)**
+- `states` / `meta.global_commands` / transiciones / acciones
+- coherencia con registro `_actions` del motor
+**Gateway (`chatbot/gateway.py`)**
+- único entrypoint; `business_scope`; delegación a FlowEngine
+**API (`api/routes/`)**
+- webhook usa gateway, no FlowEngine directo
+- rutas con `business_id` / JWT scope
+**StateManager (`chatbot/app/core/state_manager.py`)**
+- mutaciones centralizadas; scope multi-tenant en keys
+**Services (`chatbot/app/services/`, `services/`)**
+- negocio y persistencia aquí, no en motor
+- `GLOBAL_COMMAND_ROUTES` no como routing runtime paralelo
+**Multi-tenant (`chatbot/business_context.py`, loaders)**
+- menú/prompts/intents por tenant bajo scope
+**Capas cruzadas**
+- dependencias circulares motor ↔ gateway ↔ parser
+- segunda fuente de verdad para navegación o comandos globales
+## Verificaciones automatizadas (ejecutar y capturar resultado)
+Desde raíz del repo:
+```bash
+python validar_arquitectura.py
+python pruebas/validar_json.py
+python pruebas/validar_motor_python.py
+Si existen y son ejecutables sin romper el entorno, añadir como evidencia complementaria (no bloquean el informe si fallan por entorno):
+
+python scripts/validate_flow.py
+pytest tests/test_flow_transitions.py -q
+Para cada comando reportar: exit code, resumen PASS/FAIL, errores textuales relevantes.
+
+Los validadores confirman hallazgos; un PASS no elimina la obligación de revisar manualmente contra la ley.
+
+Mapa de auditoría por capa (checklist interno)
+Recorrer y documentar estado (Cumple / Observación / Incumple) por capa:
+
+JSON mapa — L1, L8
+Python motor — L2, L3
+StateManager — L5
+Services — L4
+Multi-tenant — L6
+Gateway + API — L7
+Fuentes de verdad — L8
+Deuda §10 — L10 (¿estable, reducida o crecida?)
+Formato de entrega del informe
+Entregar un único informe markdown con esta estructura exacta:
+
+Auditoría arquitectónica — whatsbot
+Fecha: YYYY-MM-DD
+Ley aplicada: ARCHITECTURE_LAW.md
+Modo: solo lectura, sin cambios en repo
+
+1. Resumen ejecutivo
+Veredicto global: CONFORME | CONFORME CON OBSERVACIONES | NO CONFORME
+Conteos: X cumplimientos, Y observaciones, Z incumplimientos
+Top 3 riesgos (si los hay)
+Validadores: tabla comando | exit | PASS/FAIL | nota
+2. Cadena oficial (L0)
+Estado del pipeline Twilio → API → gateway → business_scope → FlowEngine → StateManager → Services → DB
+(Cumple / Observación / Incumple + evidencia breve)
+
+3. Matriz de invariantes
+ID	Invariante	Veredicto	Evidencia principal
+L1
+JSON es el mapa
+L2
+Python es el motor
+…
+…
+Veredicto por fila: CUMPLE | OBSERVACIÓN | INCUMPLE
+
+4. Hallazgos detallados
+4.1 ✅ Cumplimientos
+Lista con evidencia (máx. lo relevante; no rellenar obviedades).
+
+4.2 ⚠️ Observaciones
+Incluir deuda §10 conocida y warnings de validadores. Indicar si la deuda está estable o creció (con evidencia si creció).
+
+4.3 ❌ Incumplimientos
+Formato fijo por ítem:
+
+ID: INC-001
+Regla: §X — texto corto de la regla
+Severidad: Alta | Media | Baja
+Ubicación: ruta:línea
+Evidencia: ...
+Impacto: ...
+Alternativa alineada con la ley: ...
+5. Capas (vista consolidada)
+Capa	Cumple	Observaciones	Incumplimientos
+JSON
+Motor
+StateManager
+Services
+Gateway/API
+Multi-tenant
+6. Deuda §10 — balance
+Para cada ítem de §10: presente / ausente / creció / se redujo + nota.
+
+7. Checklist de revisión (ARCHITECTURE_LAW)
+Responder sí/no con nota breve a cada pregunta del checklist del documento (§ Checklist de revisión).
+
+8. Conclusión y priorización
+Solo recomendaciones (sin implementar), ordenadas:
+
+P0 — rompe invariante / bloquea multi-tenant / riesgo datos
+P1 — deuda que conviene pagar pronto
+P2 — mejoras opcionales
+9. Límites de la auditoría
+Qué no se revisó, comandos que no corrieron, incertidumbres.
+
+Criterios de calidad del informe
+
+ Cada ❌ INCUMPLIMIENTO cita regla exacta de ARCHITECTURE_LAW.md
+
+ Cada ❌ tiene evidencia verificable (ruta:línea o salida de validador)
+
+ Deuda §10 no inflada como incumplimientos
+
+ Separación clara ✅ / ⚠️ / ❌
+
+ Sin propuestas de código implementado (solo alternativas arquitectónicas en texto)
+
+ Validadores ejecutados y resultados reportados
+
+ Informe accionable: un desarrollador puede priorizar sin re-auditar todo
+Alcance
+Auditar estado actual del working tree
+NO comparar con ramas remotas salvo que ayude a detectar deuda creciente
+NO modificar ningún archivo
+Comienza leyendo ARCHITECTURE_LAW.md completo, explora el código, ejecuta los validadores, produce el informe en el formato indicado. Entrega solo el informe, no código ni fixes.
+Guardar auditoria en /pruebas/auditorias/auditoria_26_06_2026_(hora).md
+Mostrar resultados al finalizar auditoria 
+
+
+## resp cursor ##
+
+Auditoría arquitectónica — whatsbot
+Veredicto: CONFORME CON OBSERVACIONES
+Informe: pruebas/auditorias/auditoria_26_06_2026_0155.md
+
+Resumen
+Métrica	Valor
+Cumplimientos
+18
+Observaciones
+14
+Incumplimientos
+0
+Cadena L0 intacta: Twilio → api/routes/whatsapp.py → gateway → business_scope → FlowEngine → StateManager → Services → DB.
+
+Validadores
+Comando	Exit	Resultado
+python validar_arquitectura.py
+0
+PASS 16/16 (10 warnings deuda §10)
+python pruebas/validar_json.py
+0
+PASS 20/20 (2 warnings)
+python pruebas/validar_motor_python.py
+0
+PASS 31/31 (9 warnings)
+python scripts/validate_flow.py
+0
+PASS
+pytest tests/test_flow_transitions.py -q
+1
+FAIL 8/21 — drift start vs home_node, no violación ley
+scripts/validate_architecture.py no existe; equivalente = validar_arquitectura.py.
+
+Invariantes (L1–L10)
+L1–L7, L9: CUMPLE
+L8, L10: OBSERVACIÓN — deuda §10 estable, sin crecimiento
+Top 3 riesgos
+Routing por command en motor (flow_engine.py:266-515) — deuda §10, warnings estables
+Tests desalineados con JSON actual — 13 fallos ocultan regresiones
+Flujo JSON global + estado en data/user_states.json — multi-tenant parcial en mapa/estado
+Deuda §10
+Presente y estable: flujo global, acciones en motor, parser ~2894 líneas, admin legacy, estado local, prompts triple fuente, nombres legacy, routing por command.
+
+Priorización (solo recomendaciones)
+Prioridad	Acción
+P0
+Ninguno
+P1
+Migrar routing motor → JSON; alinear tests; mover validate_reservation_slot a ReservationService
+P2
+Flujo por tenant; estado en BD; quitar duplicación webhook/gateway
+Modo read-only respetado — cero cambios en repo.
 
 
 
 
-
+###############################################
