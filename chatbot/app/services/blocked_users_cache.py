@@ -63,15 +63,15 @@ class BlockedUsersCache:
         logger.debug("Blocked users cache refreshed: %d user(s)", len(blocked))
 
     def is_blocked(self, wa_id: str) -> bool:
-        normalized = self.admin_service._resolve_e164_digits(wa_id) or wa_id
+        normalized = self.admin_service.normalize_wa_id_e164(wa_id) or wa_id
         with self._lock:
             for blocked_id in self._blocked:
-                if self.admin_service._phones_match(normalized, blocked_id):
+                if self.admin_service.phones_match(normalized, blocked_id):
                     return True
         return False
 
     def apply_local(self, wa_id: str, blocked: bool) -> None:
-        normalized = self.admin_service._resolve_e164_digits(wa_id) or wa_id
+        normalized = self.admin_service.normalize_wa_id_e164(wa_id) or wa_id
         with self._lock:
             if blocked:
                 self._blocked.add(normalized)
@@ -79,7 +79,7 @@ class BlockedUsersCache:
             self._blocked = {
                 bid
                 for bid in self._blocked
-                if not self.admin_service._phones_match(bid, normalized)
+                if not self.admin_service.phones_match(bid, normalized)
             }
 
     def count(self) -> int:

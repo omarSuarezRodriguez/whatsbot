@@ -174,6 +174,11 @@ class AdminService:
         return digits
 
     @classmethod
+    def normalize_wa_id_e164(cls, number: str) -> str:
+        """Digits-only E.164 normalization for a wa_id/phone string."""
+        return cls._resolve_e164_digits(number)
+
+    @classmethod
     def canonical_wa_id(cls, wa_id: str, from_number: str = "") -> str:
         """Identidad del cliente: E.164 según país real (CO +57, Malta +356, etc.)."""
         wa_digits = cls._normalize_phone(wa_id)
@@ -204,6 +209,10 @@ class AdminService:
 
     @staticmethod
     def _phones_match(a: str, b: str) -> bool:
+        return AdminService.phones_match(a, b)
+
+    @staticmethod
+    def phones_match(a: str, b: str) -> bool:
         normalized_a = AdminService._normalize_phone(a)
         normalized_b = AdminService._normalize_phone(b)
         if not normalized_a or not normalized_b:

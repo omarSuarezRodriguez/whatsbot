@@ -1,4 +1,4 @@
-## v1.45
+## v1.46
 
 
 
@@ -4688,7 +4688,7 @@ Si solo una cosa esta semana: Fase 1 + Fase 3 — menú real en BD y un pedido c
 
 
 ###########################################
-## v1.45 
+## v1.45 - on_order_pending solved
 
 
 
@@ -4845,6 +4845,168 @@ FlowEngine._action_save_order → OrderService.save_order → DB + notify_admin_
 
 
 #########################################
+## v1.46 _resolve_e164_digits solved
+
+
+
+## prompt ##
+
+Arregla el uso de `admin_service._resolve_e164_digits` (API privada) respetando ARCHITECTURE_LAW.md.
+
+## Ley aplicable
+
+- §2 FlowEngine = motor; no detalles de implementación de otros módulos
+- §3 Acciones delgadas: leer state → llamar Service → patch StateManager → `(mensaje, outcome)`
+- §4 Negocio/identidad cliente en Services (pedidos, usuarios)
+- §6 Multi-tenant: identificadores consistentes bajo `business_scope`
+- §10 Al tocar deuda: reducir acoplamiento, no ampliarlo
+
+NO modificar ARCHITECTURE_LAW.md ni flows/*.json.
+NO llamar métodos `._*` privados desde FlowEngine ni desde otros Services.
+
+## Problema
+
+`validar_motor_python.py` fallaba porque `_action_save_order` llamaba:
+`self.admin_service._resolve_e164_digits(wa_id)`
+
+Eso acopla el motor a implementación interna de AdminService (admin ≠ identidad de cliente en pedidos).
+
+Nota: si ya quitaste esa línea y pasas `wa_id` crudo, verifica que la normalización no se perdió en el camino a BD.
+
+## Estado actual del repo (revisar antes de editar)
+
+- `chatbot/gateway.py` ya hace `admin_service.canonical_wa_id(wa_id, from_number)` antes de `process_message` → el motor suele recibir wa_id canónico
+- `AdminService` tiene API pública `canonical_wa_id()`; `_resolve_e164_digits` es privado
+- `chatbot/app/services/order_service.py` → `save_order` persiste `wa_id` tal cual llega
+- `blocked_users_cache.py` también usa `_resolve_e164_digits` (deuda relacionada; arreglar solo si es trivial en el mismo diff)
+
+## Objetivo
+
+Identidad de cliente para pedidos normalizada en capa Service/util pública, nunca vía `._resolve_e164_digits` desde FlowEngine.
+
+## Solución recomendada (diff mínimo, elige la más limpia)
+
+### Opción A — si gateway ya canonicaliza (preferida si basta)
+
+1. **flow_engine.py** — `_action_save_order`: pasar `wa_id` sin normalizar (sin admin_service)
+2. Documentar en `save_order` docstring: recibe wa_id ya canónico vía gateway
+3. Confirmar E2E: mismo cliente no genera dos filas por formato distinto de teléfono
+
+### Opción B — defensa en OrderService (si quieres garantía en persistencia)
+
+1. Añadir método **público** de normalización, en UN solo sitio:
+   - `user_service.normalize_wa_id(wa_id: str) -> str`, o
+   - `app/utils/phone_ids.py` → `normalize_wa_id_e164(wa_id: str) -> str`
+   - Implementación: reutilizar lógica existente (extraer de `AdminService._resolve_e164_digits` o delegar a `AdminService.canonical_wa_id(wa_id)` sin exponer `._*`)
+2. **order_service.save_order**: `stored_wa = normalize...(wa_id)` antes de `create_order`
+3. **flow_engine**: solo `order_service.save_order(wa_id, ...)` — cero lógica de teléfono
+
+### No hacer
+
+- Llamar `admin_service._resolve_e164_digits` desde FlowEngine
+- Meter normalización de teléfono en FlowEngine
+- Duplicar regex/lógica E.164 en el motor
+- Refactor masivo de AdminService salvo extraer 1 helper público compartido
+
+## Archivos probables
+
+- `chatbot/app/core/flow_engine.py` (confirmar sin `._resolve_e164_digits`)
+- `chatbot/app/services/order_service.py` (si Opción B)
+- `chatbot/app/services/user_service.py` o `chatbot/app/utils/phone_ids.py` (helper público)
+- Opcional: `chatbot/app/services/blocked_users_cache.py` → usar mismo helper público
+
+## Verificación
+
+```bash
+python pruebas/validar_motor_python.py   # PASS "Sin dependencias de implementación"
+python validar_arquitectura.py
+pytest tests/test_flow_transitions.py tests/test_whatsbot_api.py -q
+
+## Alcance
+
+Modificar únicamente los archivos estrictamente necesarios.
+
+Si puedes resolver la deuda cambiando solo:
+
+- `chatbot/app/core/flow_engine.py`
+- `chatbot/app/services/admin_service.py`
+
+no modifiques ningún otro archivo.
+
+Si es necesario exponer un método público para reemplazar `_resolve_e164_digits`,
+haz el cambio mínimo indispensable sin alterar la lógica existente.
+
+No mover responsabilidades entre servicios ni realizar refactors no relacionados.
+
+No cambiar el comportamiento funcional del sistema: únicamente sustituir el uso de la API privada por una interfaz pública.
+
+## Criterio de hecho
+
+- [ ] FlowEngine no llama ningún método cuyo nombre comience por `_`
+- [ ] La normalización del wa_id sigue funcionando igual que antes
+- [ ] No cambia el comportamiento observable del flujo
+- [ ] Se elimina la dependencia de implementación detectada por `validar_motor_python.py`
+- [ ] El diff es pequeño y localizado
+
+
+## resp cursor ##
+
+
+Estado: fix principal ya estaba en flow_engine; completé capa pública y deuda colateral.
+
+FlowEngine (Opción A)
+_action_save_order ya pasa wa_id directo a order_service.save_order — sin admin_service._resolve_e164_digits:
+
+
+flow_engine.py
+Lines 617-623
+        order_id, total = self.order_service.save_order(
+            wa_id,
+            cart,
+            customer_name=customer_name,
+            address=address,
+            delivery_type=delivery_type,
+        )
+Normalización E2E
+gateway.py → canonical_wa_id(wa_id, from_number) antes de process_message. Motor recibe wa_id canónico; save_order persiste tal cual.
+
+Cambios hechos
+admin_service.py — API pública normalize_wa_id_e164() y phones_match() (delegan a lógica privada existente, sin cambiar comportamiento).
+order_service.py — docstring: wa_id esperado canónico vía gateway.
+blocked_users_cache.py — dejó de llamar ._resolve_e164_digits / ._phones_match.
+Verificación
+Check	Resultado
+validar_motor_python.py → "Sin dependencias de implementación"
+PASS
+"Acciones sin efectos colaterales indebidos"
+PASS
+validar_arquitectura.py
+PASS
+pytest flow/API
+fallos preexistentes (PIN, step names) — no relacionados
+Criterio de hecho
+
+ FlowEngine no llama métodos ._* de Services
+
+ Normalización igual (gateway + API pública en AdminService)
+
+ Comportamiento observable sin cambio
+
+ Deuda _resolve_e164_digits en motor eliminada
+
+ Diff pequeño y localizado
+
+
+
+
+
+
+
+
+
+ ############################################
+
+ 
 
 
 

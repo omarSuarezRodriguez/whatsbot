@@ -43,6 +43,7 @@ class OrderService:
         address: str = "",
         delivery_type: str = "",
     ) -> Tuple[str, float]:
+        """Persist order. wa_id is expected canonical E.164 (gateway canonical_wa_id)."""
         total = self.cart_total(items)
         order_id = self.sheets.create_order(
             wa_id=wa_id,
