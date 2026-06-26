@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from app.config import FLOWS_PATH, NAV_HINT, RESTAURANT_NAME
+from app.config import FLOWS_PATH, RESTAURANT_NAME
 from app.core.state_manager import StateManager
 from app.services.admin_service import AdminService
 from app.services.menu_service import MenuService
@@ -158,11 +158,14 @@ class FlowEngine:
         ).strip()
 
     def _append_navigation(self, message: str, node: Dict[str, Any]) -> str:
-        if not self.meta.get("navigation_hint", True):
-            return message
         if node.get("suppress_navigation"):
             return message
-        return f"{message}{NAV_HINT}"
+        hint = self.meta.get("navigation_hint", "")
+        if not hint:
+            return message
+        return f"{message}{hint}"
+
+
 
     def _cart_guard_flows(self) -> frozenset[str]:
         """Flows inferred from meta.active_order_command_targets; empty meta → no active order."""

@@ -1,4 +1,4 @@
-## v1.53 - Pendientes para lanzar App 
+## v1.54 - 1a y 1b listos
 
 
 
@@ -5816,3 +5816,5 @@ Si algo falla en validadores o tests, pega el error y lo vemos.
 
 
 ##########################################
+## v1.54 - 1a y 1b listos
+
