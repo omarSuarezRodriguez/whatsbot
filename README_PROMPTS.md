@@ -1,4 +1,4 @@
-## v1.44 - guía para finalizar correctamente arquitectura 
+## v1.45
 
 
 
@@ -4587,7 +4587,7 @@ Se arregló consistencia en el json del flujo /flows
 
 
 ########################################################
-## v1.44
+## v1.44 - guía para finalizar correctamente arquitectura 
 
 Orden senior — producto primero, arquitectura solo como guardrail.
 
@@ -4688,4 +4688,166 @@ Si solo una cosa esta semana: Fase 1 + Fase 3 — menú real en BD y un pedido c
 
 
 ###########################################
+## v1.45 
+
+
+
+## prompt ##
+
+Arregla la deuda `on_order_pending` en chatbot/app/core/flow_engine.py FlowEngine respetando ARCHITECTURE_LAW.md.
+
+
+
+## Ley aplicable
+
+
+
+- §2 FlowEngine = motor, no negocio ni persistencia directa
+
+- §3 Acciones `_action_*` delgadas: StateManager + Services → `(mensaje, outcome)`
+
+- §4 Negocio/post-guardado en Services (pedidos, notificaciones)
+
+- §5 Solo StateManager muta estado conversacional
+
+- §10 Al tocar deuda: reducirla, no ampliarla
+
+
+
+NO modificar ARCHITECTURE_LAW.md, flows/*.json, ni validadores salvo que un test roto lo exija.
+
+
+
+## Problema actual
+
+
+
+`chatbot/app/core/flow_engine.py` → `_action_save_order`:
+
+- Llama `order_service.save_order()` (ya persiste vía DBStore → services/order_service.create_order)
+
+- Luego importa y ejecuta `services.notification_service.on_order_pending(order_payload)`
+
+  → notifica admin + `_persist_order_to_db` (redundante si el pedido ya está en BD)
+
+
+
+`validar_motor_python.py` falla: "Acciones sin efectos colaterales indebidos".
+
+
+
+## Solución (diff mínimo)
+
+
+
+1. **flow_engine.py** — `_action_save_order`:
+
+   - Quitar import/call a `on_order_pending`
+
+   - Quitar armado de `order_payload` si solo servía para notificar
+
+   - Mantener: cart vacío → save_order → patch_data (limpiar carrito) → return UX
+
+   - No usar APIs privadas (`admin_service._resolve_e164_digits`); si hace falta normalizar wa_id, delegar a Service público
+
+
+
+2. **chatbot/app/services/order_service.py** — `save_order`:
+
+   - Tras `create_order` exitoso: `order = self.get_order(order_id)`
+
+   - Si order: `notify_admin_new_order(order)` desde `services.notification_service`
+
+   - NO llamar `on_order_pending` en el flujo del bot (evita doble persistencia)
+
+
+
+3. **notification_service.py** (solo si necesario):
+
+   - Docstring: `on_order_pending` queda para scripts/legacy; camino bot = OrderService + `notify_admin_new_order`
+
+   - No romper `scripts/validate_system.py`
+
+
+
+## Prohibido
+
+
+
+- Notificaciones en gateway o FlowEngine
+
+- Nueva dependencia
+
+- Refactor grande del motor
+
+- Relajar tests para hacerlos pasar
+
+
+
+## Verificar
+
+
+
+```bash
+
+python pruebas/validar_motor_python.py
+
+python validar_arquitectura.py
+
+pytest tests/test_flow_transitions.py -q
+
+
+
+
+
+
+
+## Alcance
+
+
+
+Modificar únicamente los archivos estrictamente necesarios.
+
+Si puedes resolver la deuda cambiando solo `flow_engine.py` y `order_service.py`,
+
+no modifiques ningún otro archivo.
+
+
+## resp cursor ##
+
+Deuda on_order_pending cerrada. Solo 2 archivos.
+
+flow_engine.py — _action_save_order
+Fuera on_order_pending, order_payload e import
+Fuera admin_service._resolve_e164_digits (API privada)
+Queda: carrito vacío → save_order → patch_data → UX
+order_service.py — save_order
+Tras create_order: get_order(order_id) → si hay fila, notify_admin_new_order(order)
+Notificación en Service, no en motor; sin doble persistencia de on_order_pending
+Verificación
+Check	Resultado
+validar_motor_python.py — Acciones sin efectos colaterales indebidos
+PASS
+validar_arquitectura.py
+PASS (16/16)
+pytest tests/test_flow_transitions.py
+13 fallos — no por este cambio
+Fallos pytest: nombres de step desalineados con JSON actual (start vs home_node, order_review vs order_review_node) y copy UX. test_order_happy_path_domicilio sí guarda pedido (registrado/pedido en body); falla solo en step == "start".
+
+notification_service.py sin tocar: on_order_pending sigue para scripts/validate_system.py.
+
+Flujo bot ahora:
+
+FlowEngine._action_save_order → OrderService.save_order → DB + notify_admin_new_order
+
+
+
+
+
+#########################################
+
+
+
+
+
 

@@ -53,6 +53,11 @@ class OrderService:
             address=address,
             delivery_type=delivery_type,
         )
+        order = self.get_order(order_id)
+        if order:
+            from services.notification_service import notify_admin_new_order
+
+            notify_admin_new_order(order)
         return order_id, total
 
     def get_order(self, order_id: str) -> Optional[Dict[str, Any]]:

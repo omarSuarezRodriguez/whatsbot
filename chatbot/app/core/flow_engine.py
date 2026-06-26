@@ -614,27 +614,13 @@ class FlowEngine:
         address = data.get("delivery_address", profile.get("address", ""))
         delivery_type = data.get("delivery_type", "")
 
-        stored_wa = self.admin_service._resolve_e164_digits(wa_id) or wa_id
         order_id, total = self.order_service.save_order(
-            stored_wa,
+            wa_id,
             cart,
             customer_name=customer_name,
             address=address,
             delivery_type=delivery_type,
         )
-        order_payload = self.order_service.get_order(order_id) or {
-            "order_id": order_id,
-            "wa_id": stored_wa,
-            "items": cart,
-            "total": total,
-            "customer_name": customer_name,
-            "address": address,
-            "delivery_type": delivery_type,
-        }
-        from services.notification_service import on_order_pending
-
-        on_order_pending(order_payload)
-
         self.state_manager.patch_data(
             wa_id,
             cart=[],
