@@ -2,12 +2,12 @@
   "meta": {
     "restaurant_name": "{{restaurant_name}}",
     "global_commands": {
-      "menu": "idle.menu_node",
-      "pedido": "order.order_start",
-      "reservar": "reservation.reservation_start",
-      "inicio": "idle.start",
-      "hola": "idle.start",
-      "cancelar": "idle.start"
+      "inicio": "home.home_node",
+      "menu": "menu.menu_node",
+      "hola": "home.home_node",
+      "pedido": "order.order_start_node",
+      "reservar": "reservation.reservation_start_node",
+      "cancelar": "home.home_node"
     },
     "cancel_message": "Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.",
     "abandon_confirm_prompt": "Tienes un pedido en curso.\n\n¿Estás seguro de abandonar tu pedido actual?\nResponde *sí* para volver al inicio o *no* para continuar.",
@@ -20,7 +20,7 @@
     "address_prompt": "Indícame la dirección de entrega a domicilio.",
     "address_prompt_saved": "Tienes guardada esta dirección:\n*{{saved_address}}*\n\n¿Deseas usarla? Responde *sí*.\nO escribe una dirección nueva.",
     "active_order_command_targets": {
-      "pedido": "order.order_review"
+      "pedido": "order.order_review_node"
     },
     "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
     "capture_order_success": "Perfecto, actualicé tu pedido.",
@@ -43,10 +43,10 @@
     "navigation_hint": true
   },
   "states": {
-    "idle": {
-      "initial": "start",
+    "home": {
+      "initial": "home_node",
       "nodes": {
-        "start": {
+        "home_node": {
           "action": "welcome_customer",
           "intercept_products": true,
           "suppress_navigation": true,
@@ -56,47 +56,54 @@
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n👉 *Menú*\n👉 *Pedido*\n👉 *Reservar*",
           "message": "Hola 👋 Bienvenido a El Gran Motilón\n\nAquí encuentras alimentos, limpieza y todo para el hogar, sin salir de casa 🛒\nRápido, seguro y sin filas ✨\n\n✅ ¿Qué necesitas hoy? Escríbe una opción:\n\n👉 *Menú* (ver productos)\n👉 *Pedido* (haz tu pedido)\n👉 *Reservar* (reserva pedido)",
           "options": {
-            "menu": "menu_node",
-            "pedido": "order_start",
-            "reservar": "reservation_start",
-            "buenas": "start",
-            "hey": "start"
+            "menu": "menu.menu_node",
+            "pedido": "order.order_start_node",
+            "reservar": "reservation.reservation_start_node",
+            "buenas": "home.home_node",
+            "hey": "home.home_node"
           }
-        },
+        }
+        
+      }
+    },
+    "menu": {
+      "initial": "menu_node",
+      "nodes": {
         "menu_node": {
           "action": "show_menu",
           "intercept_products": true,
           "fallback": "No entendí eso. Escribe *menu*, *pedido* o *reservar*.",
           "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
           "options": {
-            "pedido": "order_start",
-            "reservar": "reservation_start",
-            "inicio": "start",
-            "hola": "start",
-            "buenas": "start",
-            "hey": "start"
+            "pedido": "order.order_start_node",
+            "reservar": "reservation.reservation_start_node",
+            "inicio": "home.home_node",
+            "hola": "home.home_node",
+            "buenas": "home.home_node",
+            "hey": "home.home_node",
+            "menu": "menu.menu_node"
           }
         }
       }
     },
     "order": {
-      "initial": "order_start",
+      "initial": "order_start_node",
       "nodes": {
-        "order_start": {
+        "order_start_node": {
           "message": "Perfecto, vamos con tu pedido.\n\nCuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:\n• *2 pizza hawaiana, 1 coca cola*\n• *una hamburguesa y dos aguas*\n\nTambién puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.",
           "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
           "action": "capture_order",
           "transitions": {
-            "success": "order_review",
+            "success": "order.order_review_node",
             "empty_cart": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_review": {
+        "order_review_node": {
           "action": "show_cart",
           "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
           "message_after_action": "\n\n¿Confirmamos tu pedido?\nResponde *sí* para confirmar o *no* para modificarlo.",
@@ -104,132 +111,132 @@
           "action_on_input": "handle_order_confirmation",
           "transitions": {
             "success": null,
-            "empty_cart": "order_start",
-            "confirmed": "order_delivery",
-            "rejected": "order_modify",
+            "empty_cart": "order.order_start_node",
+            "confirmed": "order.order_delivery_node",
+            "rejected": "order.order_modify_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_modify": {
+        "order_modify_node": {
           "message": "Sin problema. Dime qué quieres agregar, quitar o cambiar.\n\nEjemplo: *agrega una ensalada* o *quita la coca cola*.",
           "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "input_mode": "free_text",
           "action": "capture_order",
           "transitions": {
-            "success": "order_review",
+            "success": "order.order_review_node",
             "empty_cart": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_delivery": {
+        "order_delivery_node": {
           "message": "¿Cómo prefieres recibir tu pedido?\n\n1. *Domicilio*\n2. *Recoger en tienda*\n\nResponde con el número o escribe *domicilio* / *recoger*.",
           "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "input_mode": "free_text",
           "action": "capture_delivery_type",
           "transitions": {
-            "domicilio": "order_address",
-            "recoger_has_name": "order_saved",
-            "recoger_no_name": "order_customer_name",
+            "domicilio": "order.order_address_node",
+            "recoger_has_name": "order.order_saved_node",
+            "recoger_no_name": "order.order_customer_name_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_address": {
+        "order_address_node": {
           "message": "{{address_prompt}}",
           "fallback": "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada.",
           "input_mode": "free_text",
           "action": "capture_address",
           "transitions": {
-            "success_has_name": "order_saved",
-            "success_no_name": "order_customer_name",
+            "success_has_name": "order.order_saved_node",
+            "success_no_name": "order.order_customer_name_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_customer_name": {
+        "order_customer_name_node": {
           "message": "Para identificar tu pedido, ¿cuál es tu nombre?",
           "fallback": "Escribe tu nombre (mínimo 2 caracteres).",
           "input_mode": "free_text",
           "action": "capture_customer_name",
           "transitions": {
-            "success": "order_saved",
+            "success": "order.order_saved_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "order_saved": {
-          "flow": "idle",
+        "order_saved_node": {
+          "flow": "home",
           "action": "save_order",
           "message_after_action": "\n\nGracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.\n\nSi necesitas algo más, escribe *menu*, *pedido* o *reservar*.",
           "transitions": {
-            "success": "idle.start",
-            "empty_cart": "order.order_start"
+            "success": "home.home_node",
+            "empty_cart": "order.order_start_node"
           },
           "options": {
-            "menu": "menu_node",
-            "pedido": "order_start",
-            "reservar": "reservation_start",
-            "inicio": "start"
+            "menu": "menu.menu_node",
+            "pedido": "order.order_start_node",
+            "reservar": "reservation.reservation_start_node",
+            "inicio": "home.home_node"
           }
         }
       }
     },
     "reservation": {
-      "initial": "reservation_start",
+      "initial": "reservation_start_node",
       "nodes": {
-        "reservation_start": {
+        "reservation_start_node": {
           "message": "Con gusto te ayudo con tu reserva.\n\n¿Para cuántas personas será?",
           "fallback": "Indícame un número válido de personas (entre 1 y 30).",
           "input_mode": "free_text",
           "action": "capture_persons",
           "transitions": {
-            "success": "reservation_date",
+            "success": "reservation.reservation_date_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "reservation_date": {
+        "reservation_date_node": {
           "message": "Excelente. ¿Qué fecha prefieres?\n\nFormato sugerido: *DD/MM/AAAA* (ejemplo: 15/06/2026)",
           "fallback": "Usa el formato *DD/MM/AAAA*, con una fecha igual o posterior a hoy.",
           "input_mode": "free_text",
           "action": "capture_date",
           "transitions": {
-            "success": "reservation_time",
+            "success": "reservation.reservation_time_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "reservation_time": {
+        "reservation_time_node": {
           "message": "Perfecto. ¿A qué hora te gustaría la reserva?\n\nFormato sugerido: *19:30* o *7:30 pm*",
           "fallback": "Prueba con *19:30* o *7:30 pm*.",
           "input_mode": "free_text",
           "action": "capture_time",
           "transitions": {
-            "success": "reservation_review",
-            "missing_date": "reservation_date",
+            "success": "reservation.reservation_review_node",
+            "missing_date": "reservation.reservation_date_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "reservation_review": {
+        "reservation_review_node": {
           "action": "show_reservation_summary",
           "fallback": "Responde *sí* para confirmar la reserva o *no* para modificarla.",
           "message_after_action": "\n\n¿Confirmamos la reserva?\nResponde *sí* para confirmar o *no* para modificarla.",
@@ -237,28 +244,28 @@
           "action_on_input": "handle_reservation_confirmation",
           "transitions": {
             "success": null,
-            "incomplete": "reservation_start",
-            "confirmed": "reservation_saved",
-            "rejected": "reservation_start",
+            "incomplete": "reservation.reservation_start_node",
+            "confirmed": "reservation.reservation_saved_node",
+            "rejected": "reservation.reservation_start_node",
             "invalid": null
           },
           "options": {
-            "menu": "menu_node"
+            "menu": "menu.menu_node"
           }
         },
-        "reservation_saved": {
-          "flow": "idle",
+        "reservation_saved_node": {
+          "flow": "home",
           "action": "save_reservation",
           "message_after_action": "\n\nTu mesa quedó registrada. Te esperamos con gusto.\n\nSi necesitas algo más, escribe *menu*, *pedido* o *reservar*.",
           "transitions": {
-            "success": "idle.start",
-            "incomplete": "reservation.reservation_start"
+            "success": "home.home_node",
+            "incomplete": "reservation.reservation_start_node"
           },
           "options": {
-            "menu": "menu_node",
-            "pedido": "order_start",
-            "reservar": "reservation_start",
-            "inicio": "start"
+            "inicio": "home.home_node",
+            "menu": "menu.menu_node",
+            "pedido": "order.order_start_node",
+            "reservar": "reservation.reservation_start_node"
           }
         }
       }

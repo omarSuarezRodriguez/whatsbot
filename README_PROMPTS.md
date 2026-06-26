@@ -1,4 +1,4 @@
-## v1.41
+## v1.42
 
 
 
@@ -4570,3 +4570,8 @@ con validate_architecture.py puedo auditar la arquitectura post cambio y verific
 
 
 ###################################################################
+## v1.42
+
+
+Se arregló consistencia en el json del flujo /flows
+
