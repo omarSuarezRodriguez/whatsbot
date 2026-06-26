@@ -10,12 +10,7 @@ from config.settings import BASE_DIR, RESTAURANT_NAME
 
 GLOBAL_COMMANDS = frozenset({"menu", "pedido", "reservar", "inicio", "cancelar"})
 
-NAV_HINT = (
-    "\n\n---\n"
-    "Escribe *inicio* para volver al inicio\n"
-)
 
-NAVIGATION_HINT_ENABLED = True
 CANCEL_MESSAGE_DEFAULT = get_prompt(
     "cancel_message",
     "Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.",
@@ -37,6 +32,7 @@ FLOWS_PATH = resolve_flows_path()
 # -----------------------------------------------------------------------------
 # GUÍA RÁPIDA
 # - Entrada: FLOWS_PATH en .env o flows/restaurant_flow.json bajo final_system/.
-# - Salida: FLOWS_PATH, NAV_HINT, RESTAURANT_NAME para flow_engine.
+# - Salida: FLOWS_PATH, RESTAURANT_NAME para flow_engine.
+# - navigation_hint vive en meta del JSON del flujo (multi-tenant).
 # - El dueño edita textos en Flutter; flujo JSON/BD en fases posteriores.
 # -----------------------------------------------------------------------------

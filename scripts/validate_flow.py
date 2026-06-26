@@ -126,8 +126,14 @@ def validate_flow(flow: Dict[str, Any]) -> Tuple[List[str], List[str]]:
             errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 2)")
 
     for key in PHASE3_META_KEYS:
+        if key == "navigation_hint":
+            if key not in meta or meta.get(key) is None:
+                errors.append(f"meta[{key!r}] ausente (requerido Fase 3)")
+            continue
         if key not in meta or meta.get(key) in (None, ""):
             errors.append(f"meta[{key!r}] ausente o vacío (requerido Fase 3)")
+    
+
 
     active_targets = meta.get("active_order_command_targets")
     if not isinstance(active_targets, dict):

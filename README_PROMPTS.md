@@ -1,4 +1,4 @@
-## v1.54 - 1a y 1b listos
+## v1.55
 
 
 
@@ -5817,4 +5817,40 @@ Si algo falla en validadores o tests, pega el error y lo vemos.
 
 ##########################################
 ## v1.54 - 1a y 1b listos
+
+
+
+
+
+#########################################
+## v1.55
+
+Resultado auditoría
+Código Python — OK
+Paso	Estado	Detalle
+1a
+✅
+Import sin NAV_HINT
+1b
+✅
+_append_navigation bien indentado y lógica correcta
+3a
+✅
+NAV_HINT y NAVIGATION_HINT_ENABLED eliminados
+3b
+✅
+Comentario guía actualizado
+4a
+✅
+Sin NAV_HINT = bot_config.NAV_HINT
+4b
+✅
+Sin "NAV_HINT" en __all__
+5
+✅
+Validador permite ""; exige clave presente
+
+
+
+##########################################
 

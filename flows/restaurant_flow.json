@@ -40,7 +40,7 @@
     "reservation_confirm_no": "Sin problema, empecemos de nuevo.",
     "save_reservation_incomplete": "Faltan datos para completar la reserva.",
     "save_reservation_success": "Reserva *{{reservation_id}}* confirmada.",
-    "navigation_hint": true
+    "navigation_hint": "navigation hint"
   },
   "states": {
     "home": {
