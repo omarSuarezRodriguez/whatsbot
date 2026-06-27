@@ -42,21 +42,31 @@ class MenuService:
                 tokens.update(TextNormalizer.basic(name).split())
         return frozenset(tokens)
 
-    def format_menu(self) -> str:
+
+    def format_menu(self, templates: Dict[str, str] | None = None) -> str:
+        tpl = templates or {}
+        empty = tpl.get("menu_empty", "")
+        category_header = tpl.get("menu_category_header", "*{{category}}*")
+        item_line = tpl.get("menu_item_line", "• {{name}} — ${{price}}")
+        category_end = tpl.get("menu_category_end", "")
+
         menu = self.get_available_menu()
         if not menu:
-            return "Por el momento no tenemos platos disponibles. Intenta más tarde."
+            return empty
 
         grouped: Dict[str, List[Dict[str, Any]]] = {}
         for item in menu:
             category = item.get("categoria") or "General"
             grouped.setdefault(category, []).append(item)
 
-        lines = []
+        chunks: List[str] = []
         for category, items in grouped.items():
-            lines.append(f"*{category}*")
+            chunks.append(
+                category_header.replace("{{category}}", str(category))
+            )
             for item in items:
-                lines.append(f"• {item['nombre']} — ${item['precio']:.2f}")
-            lines.append("")
-
-        return "\n".join(lines).strip()
+                line = item_line.replace("{{name}}", str(item["nombre"]))
+                line = line.replace("{{price}}", f"{item['precio']:.2f}")
+                chunks.append(line)
+            chunks.append(category_end)
+        return "".join(chunks)

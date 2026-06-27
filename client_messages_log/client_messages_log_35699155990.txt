@@ -3853,3 +3853,318 @@ Chatbot: Disculpa, no logré entenderte 🙏
 👉 *Reservar*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Menú* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00
+
+Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Menú* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Menú* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Menú* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: -
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor escribe una de estas opciones:
+
+👉 *Menú*
+👉 *Pedido*
+👉 *Reservar*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Menú* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestro menú*
+
+*Hamburguesas*
+• Hamburguesa de Carne — $12.00
+• Hamburguesa de Pollo — $30000.00
+
+*🍪 Snacks*
+• Galletas Noel — $15000.00Esto es una prueba del navigation_hint
+
+#################################################################

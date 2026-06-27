@@ -1,4 +1,4 @@
-## v1.55
+## v1.56
 
 
 
@@ -5853,4 +5853,10 @@ Validador permite ""; exige clave presente
 
 
 ##########################################
+## v1.56
+
+Como mejora incremental, los saltos de línea se escriben todos desde el json, o al menos los que no vienen de db, quedan algunos para revisar entre el motor y el mapa pero por el momento, como gap, queda solucionado
+
+
+
 

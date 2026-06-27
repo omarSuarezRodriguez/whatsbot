@@ -153,14 +153,12 @@ class FlowEngine:
 
     @staticmethod
     def _join_reply(*parts: str) -> str:
-        return "\n\n".join(
-            str(part).strip() for part in parts if part and str(part).strip()
-        ).strip()
+        return "".join(str(part) for part in parts if part is not None and part != "")
 
     def _append_navigation(self, message: str, node: Dict[str, Any]) -> str:
         if node.get("suppress_navigation"):
             return message
-        hint = self.meta.get("navigation_hint", "")
+        hint = node.get("navigation_hint", self.meta.get("navigation_hint", ""))
         if not hint:
             return message
         return f"{message}{hint}"
@@ -628,7 +626,17 @@ class FlowEngine:
         return "", None
 
     def _action_show_menu(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
-        return self.menu_service.format_menu(), None
+        templates = {
+            key: str(self.meta[key])
+            for key in (
+                "menu_empty",
+                "menu_category_header",
+                "menu_item_line",
+                "menu_category_end",
+            )
+            if key in self.meta
+        }
+        return self.menu_service.format_menu(templates), None
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
@@ -641,13 +649,14 @@ class FlowEngine:
 
         self.state_manager.patch_data(wa_id, cart=result["items"])
         notes = result.get("notes", [])
-        note_text = f"\n\n{' '.join(notes)}" if notes else ""
+        notes_prefix = self.meta.get("capture_order_notes_prefix", "")
+        note_text = f"{notes_prefix}{' '.join(notes)}" if notes else ""
         success = self._render(
             self._resolve_ux_text("capture_order_success", node),
             {},
         )
         return f"{success}{note_text}", "success"
-
+        
     def _action_show_cart(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         cart = state.get("data", {}).get("cart", [])

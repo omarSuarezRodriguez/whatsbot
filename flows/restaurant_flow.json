@@ -40,7 +40,12 @@
     "reservation_confirm_no": "Sin problema, empecemos de nuevo.",
     "save_reservation_incomplete": "Faltan datos para completar la reserva.",
     "save_reservation_success": "Reserva *{{reservation_id}}* confirmada.",
-    "navigation_hint": "navigation hint"
+    "navigation_hint": "",
+    "capture_order_notes_prefix": "\n\n",
+    "menu_empty": "Por el momento no tenemos platos disponibles. Intenta más tarde.",
+    "menu_category_header": "*{{category}}*\n",
+    "menu_item_line": "• {{name}} — ${{price}}\n",
+    "menu_category_end": "\n"
   },
   "states": {
     "home": {
@@ -72,9 +77,11 @@
         "menu_node": {
           "action": "show_menu",
           "intercept_products": true,
-          "message": "🛒 *Nuestro menú*\n",
+          "message": "🛒 *Nuestro menú*\n\n",
           "fallback": "No entendí eso. Escribe *menu*, *pedido* o *reservar*.",
           "message_after_action": "\n\nCuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.",
+          "navigation_hint": "\n\n---\nEscribe *inicio* para volver al inicio",
+          
           "options": {
             "pedido": "order.order_start_node",
             "reservar": "reservation.reservation_start_node",
