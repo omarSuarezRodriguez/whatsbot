@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Any, Dict
 
 GLOBAL_COMMAND_ROUTES: Dict[str, str] = {
-    "menu": "menu_node",
-    "pedido": "order_start",
-    "reservar": "reservation_start",
-    "inicio": "start",
-    "cancelar": "start",
+    "productos": "productos_node",
+    "pedido": "order_start_node",
+    "ayuda": "ayuda_start_node",
+    "inicio": "home_node",
+    "cancelar": "home_node",
 }
 
 GLOBAL_COMMANDS = frozenset(GLOBAL_COMMAND_ROUTES.keys())
 
-MENU_INTENT_TOKENS = frozenset({"menu", "carta", "catalogo", "catálogo", "lista", "ver"})
+PRODUCTOS_INTENT_TOKENS = frozenset({"productos", "menu", "carta", "catalogo", "catálogo", "lista", "ver"})
 
 ORDER_INTENT_PHRASES = (
     "quiero comer",
@@ -32,12 +32,13 @@ ORDER_INTENT_PHRASES = (
     "deseo pedir",
 )
 
-MENU_INTENT_PHRASES = (
+PRODUCTOS_INTENT_PHRASES = (
     "ver la carta",
     "ver el menu",
     "ver menú",
-    "ver catalogo",
+    "ver productos",
     "ver catálogo",
+    "mostrar productos",
     "mostrar menu",
     "mostrar menú",
     "mostrar carta",
@@ -55,11 +56,12 @@ MENU_INTENT_PHRASES = (
 
 # Global flow commands — only the five documented commands (+ explicit NL phrases).
 GLOBAL_COMMAND_INTENTS: Dict[str, Dict[str, Any]] = {
-    "menu": {
-        "phrases": MENU_INTENT_PHRASES
+    "productos": {
+        "phrases": PRODUCTOS_INTENT_PHRASES
         + (
             "quiero ver el menu",
             "quiero la carta",
+            "quiero ver productos",
             "muestrame el menu",
             "muéstrame el menú",
             "que me recomiendan",
@@ -67,7 +69,7 @@ GLOBAL_COMMAND_INTENTS: Dict[str, Dict[str, Any]] = {
             "opciones del menu",
             "opciones de comida",
         ),
-        "tokens": frozenset({"menu", "menú", "carta", "catalogo", "catálogo"}),
+        "tokens": frozenset({"productos", "menu", "menú", "carta", "catalogo", "catálogo"}),
     },
     "pedido": {
         "phrases": ORDER_INTENT_PHRASES
@@ -95,42 +97,33 @@ GLOBAL_COMMAND_INTENTS: Dict[str, Dict[str, Any]] = {
         ),
         "tokens": frozenset({"pedido", "pedidos"}),
     },
-    "reservar": {
+
+    "ayuda": {
         "phrases": (
-            "quiero reservar",
-            "quisiera reservar",
-            "hacer reserva",
-            "hacer una reserva",
-            "reservar mesa",
-            "reservar una mesa",
-            "agendar mesa",
-            "agendar una mesa",
-            "apartar mesa",
-            "mesa para",
-            "necesito reservar",
-            "me gustaria reservar",
-            "me gustaría reservar",
-            "quiero una mesa",
-            "necesito una mesa",
-            "apartar una mesa",
-            "cita para comer",
-            "reservacion de mesa",
-            "reservación de mesa",
-            "apartar lugar",
-            "guardar mesa",
+            "necesito ayuda",
+            "tengo una duda",
+            "tengo dudas",
+            "como funciona",
+            "cómo funciona",
+            "no entiendo",
+            "ayudame",
+            "ayúdame",
+            "que puedo hacer",
+            "qué puedo hacer",
+            "informacion",
+            "información",
         ),
         "tokens": frozenset(
             {
-                "reservar",
-                "reserva",
-                "reservacion",
-                "reservación",
-                "agendar",
-                "apartar",
-                "cita",
+                "ayuda",
+                "duda",
+                "dudas",
+                "soporte",
+                "info",
             }
         ),
     },
+
     "inicio": {
         "phrases": (
             "volver al inicio",

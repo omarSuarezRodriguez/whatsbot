@@ -19,9 +19,9 @@ def normalize_text(text: str) -> str:
 
 def is_global_command(text: str) -> bool:
     return normalize_text(text) in {
-        "menu",
+        "productos",
         "pedido",
-        "reservar",
+        "ayuda",
         "inicio",
         "cancelar",
     }

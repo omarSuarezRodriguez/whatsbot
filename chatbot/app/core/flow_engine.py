@@ -9,9 +9,9 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from app.config import FLOWS_PATH, RESTAURANT_NAME
 from app.core.state_manager import StateManager
 from app.services.admin_service import AdminService
-from app.services.menu_service import MenuService
+from app.services.productos_service import ProductosService
 from app.services.order_service import OrderService
-from app.services.reservation_service import ReservationService
+from app.services.ayuda_service import AyudaService
 from app.services.user_service import UserService
 from app.core.parser import infer_user_intent
 from app.utils.validators import (
@@ -35,17 +35,17 @@ class FlowEngine:
     def __init__(
         self,
         state_manager: StateManager,
-        menu_service: MenuService,
+        productos_service: ProductosService,
         order_service: OrderService,
-        reservation_service: ReservationService,
+        ayuda_service: AyudaService,
         user_service: UserService,
         admin_service: AdminService,
         flow_path: str | None = None,
     ) -> None:
         self.state_manager = state_manager
-        self.menu_service = menu_service
+        self.productos_service = productos_service
         self.order_service = order_service
-        self.reservation_service = reservation_service
+        self.ayuda_service = ayuda_service
         self.user_service = user_service
         self.admin_service = admin_service
         self.flow_path = flow_path or str(FLOWS_PATH)
@@ -54,7 +54,7 @@ class FlowEngine:
 
         self._actions: Dict[str, Callable[..., Tuple[str, Optional[str]]]] = {
             "welcome_customer": self._action_welcome_customer,
-            "show_menu": self._action_show_menu,
+            "show_productos": self._action_show_productos,
             "capture_order": self._action_capture_order,
             "show_cart": self._action_show_cart,
             "handle_order_confirmation": self._action_handle_order_confirmation,
@@ -65,9 +65,9 @@ class FlowEngine:
             "capture_persons": self._action_capture_persons,
             "capture_date": self._action_capture_date,
             "capture_time": self._action_capture_time,
-            "show_reservation_summary": self._action_show_reservation_summary,
-            "handle_reservation_confirmation": self._action_handle_reservation_confirmation,
-            "save_reservation": self._action_save_reservation,
+            "show_ayuda_summary": self._action_show_ayuda_summary,
+            "handle_ayuda_confirmation": self._action_handle_ayuda_confirmation,
+            "save_ayuda": self._action_save_ayuda,
         }
 
     def _load_flow(self) -> Dict[str, Any]:
@@ -292,14 +292,14 @@ class FlowEngine:
         node = self.nodes.get(target_step, {})
         self.state_manager.set_step(wa_id, target_step, node.get("flow", target_flow))
         if (
-            command in {"menu", "pedido", "reservar"}
+            command in {"productos", "pedido", "ayuda"}
             and target_step != current_step
             and not (command == "pedido" and self._has_active_order(state))
         ):
             self.state_manager.patch_data(
                 wa_id,
                 cart=[],
-                reservation={},
+                ayuda={},
                 awaiting_abandon_confirm=False,
             )
 
@@ -366,15 +366,21 @@ class FlowEngine:
         if normalized == "pedid":
             normalized = "pedido"
         state = self.state_manager.get(wa_id)
-        current_step = state.get("step", "start")
+        _, default_step = self._parse_ref(self._start_ref(), "idle")
+        current_step = state.get("step") or default_step
 
-        return self._process_message_body(
+
+        
+        response = self._process_message_body(
             wa_id,
             text,
             normalized,
             state,
             current_step,
         )
+        return response.rstrip("\n") if response else response
+
+        
 
     def _try_missing_node_recovery(
         self, wa_id: str, node: Optional[Dict[str, Any]]
@@ -509,10 +515,10 @@ class FlowEngine:
         if response is not None:
             return response
 
-        menu_tokens = self.menu_service.menu_literal_tokens()
-        intent = infer_user_intent(text, menu_tokens=menu_tokens)
+        productos_tokens = self.productos_service.productos_literal_tokens()
+        intent = infer_user_intent(text, menu_tokens=productos_tokens)
         intent_command = intent.get("command")
-        if intent_command in {"pedido", "menu", "reservar"} and is_confirmation(text):
+        if intent_command in {"pedido", "productos", "ayuda"} and is_confirmation(text):
             intent_command = None
 
         response = self._try_intent_global_command(
@@ -625,18 +631,18 @@ class FlowEngine:
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         return "", None
 
-    def _action_show_menu(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
+    def _action_show_productos(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         templates = {
             key: str(self.meta[key])
             for key in (
-                "menu_empty",
-                "menu_category_header",
-                "menu_item_line",
-                "menu_category_end",
+                "productos_empty",
+                "productos_category_header",
+                "productos_item_line",
+                "productos_category_end",
             )
             if key in self.meta
         }
-        return self.menu_service.format_menu(templates), None
+        return self.productos_service.format_productos(templates), None
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
@@ -758,7 +764,7 @@ class FlowEngine:
         personas = parse_persons(text)
         if not personas:
             return "", None
-        self.state_manager.patch_data(wa_id, reservation={"personas": personas})
+        self.state_manager.patch_data(wa_id, ayuda={"personas": personas})
         node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
         return (
             self._render(
@@ -769,125 +775,125 @@ class FlowEngine:
         )
 
     def _action_capture_date(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
-        reservation_date = parse_date(text)
-        if not reservation_date:
+        ayuda_date = parse_date(text)
+        if not ayuda_date:
             return "", None
         state = self.state_manager.get(wa_id)
         node = self.nodes.get(state.get("step", ""), {})
-        reservation = state.get("data", {}).get("reservation", {})
-        reservation["fecha"] = reservation_date.isoformat()
-        self.state_manager.patch_data(wa_id, reservation=reservation)
+        ayuda = state.get("data", {}).get("ayuda", {})
+        ayuda["fecha"] = ayuda_date.isoformat()
+        self.state_manager.patch_data(wa_id, ayuda=ayuda)
         return (
             self._render(
                 self._resolve_ux_text("capture_date_success", node),
-                {"date": reservation_date.strftime("%d/%m/%Y")},
+                {"date": ayuda_date.strftime("%d/%m/%Y")},
             ),
             "success",
         )
 
     def _action_capture_time(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
-        reservation_time = parse_time(text)
-        if not reservation_time:
+        ayuda_time = parse_time(text)
+        if not ayuda_time:
             return "", None
 
         state = self.state_manager.get(wa_id)
         node = self.nodes.get(state.get("step", ""), {})
-        reservation = state.get("data", {}).get("reservation", {})
-        fecha_raw = reservation.get("fecha")
+        ayuda = state.get("data", {}).get("ayuda", {})
+        fecha_raw = ayuda.get("fecha")
         if not fecha_raw:
             return self._resolve_ux_text("capture_date_missing", node), "missing_date"
 
         from datetime import date
 
-        reservation_date = date.fromisoformat(fecha_raw)
-        valid, error = validate_reservation_slot(reservation_date, reservation_time)
+        ayuda_date = date.fromisoformat(fecha_raw)
+        valid, error = validate_reservation_slot(ayuda_date, ayuda_time)
         if not valid:
             return error, None
 
-        reservation["hora"] = reservation_time.strftime("%H:%M")
-        self.state_manager.patch_data(wa_id, reservation=reservation)
+        ayuda["hora"] = ayuda_time.strftime("%H:%M")
+        self.state_manager.patch_data(wa_id, ayuda=ayuda)
         return (
             self._render(
                 self._resolve_ux_text("capture_time_success", node),
-                {"time": reservation_time.strftime("%H:%M")},
+                {"time": ayuda_time.strftime("%H:%M")},
             ),
             "success",
         )
 
-    def _action_show_reservation_summary(
+    def _action_show_ayuda_summary(
         self,
         wa_id: str,
         text: str = "",
     ) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         node = self.nodes.get(state.get("step", ""), {})
-        reservation = state.get("data", {}).get("reservation", {})
-        if not reservation.get("personas") or not reservation.get("fecha") or not reservation.get("hora"):
-            return self._resolve_ux_text("reservation_incomplete", node), "incomplete"
+        ayuda = state.get("data", {}).get("ayuda", {})
+        if not ayuda.get("personas") or not ayuda.get("fecha") or not ayuda.get("hora"):
+            return self._resolve_ux_text("ayuda_incomplete", node), "incomplete"
 
         from datetime import date, time
 
-        summary = self.reservation_service.format_summary(
-            personas=int(reservation["personas"]),
-            reservation_date=date.fromisoformat(reservation["fecha"]),
-            reservation_time=time.fromisoformat(reservation["hora"] + ":00")
-            if len(reservation["hora"]) == 5
-            else time.fromisoformat(reservation["hora"]),
+        summary = self.ayuda_service.format_summary(
+            personas=int(ayuda["personas"]),
+            ayuda_date=date.fromisoformat(ayuda["fecha"]),
+            ayuda_time=time.fromisoformat(ayuda["hora"] + ":00")
+            if len(ayuda["hora"]) == 5
+            else time.fromisoformat(ayuda["hora"]),
         )
         return (
             self._render(
-                self._resolve_ux_text("reservation_summary_header", node),
+                self._resolve_ux_text("ayuda_summary_header", node),
                 {"summary": summary},
             ),
             None,
         )
 
-    def _action_handle_reservation_confirmation(
+    def _action_handle_ayuda_confirmation(
         self,
         wa_id: str,
         text: str,
     ) -> Tuple[str, Optional[str]]:
         node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
         if is_confirmation(text):
-            return self._resolve_ux_text("reservation_confirm_yes", node), "confirmed"
+            return self._resolve_ux_text("ayuda_confirm_yes", node), "confirmed"
         if is_rejection(text):
-            self.state_manager.patch_data(wa_id, reservation={})
-            return self._resolve_ux_text("reservation_confirm_no", node), "rejected"
+            self.state_manager.patch_data(wa_id, ayuda={})
+            return self._resolve_ux_text("ayuda_confirm_no", node), "rejected"
         return "", None
 
-    def _action_save_reservation(
+    def _action_save_ayuda(
         self,
         wa_id: str,
         text: str = "",
     ) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         node = self.nodes.get(state.get("step", ""), {})
-        reservation = state.get("data", {}).get("reservation", {})
+        ayuda = state.get("data", {}).get("ayuda", {})
         required = ("personas", "fecha", "hora")
-        if not all(reservation.get(key) for key in required):
-            return self._resolve_ux_text("save_reservation_incomplete", node), "incomplete"
+        if not all(ayuda.get(key) for key in required):
+            return self._resolve_ux_text("save_ayuda_incomplete", node), "incomplete"
 
         from datetime import date, time
 
-        reservation_id = self.reservation_service.save_reservation(
+        ayuda_id = self.ayuda_service.save_ayuda(
             wa_id=wa_id,
-            personas=int(reservation["personas"]),
-            reservation_date=date.fromisoformat(reservation["fecha"]),
-            reservation_time=time.fromisoformat(
-                reservation["hora"] + ":00"
-                if len(reservation["hora"]) == 5
-                else reservation["hora"]
+            personas=int(ayuda["personas"]),
+            ayuda_date=date.fromisoformat(ayuda["fecha"]),
+            ayuda_time=time.fromisoformat(
+                ayuda["hora"] + ":00"
+                if len(ayuda["hora"]) == 5
+                else ayuda["hora"]
             ),
         )
         self.state_manager.patch_data(
             wa_id,
-            reservation={},
-            last_reservation_id=reservation_id,
+            ayuda={},
+            last_ayuda_id=ayuda_id,
         )
         return (
             self._render(
-                self._resolve_ux_text("save_reservation_success", node),
-                {"reservation_id": reservation_id},
+                self._resolve_ux_text("save_ayuda_success", node),
+                {"ayuda_id": ayuda_id},
             ),
             "success",
         )

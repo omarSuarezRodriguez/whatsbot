@@ -14,12 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import app.config  # noqa: F401
 
 from app.config import GLOBAL_COMMANDS
-from config.intents import (
-    GLOBAL_COMMAND_INTENTS,
-    MENU_INTENT_PHRASES,
-    MENU_INTENT_TOKENS,
-    ORDER_INTENT_PHRASES,
-)
+from config.intents import GLOBAL_COMMAND_INTENTS
 from app.utils.validators import is_confirmation
 
 logger = logging.getLogger(__name__)
@@ -751,7 +746,7 @@ class NaturalLanguagePreprocessor:
 class UserIntentClassifier:
     """Detect the five global commands (menu, pedido, reservar, inicio, cancelar)."""
 
-    _CONFIRMATION_BLOCKED = frozenset({"menu", "pedido", "reservar"})
+    _CONFIRMATION_BLOCKED = frozenset({"productos", "pedido", "ayuda"})
 
     @staticmethod
     def _sanitize_command(command: Optional[str]) -> Optional[str]:
@@ -884,7 +879,7 @@ class UserIntentClassifier:
                     cmd = _accept_command(_tok2cmd[key])
                     if not cmd:
                         continue
-                    if cmd == "menu" and "principal" in words:
+                    if cmd == "productos" and "principal" in words:
                         continue
                     if cmd == "pedido" and re.search(
                         r"\b(?:no quiero|ya no quiero|anular|cancelar|no sigo|ya no sigo)\b",
@@ -1632,7 +1627,7 @@ class OrderIntelligenceEngine:
         )
         if (
             skip_global_intent
-            and intent_info.get("command") in {"cancelar", "menu", "pedido"}
+            and intent_info.get("command") in {"cancelar", "productos", "pedido"}
         ):
             intent_info = {
                 "command": None,
@@ -1642,9 +1637,9 @@ class OrderIntelligenceEngine:
             }
         if intent_info.get("command") and not intent_info.get("has_products"):
             reason_by_command = {
-                "menu": "intención de menú",
+                "productos": "intención de productos",
                 "pedido": "intención de pedido sin productos",
-                "reservar": "intención de reservar",
+                "ayuda": "intención de ayuda",
                 "inicio": "intención de inicio",
                 "cancelar": "intención de cancelar",
             }

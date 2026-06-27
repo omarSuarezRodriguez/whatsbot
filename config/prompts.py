@@ -7,14 +7,14 @@ DEFAULT_PROMPTS: dict[str, str] = {
 Bloqueo: *blockon:+573001234567* | Desbloqueo: *blockoff:+573001234567*
 Pedidos: *CONFIRMAR ORD-XXXXXXXX* o *pedido ORD-XXXXXXXX listo*""",
     "cancel_message": """Entendido, cancelé el proceso actual. Estoy aquí cuando quieras continuar.""",
-    "empty_body_hint": """Estoy aquí para ayudarte. Escribe *menu*, *pedido* o *reservar*.""",
+    "empty_body_hint": """Estoy aquí para ayudarte. Escribe *productos*, *pedido* o *ayuda*.""",
     "error_generic": """Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
 
 Escribe *inicio* para reiniciar.""",
     "missing_wa_id": """No pude identificar tu número. Intenta escribirnos de nuevo.""",
-    "node_menu_node_after": """
+    "node_productos_node_after": """
 
-Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.""",
+Cuando quieras, escribe *pedido* para ordenar o *ayuda* para agendar tu mesa.""",
     "node_order_address_message": """{{address_prompt}}""",
     "node_order_customer_name_message": """Para identificar tu pedido, ¿cuál es tu nombre?""",
     "node_order_delivery_message": """¿Cómo prefieres recibir tu pedido?
@@ -34,7 +34,7 @@ Responde *sí* para confirmar o *no* para modificarlo.""",
 
 Gracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.
 
-Si necesitas algo más, escribe *menu*, *pedido* o *reservar*.""",
+Si necesitas algo más, escribe *productos*, *pedido* o *ayuda*.""",
     "node_order_start_message": """Perfecto, vamos con tu pedido.
 
 Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
@@ -53,7 +53,7 @@ Responde *sí* para confirmar o *no* para modificarla.""",
 
 Tu mesa quedó registrada. Te esperamos con gusto.
 
-Si necesitas algo más, escribe *menu*, *pedido* o *reservar*.""",
+Si necesitas algo más, escribe *productos*, *pedido* o *ayuda*.""",
     "node_reservation_start_message": """Con gusto te ayudo con tu reserva.
 
 ¿Para cuántas personas será?""",
@@ -63,14 +63,14 @@ Formato sugerido: *19:30* o *7:30 pm*""",
     "node_start_message": """{{welcome_line}}""",
     "node_start_secondary": """¿Qué te gustaría hacer hoy?
 
-1. *menu* — Ver el menú
+1. *productos* — Ver el menú
 2. *pedido* — Hacer tu pedido
-3. *reservar* — Reservar mesa""",
+3. *ayuda* — ayuda mesa""",
     "welcome_secondary": """¿Qué te gustaría hacer hoy?
 
-1. *menu* — Ver el menú
+1. *productos* — Ver el menú
 2. *pedido* — Hacer tu pedido
-3. *reservar* — Reservar mesa""",
+3. *ayuda* — ayuda mesa""",
 }
 
 def get_prompt(key: str, fallback: str = "") -> str:

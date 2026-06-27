@@ -1,4 +1,4 @@
-## v1.56
+## v1.57
 
 
 
@@ -5856,6 +5856,48 @@ Validador permite ""; exige clave presente
 ## v1.56
 
 Como mejora incremental, los saltos de línea se escriben todos desde el json, o al menos los que no vienen de db, quedan algunos para revisar entre el motor y el mapa pero por el momento, como gap, queda solucionado
+
+
+
+# Al final — ¿todo desde el mapa?
+
+# Qué	¿100% JSON?
+
+Encabezado, CTA, hint, fallback del nodo
+Sí — textos y \n tuyos
+
+Separadores entre bloques del nodo
+Sí — en message, message_after_action, navigation_hint
+
+Formato líneas menú (bullets, categorías)
+Sí — templates en meta
+
+Prefijo notas de pedido
+Sí — capture_order_notes_prefix en meta
+
+Textos UX (capture_order_empty, etc.)
+Sí — ya en meta del JSON
+
+Nombres/precios productos
+No — vienen de BD (contenido dinámico)
+
+Carrito (format_cart)
+No aún — OrderParser sigue con \n hardcodeado
+
+Resumen reserva
+No aún — format_summary en service
+
+Borde final del mensaje
+No — gateway hace .strip() solo al inicio/final del string completo
+
+
+
+
+##########################################
+## v1.57
+
+
+Se implementaron mejoras en la convención, se quitó menu y se reemplazó por productos (intents, archivos y demás), igualmente con reservar se cambió por ayuda
 
 
 

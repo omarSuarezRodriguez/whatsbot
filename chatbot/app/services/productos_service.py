@@ -1,4 +1,4 @@
-"""MenuService — DB-backed, multi-tenant (via DBStore)."""
+"""ProductosService — catálogo conversacional, DB-backed multi-tenant (via DBStore)."""
 
 from __future__ import annotations
 
@@ -8,11 +8,10 @@ if TYPE_CHECKING:
     from app.integrations.db_store import DBStore
 
 
-class MenuService:
+class ProductosService:
     def __init__(self, store: "DBStore") -> None:
         self.sheets = store  # attr name kept for internal compatibility
-        # Per-request menu override (set by business_context for testing)
-        self._context_menu_override_fn = self._default_context_override
+        self._context_productos_override_fn = self._default_context_override
 
     @staticmethod
     def _default_context_override() -> Optional[List[Dict[str, Any]]]:
@@ -26,36 +25,35 @@ class MenuService:
             pass
         return None
 
-    def get_available_menu(self) -> List[Dict[str, Any]]:
+    def get_available_productos(self) -> List[Dict[str, Any]]:
         override = self._default_context_override()
         if override is not None:
             return override
         return [item for item in self.sheets.get_menu() if item.get("disponible", True)]
 
-    def menu_literal_tokens(self) -> frozenset[str]:
+    def productos_literal_tokens(self) -> frozenset[str]:
         from app.core.parser import TextNormalizer
 
         tokens: set[str] = set()
-        for item in self.get_available_menu():
+        for item in self.get_available_productos():
             name = str(item.get("nombre", "")).strip()
             if name:
                 tokens.update(TextNormalizer.basic(name).split())
         return frozenset(tokens)
 
-
-    def format_menu(self, templates: Dict[str, str] | None = None) -> str:
+    def format_productos(self, templates: Dict[str, str] | None = None) -> str:
         tpl = templates or {}
-        empty = tpl.get("menu_empty", "")
-        category_header = tpl.get("menu_category_header", "*{{category}}*")
-        item_line = tpl.get("menu_item_line", "• {{name}} — ${{price}}")
-        category_end = tpl.get("menu_category_end", "")
+        empty = tpl.get("productos_empty", "")
+        category_header = tpl.get("productos_category_header", "*{{category}}*")
+        item_line = tpl.get("productos_item_line", "• {{name}} — ${{price}}")
+        category_end = tpl.get("productos_category_end", "")
 
-        menu = self.get_available_menu()
-        if not menu:
+        productos = self.get_available_productos()
+        if not productos:
             return empty
 
         grouped: Dict[str, List[Dict[str, Any]]] = {}
-        for item in menu:
+        for item in productos:
             category = item.get("categoria") or "General"
             grouped.setdefault(category, []).append(item)
 
@@ -69,4 +67,4 @@ class MenuService:
                 line = line.replace("{{price}}", f"{item['precio']:.2f}")
                 chunks.append(line)
             chunks.append(category_end)
-        return "".join(chunks)
+        return "".join(chunks).rstrip("\n")

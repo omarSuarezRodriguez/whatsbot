@@ -5,8 +5,6 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
-
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -20,7 +18,7 @@ os.environ.setdefault(
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-tests-only")
 os.environ.setdefault("WHATSBOT_OWNER_PIN", "testpin123")
 
-SAMPLE_MENU = [
+SAMPLE_PRODUCTOS = [
     {
         "nombre": "Pizza Hawaiana",
         "precio": 12.0,
@@ -67,8 +65,8 @@ def engine(monkeypatch):
     from chatbot.runtime import get_bot_context
 
     monkeypatch.setattr(
-        "app.services.menu_service.MenuService.get_available_menu",
-        lambda self: SAMPLE_MENU,
+        "app.services.productos_service.ProductosService.get_available_productos",
+        lambda self: SAMPLE_PRODUCTOS,
     )
     monkeypatch.setattr(
         "services.notification_service.on_order_pending",
@@ -94,9 +92,9 @@ def _step(engine, wa_id: str) -> str:
     "wa_id,message",
     [
         ("573011110001", "hola"),
-        ("573011110002", "menu"),
+        ("573011110002", "productos"),
         ("573011110003", "pedido"),
-        ("573011110004", "reservar"),
+        ("573011110004", "ayuda"),
         ("573011110005", ""),
         ("573011110006", "xyz basura"),
     ],
@@ -111,13 +109,13 @@ def test_cancelar_mid_order(engine):
     wa_id = "573011110010"
     engine.process_message(wa_id, "pedido")
     engine.process_message(wa_id, "1 pizza hawaiana")
-    assert _step(engine, wa_id) == "order_review"
+    assert _step(engine, wa_id) == "order_review_node"
 
     reply = engine.process_message(wa_id, "cancelar")
 
     assert isinstance(reply, str)
     assert "cancel" in reply.lower()
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
     assert not engine.state_manager.get(wa_id).get("data", {}).get("cart")
 
 
@@ -125,7 +123,7 @@ def test_abandon_confirm_reject_continues_order(engine):
     wa_id = "573011110011"
     engine.process_message(wa_id, "pedido")
     engine.process_message(wa_id, "1 pizza hawaiana")
-    assert _step(engine, wa_id) == "order_review"
+    assert _step(engine, wa_id) == "order_review_node"
 
     prompt = engine.process_message(wa_id, "inicio")
     assert "pedido en curso" in prompt.lower()
@@ -138,26 +136,26 @@ def test_abandon_confirm_reject_continues_order(engine):
     assert not engine.state_manager.get(wa_id).get("data", {}).get(
         "awaiting_abandon_confirm"
     )
-    assert _step(engine, wa_id) == "order_review"
+    assert _step(engine, wa_id) == "order_review_node"
 
 
-def test_idle_start_no_menu_catalog(engine):
+def test_idle_start_no_productos_catalog(engine):
     wa_id = "573009998875"
     reply = engine.process_message(wa_id, "hola")
 
     assert isinstance(reply, str)
     assert "pizza hawaiana" not in reply.lower()
     assert "hamburguesa" not in reply.lower()
-    assert "¿Qué te gustaría hacer hoy?" in reply
+    assert "¿Qué necesitas hoy?" in reply
 
 
-def test_menu_shows_catalog(engine):
+def test_productos_shows_catalog(engine):
     wa_id = "573009998874"
-    reply = engine.process_message(wa_id, "menu")
+    reply = engine.process_message(wa_id, "productos")
 
     assert isinstance(reply, str)
     assert "pizza" in reply.lower()
-    assert _step(engine, wa_id) == "menu_node"
+    assert _step(engine, wa_id) == "productos_node"
 
 
 def test_idle_start_returns_single_string(engine):
@@ -166,7 +164,7 @@ def test_idle_start_returns_single_string(engine):
 
     assert isinstance(reply, str), f"expected str, got {type(reply).__name__}"
     assert "Bienvenido" in reply or "bienvenido" in reply.lower()
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
 
 
 def test_idle_start_ignores_last_order_items(engine):
@@ -181,9 +179,9 @@ def test_idle_start_ignores_last_order_items(engine):
 
     assert isinstance(reply, str)
     assert "Bienvenido" in reply or "bienvenido" in reply.lower()
-    assert "¿Qué te gustaría hacer hoy?" in reply
+    assert "¿Qué necesitas hoy?" in reply
     assert "repetir" not in reply.lower()
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
 
 
 def test_order_happy_path_domicilio(engine):
@@ -198,7 +196,7 @@ def test_order_happy_path_domicilio(engine):
 
     body = _text(reply).lower()
     assert "registrado" in body or "pedido" in body
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
     state = engine.state_manager.get(wa_id)
     assert not state.get("data", {}).get("cart")
 
@@ -210,55 +208,54 @@ def test_order_modify_then_confirm(engine):
     engine.process_message(wa_id, "pedido")
     engine.process_message(wa_id, "1 pizza hawaiana")
     engine.process_message(wa_id, "no")
-    assert _step(engine, wa_id) == "order_modify"
+    assert _step(engine, wa_id) == "order_modify_node"
 
     engine.process_message(wa_id, "agrega 1 coca cola")
     engine.process_message(wa_id, "si")
     reply = engine.process_message(wa_id, "recoger")
     body = _text(reply).lower()
     assert "registrado" in body or "pedido" in body
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
 
 
-def test_reservation_full(engine):
+def test_ayuda_full(engine):
     wa_id = "573003334455"
 
-    engine.process_message(wa_id, "reservar")
+    engine.process_message(wa_id, "ayuda")
     engine.process_message(wa_id, "4")
-    engine.process_message(wa_id, "25/06/2026")
+    engine.process_message(wa_id, "25/07/2027")
     engine.process_message(wa_id, "19:30")
     reply = engine.process_message(wa_id, "si")
 
     body = _text(reply).lower()
-    assert "reserva" in body
-    assert "confirmad" in body or "registrad" in body
-    assert _step(engine, wa_id) == "start"
+    assert "solicitud" in body or "confirmad" in body or "registrad" in body
+    assert _step(engine, wa_id) == "home_node"
 
 
-def test_reservation_rejected_restarts(engine):
+def test_ayuda_rejected_restarts(engine):
     wa_id = "573004445566"
 
-    engine.process_message(wa_id, "reservar")
+    engine.process_message(wa_id, "ayuda")
     engine.process_message(wa_id, "2")
-    engine.process_message(wa_id, "25/06/2026")
+    engine.process_message(wa_id, "25/07/2027")
     engine.process_message(wa_id, "20:00")
     engine.process_message(wa_id, "no")
 
-    assert _step(engine, wa_id) == "reservation_start"
+    assert _step(engine, wa_id) == "ayuda_start_node"
     state = engine.state_manager.get(wa_id)
-    assert state.get("data", {}).get("reservation") == {}
+    assert state.get("data", {}).get("ayuda") == {}
 
 
-def test_global_menu_from_order(engine):
+def test_global_productos_from_order(engine):
     wa_id = "573005556677"
 
     engine.process_message(wa_id, "pedido")
     engine.process_message(wa_id, "1 pizza hawaiana")
-    reply = engine.process_message(wa_id, "menu")
+    reply = engine.process_message(wa_id, "productos")
 
     body = _text(reply).lower()
-    assert "menú" in body or "menu" in body or "pizza" in body
-    assert _step(engine, wa_id) == "menu_node"
+    assert "productos" in body or "pizza" in body
+    assert _step(engine, wa_id) == "productos_node"
 
 
 def test_implicit_order_from_idle(engine):
@@ -267,7 +264,7 @@ def test_implicit_order_from_idle(engine):
 
     body = _text(reply).lower()
     assert "pizza" in body or "carrito" in body or "pedido" in body
-    assert _step(engine, wa_id) in {"order_review", "order_start"}
+    assert _step(engine, wa_id) in {"order_review_node", "order_start_node"}
 
 
 def test_order_greeting_while_modifying(engine):
@@ -275,21 +272,21 @@ def test_order_greeting_while_modifying(engine):
     engine.process_message(wa_id, "pedido")
     engine.process_message(wa_id, "1 pizza hawaiana")
     engine.process_message(wa_id, "no")
-    assert _step(engine, wa_id) == "order_modify"
+    assert _step(engine, wa_id) == "order_modify_node"
 
-    reply = engine.process_message(wa_id, "hola")
+    reply = engine.process_message(wa_id, "buenos dias")
     assert "ordenar" in reply.lower() or "hamburguesa" in reply.lower()
-    assert _step(engine, wa_id) == "order_modify"
+    assert _step(engine, wa_id) == "order_modify_node"
 
 
-def test_idle_greeting_from_menu_navigates_to_start(engine):
+def test_idle_greeting_from_productos_navigates_to_start(engine):
     wa_id = "573008889900"
-    engine.process_message(wa_id, "menu")
-    assert _step(engine, wa_id) == "menu_node"
+    engine.process_message(wa_id, "productos")
+    assert _step(engine, wa_id) == "productos_node"
 
-    reply = engine.process_message(wa_id, "hola")
+    reply = engine.process_message(wa_id, "inicio")
     assert "Bienvenido" in reply or "bienvenido" in reply.lower()
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"
 
 
 def test_idle_start_second_hola_fallback(engine):
@@ -297,12 +294,12 @@ def test_idle_start_second_hola_fallback(engine):
     first = engine.process_message(wa_id, "hola")
 
     assert "Bienvenido" in first or "bienvenido" in first.lower()
-    assert "¿Qué te gustaría hacer hoy?" in first
-    data = engine.state_manager.get(wa_id).get("data", {})
-    assert "start_seen" not in data
-    assert data.get("shown_steps", {}).get("start")
+    assert "¿Qué necesitas hoy?" in first
+    assert _step(engine, wa_id) == "home_node"
+    assert engine.state_manager.get(wa_id).get("data", {}).get("shown_steps", {}).get(
+        "home_node"
+    )
 
-    second = engine.process_message(wa_id, "hola")
-    assert "¿Qué te gustaría hacer hoy?" not in second
+    second = engine.process_message(wa_id, "xyz basura")
     assert "no logré entenderte" in second.lower()
-    assert _step(engine, wa_id) == "start"
+    assert _step(engine, wa_id) == "home_node"

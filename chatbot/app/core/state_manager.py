@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 DEFAULT_STATE = {
-    "flow": "idle",
-    "step": "start",
+    "flow": "home",
+    "step": "",
     "data": {},
 }
 
@@ -93,21 +93,21 @@ class StateManager:
 
     @staticmethod
     def _snapshot_state(state: Dict[str, Any]) -> Dict[str, Any]:
-        """Lightweight read copy: deep-copy cart/reservation only when present."""
+        """Lightweight read copy: deep-copy cart/ayuda only when present."""
         data = state.get("data") or {}
         data_copy = dict(data)
         cart = data.get("cart")
         if cart is not None:
             data_copy["cart"] = [dict(item) for item in cart]
-        reservation = data.get("reservation")
-        if reservation:
-            data_copy["reservation"] = dict(reservation)
+        ayuda = data.get("ayuda")
+        if ayuda:
+            data_copy["ayuda"] = dict(ayuda)
         last_items = data.get("last_order_items")
         if last_items is not None:
             data_copy["last_order_items"] = [dict(item) for item in last_items]
         return {
             "flow": state.get("flow", "idle"),
-            "step": state.get("step", "start"),
+            "step": state.get("step", ""),
             "data": data_copy,
         }
 

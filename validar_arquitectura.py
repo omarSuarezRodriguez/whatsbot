@@ -109,12 +109,12 @@ KNOWN_META_KEYS = {
     "capture_date_success",
     "capture_date_missing",
     "capture_time_success",
-    "reservation_incomplete",
-    "reservation_summary_header",
-    "reservation_confirm_yes",
-    "reservation_confirm_no",
-    "save_reservation_incomplete",
-    "save_reservation_success",
+    "ayuda_incomplete",
+    "ayuda_summary_header",
+    "ayuda_confirm_yes",
+    "ayuda_confirm_no",
+    "save_ayuda_incomplete",
+    "save_ayuda_success",
     "navigation_hint",
 }
 

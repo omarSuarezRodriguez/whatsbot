@@ -8,7 +8,7 @@ from pathlib import Path
 from config.prompts import get_prompt
 from config.settings import BASE_DIR, RESTAURANT_NAME
 
-GLOBAL_COMMANDS = frozenset({"menu", "pedido", "reservar", "inicio", "cancelar"})
+GLOBAL_COMMANDS = frozenset({"productos", "pedido", "ayuda", "inicio", "cancelar"})
 
 
 CANCEL_MESSAGE_DEFAULT = get_prompt(

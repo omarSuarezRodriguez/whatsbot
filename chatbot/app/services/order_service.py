@@ -5,21 +5,21 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from app.core.parser import OrderParser
-from app.services.menu_service import MenuService
+from app.services.productos_service import ProductosService
 
 if TYPE_CHECKING:
     from app.integrations.db_store import DBStore
 
 
 class OrderService:
-    def __init__(self, store: "DBStore", menu_service: MenuService) -> None:
+    def __init__(self, store: "DBStore", productos_service: ProductosService) -> None:
         self.sheets = store  # attr name kept for internal compatibility
-        self.menu_service = menu_service
+        self.productos_service = productos_service
 
     def _parser(self) -> OrderParser:
         """Always build fresh from current DB menu (multi-tenant, no stale cache)."""
-        menu = self.menu_service.get_available_menu()
-        return OrderParser(menu)
+        productos = self.productos_service.get_available_productos()
+        return OrderParser(productos)
 
     def parse_order_text(
         self,

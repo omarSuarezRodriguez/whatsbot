@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
 
 ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "welcome_customer": {"success"},
-    "show_menu": {"success"},
+    "show_productos": {"success"},
     "show_cart": {"success", "empty_cart"},
     "capture_order": {"success", "empty_cart"},
     "handle_order_confirmation": {"confirmed", "rejected", "invalid"},
@@ -29,9 +29,9 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "capture_persons": {"success", "invalid"},
     "capture_date": {"success", "invalid"},
     "capture_time": {"success", "missing_date", "invalid"},
-    "show_reservation_summary": {"success", "incomplete"},
-    "handle_reservation_confirmation": {"confirmed", "rejected", "incomplete", "invalid"},
-    "save_reservation": {"success", "incomplete"},
+    "show_ayuda_summary": {"success", "incomplete"},
+    "handle_ayuda_confirmation": {"confirmed", "rejected", "incomplete", "invalid"},
+    "save_ayuda": {"success", "incomplete"},
 }
 
 # Meta UX estática (Fase 2). Obligatorias si el flujo usa restaurant_flow estándar.
@@ -58,12 +58,12 @@ PHASE2_META_KEYS = (
     "capture_date_success",
     "capture_date_missing",
     "capture_time_success",
-    "reservation_incomplete",
-    "reservation_summary_header",
-    "reservation_confirm_yes",
-    "reservation_confirm_no",
-    "save_reservation_incomplete",
-    "save_reservation_success",
+    "ayuda_incomplete",
+    "ayuda_summary_header",
+    "ayuda_confirm_yes",
+    "ayuda_confirm_no",
+    "save_ayuda_incomplete",
+    "save_ayuda_success",
 )
 
 # Meta de routing/config (Fase 3). Obligatorias en flujo restaurante migrado.
