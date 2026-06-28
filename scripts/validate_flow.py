@@ -15,7 +15,7 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "welcome_customer": {"success"},
     "show_productos": {"success"},
     "show_cart": {"success", "empty_cart"},
-    "capture_order": {"success", "empty_cart"},
+    "capture_order": {"success", "empty_cart", "partial", "ambiguous"},
     "handle_order_confirmation": {"confirmed", "rejected", "invalid"},
     "capture_delivery_type": {
         "domicilio",
@@ -32,6 +32,8 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "show_ayuda_summary": {"success", "incomplete"},
     "handle_ayuda_confirmation": {"confirmed", "rejected", "incomplete", "invalid"},
     "save_ayuda": {"success", "incomplete"},
+    "handle_order_clarification": {"partial_resolved", "partial_retry", "skip"},
+    "handle_order_disambiguation": {"disambiguated", "disambiguate_next", "invalid_choice"},
 }
 
 # Meta UX estática (Fase 2). Obligatorias si el flujo usa restaurant_flow estándar.

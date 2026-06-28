@@ -1,4 +1,4 @@
-## v1.66
+## v1.67
 
 
 
@@ -6949,12 +6949,13 @@ o:
 
 
 ################################################
-## 1.66
+## v1.67
 
 ## prompt ##
 
 # PROMPT MAESTRO — Resiliencia total en captura de pedidos
-## Preámbulo obligatorio (leer antes de todo)
+## Versión 2: implementación por capas + tests + modificación inteligente + desambiguación
+## Preámbulo obligatorio
 Lee `ARCHITECTURE_LAW.md` ahora. No lo modifiques.
 No modifiques tests existentes salvo que yo lo pida explícitamente.
 Si cualquier paso viola `ARCHITECTURE_LAW.md`, detente, explica qué regla rompe
@@ -6964,93 +6965,76 @@ y propón la alternativa antes de continuar.
 ### 0.1 — Lee estos archivos en orden
 1. `ARCHITECTURE_LAW.md`
 2. `chatbot/app/core/parser.py` — secciones: `OrderIntelligenceEngine.parse()`,
-   `_fail_safe()`, `_quality_assurance()`, `apply_message()`, `_result()`
-3. `chatbot/app/core/flow_engine.py` — método `_action_capture_order` y el
-   diccionario `self._actions`
-4. `chatbot/app/services/order_service.py` — `parse_order_text()` y `apply_message()`
-5. `chatbot/app/core/state_manager.py` — `patch_data()`
-6. `flows/restaurant_flow.json` — estado `order` completo (todos sus nodos y
-   transiciones)
-7. Cualquier test que importe o ejerza `_action_capture_order`
+   `_fail_safe()`, `_quality_assurance()`, `_result()`
+3. `chatbot/app/core/flow_engine.py` — `_action_capture_order`, `self._actions`,
+   `_resolve_ux_text()`, `_render()`
+4. `chatbot/app/services/order_service.py` — `parse_order_text()`, `apply_message()`
+5. `chatbot/app/core/state_manager.py` — `patch_data()`, `reset()`
+6. `flows/restaurant_flow.json` — estado `order` completo
+7. `tests/test_flow_transitions.py` y cualquier test que importe `_action_capture_order`
 ### 0.2 — Auditoría: identifica las brechas reales
-Responde las siguientes preguntas con evidencia de línea exacta:
-A. ¿El parser ya devuelve `items` (reconocidos) y `unknown` (no reconocidos)
-   en el mismo resultado, o descarta los válidos cuando hay desconocidos?
-B. ¿`_fail_safe()` se activa cuando hay ítems reconocidos pero también
-   desconocidos, o solo cuando TODOS los segmentos fallan?
-C. ¿`_action_capture_order` lee y usa `result["unknown"]` cuando
-   `result["items"]` no está vacío?
-D. ¿Existe algún nodo en el JSON que capture items parciales, informe al
-   usuario de los no reconocidos y permita aclararlos sin reiniciar el carrito?
-E. ¿Qué le dice el sistema al usuario cuando hay ítems reconocidos y también
-   desconocidos en el mismo mensaje?
+Responde con evidencia de línea exacta:
+A. ¿`parse()` retorna `items` + `unknown` simultáneamente cuando hay productos
+   reconocidos Y segmentos no reconocidos, o los `items` se pierden al llamar
+   `_fail_safe()` (línea ~1983–1984)?
+B. ¿`_action_capture_order` lee `result.get("unknown")` cuando `result["items"]`
+   no está vacío (línea ~732–740)? ¿O ignora los desconocidos y va directo a success?
+C. ¿`_fail_safe()` (línea ~2049) se activa solo cuando `parsed_items` está vacío,
+   o también cuando hay ítems válidos + desconocidos?
+D. ¿Existe `pending_unknowns` en `state["data"]` en algún punto del código actual?
+E. ¿Existe lógica de "modifica/quita/agrega" en `order_service.apply_message()` o
+   en el parser, o la modificación del carrito es un reemplazo total?
+F. ¿Existe lógica de desambiguación (preguntar variante al usuario) en alguna capa?
+G. ¿Qué ve el usuario hoy cuando envía "2 Coca-Cola y 1 xyzfoo"?
+H. ¿Qué pasa con `pending_unknowns` si el usuario:
+   (1) escribe un pedido nuevo mientras hay pendientes,
+   (2) vuelve al inicio,
+   (3) cancela,
+   (4) usa un comando global como "inicio" o "cancelar"?
+   ¿Hay alguna estrategia de limpieza ya existente, o es un vector de desincronización?
 ### 0.3 — Comparación de estrategias
-Evalúa las dos opciones y recomienda una:
-**Opción A — Nueva fase del parser (Phase 6)**
-Agregar un nuevo método `parse_partial()` o modificar el contrato de retorno
-del parser para que maneje internamente el flujo de aclaración.
-Pros/contras vs. ley de arquitectura:
-- ¿El parser debe saber sobre estado conversacional? ¿Viola la separación
-  JSON=mapa / Python=motor / Services=negocio?
-- Cuántos archivos toca. Cuánta deuda nueva genera.
-**Opción B — Fix dirigido (sin nueva fase del parser)**
-El parser YA devuelve `items` + `unknown` correctamente.
-El fix está en tres lugares:
-1. `_action_capture_order` en `flow_engine.py`: consumir `result["unknown"]`
-   cuando existen ítems válidos, guardar `pending_unknowns` en state y retornar
-   outcome `"partial"`.
-2. `restaurant_flow.json`: agregar transición `"partial"` en
-   `order_start_node` y `order_modify_node`; agregar nodo
-   `order_clarify_node` con su acción y transiciones.
-3. `meta` del JSON: agregar los mensajes UX para el flujo de aclaración
-   (sin copys largos en Python).
-Pros/contras vs. ley de arquitectura:
-- ¿Agrega deuda o la reduce? ¿Cuántos archivos toca? ¿Respeta todas las
-  invariantes?
-**Recomendación**: presenta cuál es mejor y por qué.
-### 0.4 — Plan de implementación detallado
-Una vez elegida la estrategia, presenta el plan completo:
-Para cada archivo que se toca:
-- Qué se agrega / modifica / elimina
+Evalúa las dos opciones para la resiliencia parcial y recomienda una:
+**Opción A — Fix dirigido en tres capas (sin nueva fase del parser)**
+El parser YA retorna `items` + `unknown` correctamente. El fix vive en:
+1. `_action_capture_order` en `flow_engine.py`: consumir `result["unknown"]` cuando
+   hay ítems válidos, guardar `pending_unknowns` en state, retornar outcome `"partial"`.
+2. `restaurant_flow.json`: transición `"partial"` en nodos existentes + nodo
+   `order_clarify_node`.
+3. `meta` del JSON: mensajes UX nuevos.
+Analiza: ¿cuántos archivos toca? ¿respeta todas las invariantes de ARCHITECTURE_LAW.md?
+**Opción B — Nueva fase del parser**
+Agregar `parse_partial()` o modificar el contrato de retorno del parser para que
+maneje el flujo de aclaración internamente.
+Analiza: ¿el parser debe conocer estado conversacional? ¿viola la separación de capas?
+¿genera deuda nueva?
+Recomendación: presenta cuál es mejor y por qué, citando invariantes concretas.
+### 0.4 — Alcance completo de este prompt
+Este prompt cubre tres capacidades nuevas implementadas en capas:
+**Capa 1 — Resiliencia parcial (pending_unknowns)**
+Cuando el usuario envía ítems reconocidos + desconocidos: guardar los reconocidos,
+preguntar por los desconocidos uno a uno sin perder el carrito.
+**Capa 2 — Modificación inteligente del pedido**
+Cuando el usuario escribe frases como "quita las Coca-Cola", "cambia el arroz por
+uno de 1 kg", "agrega dos yogures", "déjame solo los pollos": aplicar la modificación
+sobre el carrito existente en lugar de reemplazarlo.
+**Capa 3 — Desambiguación automática de variantes**
+Cuando el usuario escribe un nombre que coincide con múltiples variantes del catálogo
+(ej. "Coca-Cola" → 400 ml, 1.5 L, 3 L): preguntar cuál quiere antes de añadir al carrito.
+Cada capa se implementa en orden. Cada una tiene su propio plan, validaciones y checklist.
+### 0.5 — Plan de implementación detallado
+Para cada capa, presenta:
+- Archivos que se tocan (solo los necesarios)
+- Qué se agrega / modifica / elimina en cada archivo
 - Qué invariante de ARCHITECTURE_LAW.md aplica
-- Qué outcome nuevo se declara y en qué nodo JSON
-Lista de nodos JSON a agregar (con estructura exacta propuesta).
-Lista de acciones Python a agregar/modificar (firma completa).
-Lista de mensajes UX a agregar en `meta` del JSON.
-Lista de campos de estado que se leen/escriben en `state["data"]`.
-### 0.5 — Resumen antes del OK
-Termina con:
-PLAN LISTO. Archivos a modificar: [lista]. Sin violaciones de ARCHITECTURE_LAW.md detectadas. Escribe OK para implementar automáticamente.
-
----
-## FASE 1 — Implementación (auto-ejecutar tras OK, sin pausas salvo bloqueo)
-Después de recibir OK, ejecuta todo lo siguiente en orden.
-No pidas confirmaciones intermedias salvo que:
-- Detectes una violación de ARCHITECTURE_LAW.md no anticipada, O
-- Encuentres un bloqueo que requiera una decisión que no puedas inferir.
-### 1.1 — Mensajes UX en `meta` del JSON
-Agrega en `flows/restaurant_flow.json` → `meta`:
-- `"capture_order_partial"`: texto que informa al usuario qué ítems SÍ se
-  reconocieron y qué segmentos NO se pudieron identificar. Debe mostrar los
-  reconocidos y preguntar por los desconocidos. Usa placeholders
-  `{{recognized}}` y `{{unknown_list}}`.
-- `"clarify_unknown_prompt"`: texto para el nodo de aclaración, que muestra el
-  siguiente ítem no reconocido y pide al usuario que lo aclare o lo omita.
-  Usa placeholder `{{unknown_item}}`.
-- `"clarify_skipped"`: texto corto confirmando que un ítem fue omitido.
-- `"clarify_resolved_all"`: texto confirmando que todos los desconocidos
-  quedaron resueltos.
-Validación 1.1:
-- [ ] Los 4 mensajes existen en `meta`
-- [ ] Todos usan `{{placeholders}}` y no copy hardcodeado en Python
-- [ ] El JSON sigue siendo válido (`python -m json.tool flows/restaurant_flow.json`)
-### 1.2 — Nodo `order_clarify_node` en el JSON
-Agrega en `flows/restaurant_flow.json` → `states.order.nodes`:
+- Outcomes nuevos declarados y en qué nodo JSON
+- Campos de `state["data"]` que se leen/escriben
+**Para la Capa 1 — Resiliencia parcial:**
+Nodos JSON a agregar:
 ```json
 "order_clarify_node": {
   "input_mode": "free_text",
   "action_on_input": "handle_order_clarification",
-  "fallback": "...",
+  "fallback": "<referencia a meta, no copy largo>",
   "transitions": {
     "partial_resolved": "order.order_review_node",
     "partial_retry": null,
@@ -7060,16 +7044,91 @@ Agrega en `flows/restaurant_flow.json` → `states.order.nodes`:
     "productos": "productos.productos_node"
   }
 }
-El campo "fallback" debe ser un texto corto o referencia a un mensaje del meta. No copy largo en Python.
+Transiciones a agregar en order_start_node y order_modify_node:
 
+"partial": "order.order_clarify_node"
+Acciones Python a agregar/modificar:
+
+Modificar _action_capture_order: 4 casos (vacío, solo unknowns, mixto, ok)
+Agregar handle_order_clarification: skip / parse / merge / drain
+Mensajes UX a agregar en meta:
+
+capture_order_partial: usa {{recognized}} y {{unknown_list}}
+clarify_unknown_prompt: usa {{unknown_item}}
+clarify_skipped: texto corto
+clarify_resolved_all: texto corto
+Campos de estado:
+
+pending_unknowns: list[str], se escribe y limpia solo vía patch_data
+Estrategia de limpieza de pending_unknowns: Especifica dónde y cuándo se limpia pending_unknowns para evitar desincronización:
+
+Al procesar un comando global (inicio, cancelar, menu): patch_data(pending_unknowns=[])
+Al iniciar un nuevo pedido (entrar a order_start_node): limpiar en la acción de entrada
+Al confirmar el pedido: patch_data lo borra junto con el carrito
+Al hacer state_manager.reset(): se limpia por defecto (ya que borra todo data) Verifica que _apply_global_command y reset() ya cubren los casos 1 y 4. Si no, la acción de entrada a order_start_node debe hacer patch_data(pending_unknowns=[]).
+Para la Capa 2 — Modificación inteligente:
+
+Analiza si order_service.apply_message() ya detecta intención de modificación (quitar, cambiar, agregar sobre carrito existente) y la aplica diferencialmente, o si hace reemplazo total. Si hace reemplazo total: la lógica de diff pertenece a order_service, no al motor. Propón la firma mínima necesaria. Si ya existe parcialmente, extiéndela.
+
+_action_capture_order debe pasar el carrito existente al service para que el service pueda aplicar la modificación diferencial. El motor no contiene lógica de "quitar" o "agregar" — eso vive en el service.
+
+Para la Capa 3 — Desambiguación:
+
+El parser ya retorna ambiguous: true en _internal cuando hay variantes. ¿Retorna también la lista de variantes candidatas? Si no, el service necesita poder consultar las variantes de un término ambiguo. Propón el contrato mínimo: result["ambiguous_items"] → list de candidatos por segmento. Añadir order_disambiguate_node al JSON con acción handle_order_disambiguation. Transición "ambiguous": "order.order_disambiguate_node" en order_start_node y order_modify_node.
+
+0.6 — Resumen antes del OK
+Termina con:
+
+PLAN LISTO.
+Archivos a modificar: [lista exacta].
+Archivos a agregar: [lista exacta, si aplica].
+Sin violaciones de ARCHITECTURE_LAW.md detectadas.
+Escribe OK para implementar en capas (1, luego 2, luego 3).
+FASE 1 — Implementación por capas (auto-ejecutar tras OK)
+Implementa capa por capa. Después de cada capa: ejecuta las validaciones de esa capa. No pases a la siguiente capa si la actual tiene FAILs sin resolver. No pidas confirmaciones intermedias salvo violación de ARCHITECTURE_LAW.md no anticipada o bloqueo que requiera decisión que no puedas inferir.
+
+CAPA 1 — Resiliencia parcial (pending_unknowns)
+1.1 — Mensajes UX en meta del JSON
+Agrega en flows/restaurant_flow.json → meta:
+
+"capture_order_partial": informa qué ítems SÍ se reconocieron y cuáles NO. Usa {{recognized}} y {{unknown_list}}.
+"clarify_unknown_prompt": muestra el siguiente ítem no reconocido y pide aclaración. Usa {{unknown_item}}.
+"clarify_skipped": confirmación corta de ítem omitido.
+"clarify_resolved_all": confirmación corta de que todos los desconocidos quedaron resueltos.
+Regla: no copy largo en Python. Todo texto UX en JSON.
+
+Validación 1.1:
+
+
+ 4 mensajes existen en meta
+
+ Todos usan {{placeholders}}
+
+ python -m json.tool flows/restaurant_flow.json → OK
+1.2 — Nodo order_clarify_node
+Agrega en flows/restaurant_flow.json → states.order.nodes:
+
+"order_clarify_node": {
+  "input_mode": "free_text",
+  "action_on_input": "handle_order_clarification",
+  "fallback": "<texto del meta, no hardcodeado>",
+  "transitions": {
+    "partial_resolved": "order.order_review_node",
+    "partial_retry": null,
+    "skip": null
+  },
+  "options": {
+    "productos": "productos.productos_node"
+  }
+}
 Validación 1.2:
 
 
- El nodo existe en states.order.nodes
+ Nodo existe en states.order.nodes
 
- Las 3 transiciones están declaradas
+ 3 transiciones declaradas
 
- No hay rutas hardcodeadas en Python para este nodo
+ Sin rutas hardcodeadas en Python para este nodo
 
  JSON válido
 1.3 — Transición "partial" en nodos existentes
@@ -7082,169 +7141,413 @@ Validación 1.3:
 
  Ambos nodos tienen la transición "partial"
 
- Apunta a "order.order_clarify_node"
-
  JSON válido
-1.4 — Modificar _action_capture_order en flow_engine.py
-La lógica nueva, respetando capas:
+1.4 — Limpieza de pending_unknowns en entrada a pedido
+Verifica qué ocurre con pending_unknowns cuando:
 
-result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
-items = result["items"]
-unknown = result.get("unknown") or []
-if not items and not unknown:
-    → retornar capture_order_empty, None
-if not items and unknown:
-    → retornar fallback con lista de desconocidos, None
-    (el mensaje de fallback viene del nodo JSON, no hardcodeado)
-if items and unknown:
-    → state_manager.patch_data(wa_id, cart=items, pending_unknowns=unknown)
-    → renderizar capture_order_partial con {{recognized}} y {{unknown_list}}
-    → retornar mensaje, "partial"
-if items and not unknown:
-    → state_manager.patch_data(wa_id, cart=items)
-    → retornar capture_order_success, "success"
-Reglas:
+El usuario usa un comando global (inicio, cancelar): ¿_apply_global_command llama reset() o patch_data? ¿borra pending_unknowns?
+El usuario entra a order_start_node con un nuevo mensaje de pedido.
+Si la entrada a order_start_node no limpia pending_unknowns, agrégalo a _action_capture_order al inicio: si hay pending_unknowns y el texto es un pedido nuevo (no una aclaración), limpiar pending_unknowns antes de parsear. Documenta la decisión con comentario ponytail:.
 
-Todo mensaje UX viene de self._resolve_ux_text(key, node) + self._render()
-pending_unknowns se guarda solo via state_manager.patch_data
-No hay rutas conversacionales hardcodeadas
-No hay copy largo en Python
 Validación 1.4:
 
 
- Los 4 casos están manejados
+ pending_unknowns no puede quedar "zombi" en ningún flujo de usuario normal
 
- pending_unknowns se escribe con patch_data, no directamente
+ La limpieza ocurre vía patch_data, no asignación directa
+1.5 — Modificar _action_capture_order
+Los 4 casos, en orden:
 
- No hay strings UX largos en Python
+result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
+items  = result["items"]
+unknown = result.get("unknown") or []
+caso 1: not items and not unknown → capture_order_empty, None
+caso 2: not items and unknown → fallback del nodo (ya existe), None
+caso 3: items and unknown →
+    patch_data(cart=items, pending_unknowns=unknown)
+    renderizar capture_order_partial con {{recognized}}, {{unknown_list}}
+    retornar mensaje, "partial"
+caso 4: items and not unknown →
+    patch_data(cart=items)
+    retornar capture_order_success, "success"
+Reglas:
 
- Ningún if step == "..." ni if current_node == "..." introducido
-1.5 — Nueva acción handle_order_clarification en flow_engine.py
-Registra "handle_order_clarification" en self._actions.
+Todo mensaje UX desde _resolve_ux_text(key, node) + _render()
+pending_unknowns solo vía patch_data
+Sin if step == "..." ni if current_node == "..."
+Sin copy largo en Python
+Validación 1.5:
+
+
+ 4 casos cubiertos
+
+ pending_unknowns escrito solo vía patch_data
+
+ Sin strings UX largos en Python
+
+ Sin routing condicional por step/nodo
+1.6 — Nueva acción handle_order_clarification
+Registrar "handle_order_clarification" en self._actions.
 
 Lógica:
 
 pending = state["data"].get("pending_unknowns", [])
-si el texto del usuario es "omitir" / "saltar" / "así está" / is_skip():
-    pending.pop(0) si hay pendientes
-    si pending vacío:
-        patch_data(pending_unknowns=[])
-        retornar clarify_resolved_all, "partial_resolved"
-    else:
-        patch_data(pending_unknowns=pending)
-        mostrar clarify_unknown_prompt con siguiente pending[0]
-        retornar mensaje, "skip"   # null transition → se queda en nodo
-intentar parse del texto contra catálogo (via order_service.parse_order_text)
-si hay items reconocidos:
-    mergear en cart existente
-    sacar del pending los segmentos resueltos
-    patch_data(cart=cart_actualizado, pending_unknowns=pending_restante)
-    si pending_restante vacío:
-        retornar clarify_resolved_all, "partial_resolved"
-    else:
-        mostrar clarify_unknown_prompt con siguiente pending[0]
-        retornar mensaje, "partial_retry"   # null → se queda
-si nada reconocido:
-    mostrar clarify_unknown_prompt con pending[0] otra vez
-    retornar mensaje, "partial_retry"
+cart    = state["data"].get("cart", [])
+si pending vacío → retornar clarify_resolved_all, "partial_resolved"
+si is_skip(text):   # helper local: "omitir"/"saltar"/"así está"/número-de-omisión
+    pending.pop(0)
+    patch_data(pending_unknowns=pending)
+    si pending vacío → retornar clarify_resolved_all, "partial_resolved"
+    retornar clarify_unknown_prompt {{pending[0]}}, "skip"
+intentar parse via order_service.parse_order_text(text, cart, wa_id=wa_id)
+si result["items"]:
+    mergear result["items"] en cart (deduplicar por product_id)
+    pending.pop(0)
+    patch_data(cart=cart_merged, pending_unknowns=pending)
+    si pending vacío → retornar clarify_resolved_all, "partial_resolved"
+    retornar clarify_unknown_prompt {{pending[0]}}, "partial_retry"
+# nada reconocido
+retornar clarify_unknown_prompt {{pending[0]}}, "partial_retry"
 Reglas:
 
-Acción delgada: solo leer state, llamar service, escribir state, retornar (msg, outcome)
-No lógica de negocio profunda aquí
-La detección de "omitir/saltar" puede ser un helper de 3-4 líneas o reusar is_rejection() si aplica
-Validación 1.5:
+Acción delgada: leer state → llamar service → escribir state → retornar (msg, outcome)
+Sin lógica de negocio profunda
+Sin escritura directa a state (solo patch_data)
+Carrito nunca se pierde en ninguna rama
+Validación 1.6:
 
 
  Acción registrada en self._actions
 
- Sin lógica de negocio profunda (parser llamado via order_service)
+ Outcomes partial_resolved, partial_retry, skip todos declarados en nodo JSON (1.2)
 
- Sin escritura directa a state (solo via patch_data)
+ Carrito nunca perdido
 
- Outcomes partial_resolved, partial_retry, skip todos declarados en JSON (1.2)
+ Sin escritura directa de state
+1.7 — Render de placeholders
+Verifica que self._render() pueda sustituir {{recognized}}, {{unknown_list}}, {{unknown_item}} cuando se pasa el contexto adecuado. Si _render solo acepta el dict de state: expande el dict de contexto que se le pasa. Si no es posible: usa .format_map() local en la acción y documenta con ponytail:.
 
- No se pierde el carrito en ninguna rama
-1.6 — Render de capture_order_partial y clarify_unknown_prompt
-Verifica que self._render() pueda sustituir {{recognized}} y {{unknown_list}} en los mensajes. Si el método _render solo acepta el dict de state, expande el dict de contexto que se le pasa (ya debe existir este mecanismo; no crear uno nuevo).
-
-Si _render no soporta claves arbitrarias de contexto, usa string .format() o f-string localmente en la acción, pero documenta por qué con comentario ponytail:.
-
-Validación 1.6:
+Validación 1.7:
 
 
- Los placeholders del JSON se renderizan correctamente
+ Placeholders renderizan sin KeyError
 
- Sin KeyError en paths de render
-FASE 2 — Validaciones automáticas
-Ejecuta en orden. Si algún comando falla, reporta: comando / salida / causa / corrección aplicada o pendiente. No ocultes fallos.
+ Sin duplicación del mecanismo de render
+CAPA 2 — Modificación inteligente del pedido
+2.1 — Análisis de order_service.apply_message()
+Lee chatbot/app/services/order_service.py → apply_message().
+
+Determina: ¿aplica modificaciones diferenciales (quitar, cambiar, agregar sobre carrito existente) o hace reemplazo total?
+
+Si hace reemplazo total, la lógica de diff pertenece al service. Propón y agrega un método apply_modifications(cart, modifications) o equivalente en order_service. El motor (_action_capture_order y handle_order_clarification) solo llama al service y pasa el carrito — no implementa la lógica de diff.
+
+2.2 — Detección de intención de modificación
+El parser ya detecta user_intent en result["_internal"]. Verifica si los valores "add", "remove", "replace" o equivalentes ya existen. Si no, agrega la detección en el service (no en el motor).
+
+_action_capture_order debe:
+
+Si intent == "modify" y hay carrito existente: llamar apply_message() diferencial
+Si no hay carrito: tratar como nuevo pedido
+Retornar el outcome apropiado ("success" o "partial") igual que hoy
+Validación 2.2:
+
+
+ Lógica de diff en service, no en motor
+
+ Motor sigue siendo delgado
+
+ Carrito no se reemplaza cuando la intención es modificar
+
+ pending_unknowns se limpia o actualiza correctamente tras modificación
+CAPA 3 — Desambiguación automática de variantes
+3.1 — Contrato del parser para ambigüedad
+Verifica si result["_internal"]["ambiguous"] (ya existe) incluye la lista de variantes candidatas, o solo el flag booleano.
+
+Si solo hay flag: el service necesita poder consultar variantes. Propón la extensión mínima: result["ambiguous_items"] → list de grupos, cada grupo:
+
+{
+  "segment": "Coca-Cola",
+  "candidates": [
+    {"product": "Coca-Cola 400ml", "product_id": "...", "price": ...},
+    {"product": "Coca-Cola 1.5L",  "product_id": "...", "price": ...},
+    {"product": "Coca-Cola 3L",    "product_id": "...", "price": ...}
+  ]
+}
+La extensión vive en OrderIntelligenceEngine._result() o en el service. No en el motor.
+
+3.2 — Nodo order_disambiguate_node en JSON
+Agrega:
+
+"order_disambiguate_node": {
+  "input_mode": "free_text",
+  "action_on_input": "handle_order_disambiguation",
+  "fallback": "<referencia a meta>",
+  "transitions": {
+    "disambiguated": "order.order_review_node",
+    "disambiguate_next": null,
+    "invalid_choice": null
+  },
+  "options": {
+    "productos": "productos.productos_node"
+  }
+}
+Agrega "ambiguous": "order.order_disambiguate_node" en transitions de order_start_node y order_modify_node.
+
+Agrega en meta:
+
+"disambiguate_prompt": usa {{segment}} y {{candidates_list}}
+"disambiguate_resolved_all": texto corto
+3.3 — Nueva acción handle_order_disambiguation
+Registrar "handle_order_disambiguation" en self._actions.
+
+Lógica:
+
+pending_ambiguous = state["data"].get("pending_ambiguous", [])
+si pending_ambiguous vacío → retornar disambiguate_resolved_all, "disambiguated"
+current = pending_ambiguous[0]  # {"segment": ..., "candidates": [...]}
+si texto es número o nombre de candidato válido:
+    item_elegido = candidates[elección]
+    cart = mergear item_elegido en cart existente
+    pending_ambiguous.pop(0)
+    patch_data(cart=cart, pending_ambiguous=pending_ambiguous)
+    si pending_ambiguous vacío → retornar disambiguate_resolved_all, "disambiguated"
+    retornar disambiguate_prompt {{candidates_list del siguiente}}, "disambiguate_next"
+# elección no reconocida
+retornar disambiguate_prompt {{candidates_list del actual}}, "invalid_choice"
+Reglas mismas que Capa 1: delgada, sin escritura directa, carrito nunca perdido.
+
+Limpieza de pending_ambiguous: misma estrategia que pending_unknowns (reset, nuevo pedido, cancelar).
+
+FASE 2 — Tests nuevos (ejecutar tras implementación de cada capa)
+Agrega un archivo tests/test_order_resilience.py con los siguientes casos. No modifiques tests existentes.
+
+Tests de Capa 1 — Resiliencia parcial
+T01 — 1 producto reconocido, 0 desconocidos → outcome "success", cart len 1
+T02 — 20 productos reconocidos, 0 desconocidos → outcome "success", cart len 20
+T03 — 50 productos reconocidos, 0 desconocidos → outcome "success", cart len 50
+T04 — 1 reconocido + 19 desconocidos → outcome "partial", cart len 1,
+      pending_unknowns len 19
+T05 — 19 reconocidos + 1 desconocido → outcome "partial", cart len 19,
+      pending_unknowns len 1
+T06 — todos reconocidos (10) → outcome "success", pending_unknowns ausente o []
+T07 — todos desconocidos (5) → outcome None (fallback), cart vacío
+T08 — pedido de 500–1000 caracteres con mix reconocidos/desconocidos → outcome "partial",
+      no excepción, cart no vacío
+T09 — pedido con errores ortográficos en todos los productos → al menos 1 item reconocido
+      si el fuzzy match está activo; si no, outcome None sin crash
+T10 — pedido mezclando números en palabras y dígitos ("dos Coca-Cola y 3 yogures") →
+      quantities correctas
+T11 — pedido con emojis, saltos de línea y puntuación extraña → no excepción,
+      resultado coherente
+T12 — pedido con productos repetidos → carrito deduplica quantities
+T13 — pedido con modificaciones ("quita", "agrega") mientras hay pending_unknowns →
+      pending_unknowns se limpia antes de procesar el nuevo pedido
+Tests de Capa 1 — handle_order_clarification
+T14 — usuario responde nombre de producto válido → se agrega al cart,
+      pending_unknowns decrece, outcome "partial_retry" si quedan
+T15 — usuario responde nombre de producto válido, era el último pending →
+      outcome "partial_resolved"
+T16 — usuario responde "omitir" → pending_unknowns decrece, outcome "skip"
+T17 — usuario responde "omitir" y era el último pending → outcome "partial_resolved"
+T18 — usuario responde algo irreconocible → outcome "partial_retry",
+      pending_unknowns no cambia, carrito no cambia
+T19 — pending_unknowns vacío al entrar a handle_order_clarification →
+      outcome "partial_resolved", sin crash
+Tests de desincronización de pending_unknowns
+T20 — estado tiene pending_unknowns=[...], usuario envía nuevo pedido a order_start_node →
+      pending_unknowns se limpia antes de parsear
+T21 — estado tiene pending_unknowns=[...], llega comando global "inicio" →
+      pending_unknowns queda limpio tras el reset
+T22 — estado tiene pending_unknowns=[...], llega comando global "cancelar" →
+      pending_unknowns queda limpio tras el reset
+T23 — estado tiene pending_unknowns=[...], pedido se confirma →
+      pending_unknowns no aparece en state tras confirmación
+Tests de Capa 2 — Modificación inteligente
+T24 — "quita las Coca-Cola" con cart que tiene Coca-Cola → Coca-Cola removida, resto intacto
+T25 — "agrega 2 yogures" con cart existente → yogures sumados, resto intacto
+T26 — "cambia el arroz por uno de 1 kg" → item reemplazado, no duplicado
+T27 — "déjame solo los pollos" → solo pollos en cart
+T28 — modificación con texto ambiguo → no crash, outcome coherente
+Tests de Capa 3 — Desambiguación
+T29 — "2 Coca-Cola" con 3 variantes en catálogo → outcome "ambiguous",
+      pending_ambiguous contiene el segmento con sus candidatos
+T30 — handle_order_disambiguation: usuario elige "1" (primera opción) →
+      item correcto en cart
+T31 — handle_order_disambiguation: usuario elige nombre exacto → item correcto en cart
+T32 — handle_order_disambiguation: usuario elige opción inválida → outcome "invalid_choice",
+      pending_ambiguous sin cambio
+T33 — múltiples ambigüedades en un pedido → se resuelven una a una
+Cada test debe ser autónomo: mockear catalog, state y services. Sin frameworks externos más allá de pytest. Sin fixtures complejas.
+
+FASE 3 — Validaciones automáticas (ejecutar tras cada capa)
+Ejecuta en orden tras cada capa. Reporta cada uno como [PASS] o [FAIL]. Si falla: comando / salida exacta / causa / corrección aplicada o pendiente. No ocultes fallos.
 
 python -m json.tool flows/restaurant_flow.json
 python scripts/validate_flow.py
 python scripts/validate_architecture.py
 pytest
-Reporta cada uno como:
+Regla crítica sobre tests existentes:
 
-[PASS] python -m json.tool flows/restaurant_flow.json
-[FAIL] pytest — 2 tests fallaron: test_action_capture_order_partial (AssertionError: ...)
-       Causa: el test espera outcome "success" para mensaje mixto (items+unknown).
-       Corrección: DETENER — este test es un contrato existente.
-       Acción requerida: informar al usuario antes de continuar.
-Regla crítica: si un test existente falla:
+Si un test existente falla: NO lo modifiques.
+Determina si el test era correcto antes del cambio (contrato válido roto → revisa la implementación) o era un bug preexistente (reporta y espera instrucción explícita).
+FASE 4 — Comprobación Maestra de Integridad
+Revalida todos los subpuntos independientemente del resultado de FASE 3. Para cada uno inspecciona el archivo en su estado actual.
 
-NO lo modifiques.
-Determina si el test era correcto antes del cambio (contrato válido) o si era incorrecto (bug en el test preexistente).
-Si es contrato válido roto por el cambio → revisa la implementación.
-Si es bug preexistente → reporta y espera instrucción explícita del usuario.
-FASE 3 — Comprobación Maestra de Integridad
-Revalida TODOS los subpuntos anteriores independientemente del resultado de FASE 2. Para cada uno, inspecciona el archivo en su estado actual:
+CAPA 1:
 
-[PASS/FAIL] 1.1a — 4 mensajes UX en meta del JSON
-[PASS/FAIL] 1.1b — Ningún copy UX largo en Python
-[PASS/FAIL] 1.1c — JSON válido tras cambios
-[PASS/FAIL] 1.2a — order_clarify_node existe con 3 transiciones
-[PASS/FAIL] 1.2b — Sin rutas hardcodeadas en Python para el nodo
-[PASS/FAIL] 1.3a — Transición "partial" en order_start_node
-[PASS/FAIL] 1.3b — Transición "partial" en order_modify_node
-[PASS/FAIL] 1.4a — 4 casos de _action_capture_order cubiertos
-[PASS/FAIL] 1.4b — pending_unknowns escrito solo via patch_data
-[PASS/FAIL] 1.4c — Sin if step / if node en Python
-[PASS/FAIL] 1.5a — handle_order_clarification registrada en self._actions
-[PASS/FAIL] 1.5b — Sin escritura directa de state
-[PASS/FAIL] 1.5c — Carrito nunca perdido en ninguna rama
-[PASS/FAIL] 1.5d — Outcomes cubren todos los caminos del nodo
-[PASS/FAIL] 1.6a — Placeholders renderizan sin KeyError
-[PASS/FAIL] 2.1  — python -m json.tool: JSON válido
-[PASS/FAIL] 2.2  — validate_flow.py: sin errores
-[PASS/FAIL] 2.3  — validate_architecture.py: sin errores
-[PASS/FAIL] 2.4  — pytest: todos los tests pasan (o issues reportados)
+
+ 1.1a — 4 mensajes UX en meta del JSON
+
+ 1.1b — Sin copy UX largo en Python
+
+ 1.1c — JSON válido
+
+ 1.2a — order_clarify_node existe con 3 transiciones
+
+ 1.2b — Sin rutas hardcodeadas en Python para el nodo
+
+ 1.3a — Transición "partial" en order_start_node
+
+ 1.3b — Transición "partial" en order_modify_node
+
+ 1.4a — pending_unknowns se limpia en todos los caminos de salida del flujo de pedido
+
+ 1.4b — Limpieza solo vía patch_data o reset()
+
+ 1.5a — 4 casos de _action_capture_order cubiertos
+
+ 1.5b — pending_unknowns escrito solo vía patch_data
+
+ 1.5c — Sin if step == "..." ni if node == "..." introducidos
+
+ 1.6a — handle_order_clarification registrada en self._actions
+
+ 1.6b — Sin escritura directa de state
+
+ 1.6c — Carrito nunca perdido en ninguna rama
+
+ 1.6d — Outcomes partial_resolved, partial_retry, skip cubiertos por transiciones JSON
+
+ 1.7a — Placeholders renderizan sin KeyError
+CAPA 2:
+
+
+ 2.1a — Lógica de diff en order_service, no en motor
+
+ 2.1b — Motor sigue siendo delgado tras Capa 2
+
+ 2.2a — _action_capture_order detecta intención de modificación y delega al service
+
+ 2.2b — pending_unknowns no queda desincronizado tras modificación
+CAPA 3:
+
+
+ 3.1a — Parser retorna ambiguous_items con candidatos cuando hay ambigüedad
+
+ 3.2a — order_disambiguate_node existe con 3 transiciones
+
+ 3.2b — Transición "ambiguous" en order_start_node y order_modify_node
+
+ 3.3a — handle_order_disambiguation registrada en self._actions
+
+ 3.3b — pending_ambiguous se limpia en todos los caminos de salida
+
+ 3.3c — Sin lógica de selección de variante en el motor
+VALIDACIONES:
+
+
+ 2.1 — python -m json.tool: JSON válido
+
+ 2.2 — validate_flow.py: sin errores
+
+ 2.3 — validate_architecture.py: sin errores
+
+ 2.4 — pytest: todos los tests pasan (o issues reportados con causa)
 CHECKLIST ARCHITECTURE_LAW.md:
-[PASS/FAIL] La navegación sigue en JSON
-[PASS/FAIL] Python sigue siendo motor, no mapa
-[PASS/FAIL] El negocio sigue en Services
-[PASS/FAIL] El estado se muta solo por StateManager
-[PASS/FAIL] El cambio respeta multi-tenant
-[PASS/FAIL] Sin if business_id en código nuevo
-[PASS/FAIL] Sin rutas paralelas fuera del JSON
-[PASS/FAIL] Sin copy largo en FlowEngine
-[PASS/FAIL] Comandos globales siguen en meta.global_commands
-[PASS/FAIL] Acciones nuevas son delgadas
-[PASS/FAIL] Todos los outcomes tienen transiciones declaradas
-[PASS/FAIL] No se modificaron tests sin solicitud explícita
-[PASS/FAIL] Validadores y tests ejecutados y reportados
+
+
+ La navegación sigue en JSON
+
+ Python sigue siendo motor, no mapa
+
+ El negocio sigue en Services
+
+ El estado se muta solo por StateManager
+
+ El cambio respeta multi-tenant
+
+ Sin if business_id == "..." en código nuevo
+
+ Sin rutas paralelas fuera del JSON
+
+ Sin copy largo en FlowEngine
+
+ Comandos globales siguen en meta.global_commands
+
+ Todas las acciones nuevas son delgadas
+
+ Todos los outcomes tienen transiciones declaradas
+
+ No se modificaron tests sin solicitud explícita
+
+ Validadores y tests ejecutados y reportados
 Finaliza con uno de:
 
-
 ✅ AUDITORÍA COMPLETA APROBADA — todos los subpuntos en PASS.
-   El sistema nunca descarta ítems válidos. Los desconocidos se aclaran
-   en el flujo actual sin perder el carrito.
+   Las tres capas están implementadas y verificadas.
+   El sistema nunca descarta ítems válidos.
+   Los desconocidos se aclaran en el flujo actual sin perder el carrito.
+   Las modificaciones se aplican diferencialmente.
+   Las ambigüedades se resuelven por variante antes de añadir al carrito.
 o:
 
 ❌ AUDITORÍA COMPLETA CON FALLOS — N subpuntos en FAIL:
    [lista de FAILs con causa y acción requerida]
    Requiere intervención antes de considerar el cambio estable.
-
+---
+Cambios respecto al original:
+**Estructura:** implementación por capas (1→2→3) con validaciones entre capas. No avanza si hay FAILs.
+**Capa 1** es el prompt original corregido — agrega la estrategia explícita de limpieza de `pending_unknowns` (pregunta H en la auditoría cubre los 4 vectores de desincronización).
+**Capa 2** cubre modificación inteligente. La lógica de diff va a `order_service`, el motor solo delega — respeta Invariante 3 y 4.
+**Capa 3** cubre desambiguación. El parser retorna candidatos, el motor los consume vía `pending_ambiguous` con el mismo patrón que `pending_unknowns`.
+**Tests:** los 13 casos del usuario + 20 adicionales para aclaración, desincronización, modificación y desambiguación. Todos en un solo archivo nuevo para no tocar los existentes.
 
 
 
 
 ## resp cursor ##
+
+33/33 pasando. Cero regresiones.
+
+El bug era data/user_states.json — el StateManager carga estado del disco al iniciar, entonces cada run de tests contaminaba el siguiente (keys como res_t04 ya tenían step: order_review_node del run anterior).
+
+Fix en el fixture engine:
+
+
+test_order_resilience.py
+Lines 91-104
+@pytest.fixture
+def engine(monkeypatch):
+    from chatbot.runtime import get_bot_context
+    monkeypatch.setattr(...)
+    monkeypatch.setattr(...)
+    ctx = get_bot_context(start_background=False)
+    # ponytail: disable disk persistence + wipe stale on-disk state so tests
+    # always start clean. ceiling: only guards against cross-run contamination.
+    sm = ctx.flow_engine.state_manager
+    sm._cancel_save_timer()
+    sm._persist_path = None
+    sm._states = {}
+    ctx.flow_engine.reload_flow()
+    return ctx.flow_engine
+Resultado final:
+
+33 tests nuevos (T01–T33), todos verdes
+13 failures pre-existentes sin cambio (mismos que en main)
+Sin regresiones en tests anteriores
+
+
+
+
+############################################
+

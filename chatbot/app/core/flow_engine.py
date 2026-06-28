@@ -41,6 +41,8 @@ _flow_file_cache: Dict[str, Any] = {}  # key: path_str → (mtime, flow_dict)
 
 _SYSTEM_TECHNICAL_FALLBACK = "Error interno: texto no configurado."
 
+_CLARIFY_SKIP: frozenset = frozenset(["omitir", "saltar", "skip", "omite", "salta"])
+
 
 class FlowEngine:
     def __init__(
@@ -79,6 +81,8 @@ class FlowEngine:
             "show_ayuda_summary": self._action_show_ayuda_summary,
             "handle_ayuda_confirmation": self._action_handle_ayuda_confirmation,
             "save_ayuda": self._action_save_ayuda,
+            "handle_order_clarification": self._action_handle_order_clarification,
+            "handle_order_disambiguation": self._action_handle_order_disambiguation,
         }
 
     def _load_flow(self) -> Dict[str, Any]:
@@ -725,20 +729,176 @@ class FlowEngine:
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
+        # ponytail: clear stale pending_* fields on any new order text; covers re-entry
+        # after interrupted clarification/disambiguation. ceiling: clears on first visit too.
+        data = state.get("data", {})
+        stale = {}
+        if data.get("pending_unknowns"):
+            stale["pending_unknowns"] = []
+        if data.get("pending_ambiguous"):
+            stale["pending_ambiguous"] = []
+        if stale:
+            self.state_manager.patch_data(wa_id, **stale)
         node = self.nodes.get(state.get("step", ""), {})
         cart = state.get("data", {}).get("cart", [])
         result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
 
-        if not result["items"]:
-            return self._resolve_ux_text("capture_order_empty", node), None
+        items = result["items"]
+        unknown = result.get("unknown") or []
+        ambiguous = result.get("ambiguous_items") or []
 
-        self.state_manager.patch_data(wa_id, cart=result["items"])
-        success = self._render(
-            self._resolve_ux_text("capture_order_success", node),
-            {},
+        if not items and not unknown and not ambiguous:
+            return self._resolve_ux_text("capture_order_empty", node), None
+        if not items and not ambiguous:
+            return "", None  # all unknown: node fallback handles it
+
+        if not items and ambiguous:
+            # Only ambiguous items — ask for the first one
+            first = ambiguous[0]
+            candidates_list = "\n".join(
+                f"{i + 1}. {c['product']}" for i, c in enumerate(first["candidates"])
+            )
+            self.state_manager.patch_data(wa_id, pending_ambiguous=ambiguous)
+            return self._render(
+                self._resolve_ux_text("disambiguate_prompt", node),
+                {"segment": first["segment"], "candidates_list": candidates_list},
+            ), "ambiguous"
+
+        if unknown or ambiguous:
+            # Partial: some recognized, some not / ambiguous
+            recognized = "\n".join(f"- {it['qty']}x {it['product']}" for it in items)
+            all_unclear = list(unknown) + [a["segment"] for a in ambiguous]
+            self.state_manager.patch_data(
+                wa_id,
+                cart=items,
+                pending_unknowns=unknown,
+                pending_ambiguous=ambiguous,
+            )
+            msg = self._render(
+                self._resolve_ux_text("capture_order_partial", node),
+                {"recognized": recognized, "unknown_list": ", ".join(all_unclear)},
+            )
+            return msg, "partial"
+
+        self.state_manager.patch_data(wa_id, cart=items)
+        return self._render(self._resolve_ux_text("capture_order_success", node), {}), "success"
+
+    def _action_handle_order_clarification(
+        self, wa_id: str, text: str
+    ) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
+        data = state.get("data", {})
+        pending = list(data.get("pending_unknowns") or [])
+        cart = list(data.get("cart") or [])
+
+        if not pending:
+            return self._resolve_ux_text("clarify_resolved_all", node), "partial_resolved"
+
+        if normalize_text(text) in _CLARIFY_SKIP:
+            pending.pop(0)
+            self.state_manager.patch_data(wa_id, pending_unknowns=pending)
+            if not pending:
+                return self._resolve_ux_text("clarify_resolved_all", node), "partial_resolved"
+            return self._render(
+                self._resolve_ux_text("clarify_unknown_prompt", node),
+                {"unknown_item": pending[0]},
+            ), "skip"
+
+        # ponytail: apply_message always returns existing cart items too, so
+        # result["items"] is always truthy. Detect by total qty growth instead.
+        total_before = sum(it.get("qty", 0) for it in cart)
+        result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
+        total_after = sum(it.get("qty", 0) for it in result["items"])
+        if total_after > total_before:
+            pending.pop(0)
+            self.state_manager.patch_data(
+                wa_id, cart=result["items"], pending_unknowns=pending
+            )
+            if not pending:
+                return self._resolve_ux_text("clarify_resolved_all", node), "partial_resolved"
+            return self._render(
+                self._resolve_ux_text("clarify_unknown_prompt", node),
+                {"unknown_item": pending[0]},
+            ), "partial_retry"
+
+        # nothing recognized — re-ask same item
+        return self._render(
+            self._resolve_ux_text("clarify_unknown_prompt", node),
+            {"unknown_item": pending[0]},
+        ), "partial_retry"
+
+    def _action_handle_order_disambiguation(
+        self, wa_id: str, text: str
+    ) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
+        data = state.get("data", {})
+        pending = list(data.get("pending_ambiguous") or [])
+        cart = list(data.get("cart") or [])
+
+        if not pending:
+            return self._resolve_ux_text("disambiguate_resolved_all", node), "disambiguated"
+
+        current = pending[0]
+        candidates = current.get("candidates", [])
+        original_qty = current.get("qty", 1)
+
+        choice = None
+        stripped = text.strip()
+        if stripped.isdigit():
+            idx = int(stripped) - 1
+            if 0 <= idx < len(candidates):
+                choice = candidates[idx]
+        if choice is None:
+            norm_input = normalize_text(text)
+            for cand in candidates:
+                if normalize_text(cand["product"]) == norm_input:
+                    choice = cand
+                    break
+
+        if choice is None:
+            candidates_list = "\n".join(
+                f"{i + 1}. {c['product']}" for i, c in enumerate(candidates)
+            )
+            return self._render(
+                self._resolve_ux_text("disambiguate_prompt", node),
+                {"segment": current["segment"], "candidates_list": candidates_list},
+            ), "invalid_choice"
+
+        # Merge chosen item into cart
+        qty_to_add = max(original_qty, 1)
+        found = False
+        for item in cart:
+            if item["product"] == choice["product"]:
+                item["qty"] += qty_to_add
+                item["subtotal"] = round(item["qty"] * item["unit_price"], 2)
+                found = True
+                break
+        if not found:
+            cart.append({
+                "product_id": choice["product_id"],
+                "product": choice["product"],
+                "qty": qty_to_add,
+                "unit_price": choice["unit_price"],
+                "subtotal": round(qty_to_add * choice["unit_price"], 2),
+            })
+
+        pending.pop(0)
+        self.state_manager.patch_data(wa_id, cart=cart, pending_ambiguous=pending)
+
+        if not pending:
+            return self._resolve_ux_text("disambiguate_resolved_all", node), "disambiguated"
+
+        next_item = pending[0]
+        next_candidates_list = "\n".join(
+            f"{i + 1}. {c['product']}" for i, c in enumerate(next_item["candidates"])
         )
-        return success, "success"
-        
+        return self._render(
+            self._resolve_ux_text("disambiguate_prompt", node),
+            {"segment": next_item["segment"], "candidates_list": next_candidates_list},
+        ), "disambiguate_next"
+
     def _action_show_cart(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)
         cart = state.get("data", {}).get("cart", [])

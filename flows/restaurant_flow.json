@@ -47,7 +47,15 @@
     "productos_empty": "Por el momento no tenemos productos disponibles. Intenta más tarde.",
     "productos_category_header": "\n\n*{{category}}*",
     "productos_item_line": "\n- {{name}} - ${{price}}",
-    "productos_category_end": ""
+    "productos_category_end": "",
+
+    "capture_order_partial": "✅ Guardé estos productos:\n{{recognized}}\n\nNo pude identificar: *{{unknown_list}}*\n\n¿Cómo se llama el primer producto que falta?",
+    "clarify_unknown_prompt": "No reconocí *{{unknown_item}}*. ¿Cómo se llama exactamente? Escribe *omitir* para saltarlo.",
+    "clarify_skipped": "Entendido, saltamos ese ítem.",
+    "clarify_resolved_all": "¡Listo! Todos los productos quedaron identificados. 🛍️",
+
+    "disambiguate_prompt": "Encontré varias opciones para *{{segment}}*:\n{{candidates_list}}\n\nEscribe el número o nombre de tu elección.",
+    "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️"
   },
   "states": {
     "home": {
@@ -108,7 +116,9 @@
           "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*",
           "transitions": {
             "success": "order.order_review_node",
-            "empty_cart": null
+            "empty_cart": null,
+            "partial": "order.order_clarify_node",
+            "ambiguous": "order.order_disambiguate_node"
           },
           "options": {
             "productos": "productos.productos_node"
@@ -139,7 +149,35 @@
           "action": "capture_order",
           "transitions": {
             "success": "order.order_review_node",
-            "empty_cart": null
+            "empty_cart": null,
+            "partial": "order.order_clarify_node",
+            "ambiguous": "order.order_disambiguate_node"
+          },
+          "options": {
+            "productos": "productos.productos_node"
+          }
+        },
+        "order_clarify_node": {
+          "input_mode": "free_text",
+          "action_on_input": "handle_order_clarification",
+          "fallback": "No reconocí ese producto. Escríbelo de nuevo, o escribe *omitir* para saltarlo.",
+          "transitions": {
+            "partial_resolved": "order.order_review_node",
+            "partial_retry": null,
+            "skip": null
+          },
+          "options": {
+            "productos": "productos.productos_node"
+          }
+        },
+        "order_disambiguate_node": {
+          "input_mode": "free_text",
+          "action_on_input": "handle_order_disambiguation",
+          "fallback": "Escribe el número o nombre exacto de la opción.",
+          "transitions": {
+            "disambiguated": "order.order_review_node",
+            "disambiguate_next": null,
+            "invalid_choice": null
           },
           "options": {
             "productos": "productos.productos_node"

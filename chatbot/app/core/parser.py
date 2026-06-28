@@ -310,6 +310,15 @@ ADD_PREFIX_RE = re.compile(
     re.IGNORECASE,
 )
 
+SOLO_ONLY_RE = re.compile(
+    r"\bdéjame\s+solo\b|\bdejame\s+solo\b|\bsolo\s+quiero\b|\bquiero\s+solo\b|\bsolo\s+los\b|\bsolo\s+las\b|\bsolo\s+el\b|\bsolo\s+la\b",
+    re.IGNORECASE,
+)
+SOLO_PREFIX_RE = re.compile(
+    r"^(?:déjame\s+solo|dejame\s+solo|solo\s+quiero|quiero\s+solo)\s+(?:los\s+|las\s+|el\s+|la\s+)?",
+    re.IGNORECASE,
+)
+
 COMMA_SPLIT_RE = re.compile(r"\s*,\s*")
 # Phase 2.2: a comma between digits is a thousands separator (12,123) — never a split.
 NUMSAFE_COMMA_SPLIT_RE = re.compile(r"\s*(?<!\d),(?!\d)\s*")
@@ -1914,6 +1923,7 @@ class OrderIntelligenceEngine:
 
         parsed_items: List[Dict[str, Any]] = []
         unknown: List[str] = []
+        ambiguous_items: List[Dict[str, Any]] = []
         needs_review = False
 
         for segment in segments:
@@ -1964,6 +1974,25 @@ class OrderIntelligenceEngine:
             )
             if ambiguous:
                 needs_review = True
+                # ponytail: hold ambiguous items back from cart; surface as candidates.
+                # ceiling: only top-2 candidates returned; upgrade: add top_n_matches(n).
+                ambiguous_items.append({
+                    "segment": product_text,
+                    "qty": qty,
+                    "candidates": [
+                        {
+                            "product": best["nombre"],
+                            "product_id": best["id"],
+                            "unit_price": best["precio"],
+                        },
+                        {
+                            "product": second["nombre"],
+                            "product_id": second["id"],
+                            "unit_price": second["precio"],
+                        },
+                    ],
+                })
+                continue  # do not add ambiguous item to parsed_items
 
             parsed_items.append(
                 {
@@ -1980,15 +2009,15 @@ class OrderIntelligenceEngine:
         unknown.extend(qa_unknown)
         needs_review = needs_review or qa_review
 
-        if not parsed_items:
+        if not parsed_items and not ambiguous_items:
             return self._fail_safe(unknown or ["sin productos reconocidos"])
 
         status = "ok" if not needs_review and not unknown else "needs_clarification"
-        result = self._result(parsed_items, status, unknown)
+        result = self._result(parsed_items, status, unknown, ambiguous_items)
         internal: Dict[str, Any] = {
             "min_score": _min_confidence(parsed_items),
             "needs_review": needs_review,
-            "ambiguous": needs_review and not unknown,
+            "ambiguous": bool(ambiguous_items),
         }
         if intent_info.get("command"):
             internal["user_intent"] = intent_info["command"]
@@ -2062,6 +2091,7 @@ class OrderIntelligenceEngine:
         items: List[Dict[str, Any]],
         status: str,
         unknown: Optional[List[str]] = None,
+        ambiguous_items: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         public_items = [
             {"product": item["product"], "quantity": int(item["quantity"])}
@@ -2072,6 +2102,7 @@ class OrderIntelligenceEngine:
             "total_items": sum(item["quantity"] for item in public_items),
             "status": status,
             "unknown": unknown or [],
+            "ambiguous_items": ambiguous_items or [],
         }
 
     def _segment_likely_product(self, segment: str) -> bool:
@@ -2333,7 +2364,12 @@ class OrderParser:
                     cart.append(addition)
             if additions:
                 notes.append(f"Agregué: {', '.join(a['product'] for a in additions)}.")
-            return {"items": cart, "notes": notes, "unknown": unknown}
+            return {
+                "items": cart,
+                "notes": notes,
+                "unknown": unknown,
+                "ambiguous_items": parse_snapshot.get("ambiguous_items", []),
+            }
 
         if OTRA_ADD_RE.search(cleaned):
             fragment = OTRA_PREFIX_RE.sub("", cleaned).strip()
@@ -2345,6 +2381,25 @@ class OrderParser:
                         item["subtotal"] = round(item["qty"] * item["unit_price"], 2)
                         notes.append(f"Agregué otra: {matched['nombre']}.")
                         return {"items": cart, "notes": notes, "unknown": unknown}
+
+        if SOLO_ONLY_RE.search(cleaned):
+            # ponytail: "déjame solo X" → keep only X, discard everything else.
+            # ceiling: multi-product "solo X y Y" falls through to fallback parse.
+            fragment = SOLO_PREFIX_RE.sub("", cleaned).strip()
+            matched = self._match_product(fragment) if fragment else None
+            if matched:
+                qty, _ = self._extract_quantity(fragment)
+                kept = {
+                    "product_id": matched["id"],
+                    "product": matched["nombre"],
+                    "qty": max(qty, 1),
+                    "unit_price": matched["precio"],
+                    "subtotal": round(max(qty, 1) * matched["precio"], 2),
+                }
+                notes.append(f"Dejé solo: {matched['nombre']}.")
+                return {"items": [kept], "notes": notes, "unknown": unknown}
+            unknown.append(fragment or cleaned)
+            return {"items": cart, "notes": notes, "unknown": unknown}
 
         if REMOVE_VERB_RE.search(cleaned):
             removed, unknown_remove = self.parse_remove(text)
@@ -2392,7 +2447,12 @@ class OrderParser:
             if item["qty"] != cart_before.get(item["product"], 0):
                 notes.append(f"Actualicé: {item['product']} x{item['qty']}.")
 
-        return {"items": cart, "notes": notes, "unknown": unknown}
+        return {
+            "items": cart,
+            "notes": notes,
+            "unknown": unknown,
+            "ambiguous_items": parse_snapshot.get("ambiguous_items", []),
+        }
 
     @staticmethod
     def cart_total(items: List[Dict[str, Any]]) -> float:
