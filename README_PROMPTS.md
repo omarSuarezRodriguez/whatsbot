@@ -1,4 +1,4 @@
-## v1.61
+## v1.62 - Plan para hacer lector de pedidos 99% efectivo
 
 
 
@@ -5927,10 +5927,237 @@ Flujo de "Hola" , "Pedido", "Productos" "Tu pedido" listo y funcional
 
 
 
-##################################3
+##################################
 ## v1.61
 
 Se arregló formato de precios en "productos" y en "haz tu pedido", ya están cerrados esos dos totalmente
 
 
 
+
+
+####################################
+## v1.62 - Plan para hacer lector de pedidos 99% efectivo
+
+
+
+## prompt ##
+
+Antes de empezar, lee ARCHITECTURE_LAW.md y obedécelo. NO modifiques ARCHITECTURE_LAW.md.
+NO modifiques tests existentes. Si un cambio rompe un test, corrige la implementación,
+no el test. Reglas: JSON = mapa, Python = motor, negocio = Services/datos,
+estado = StateManager, tenant = business_scope. Sin dependencias nuevas en el camino
+por defecto (filosofía ponytail: borrar > añadir); dependencias opcionales solo con
+import perezoso y fallback. Todo lo específico de un negocio debe derivarse del catálogo
+inyectado (menu_items), nunca hardcodearse.
+
+CONTEXTO
+El parser vive en chatbot/app/core/parser.py. Hoy tiene vocabulario de restaurante
+hardcodeado (SYNONYM_TOKEN_MAP, CATEGORY_STOPWORDS, BEVERAGE_SYNONYM_KEYS,
+PARTIAL_GENERIC_TOKENS, PARTIAL_CATEGORY_ONLY, _detect_single/multi_beverage) y el
+parser de números en palabras (NUMBER_WORDS) solo llega a "treinta" (30). El tenant real
+es un mercado (productos como "Arroz Diana 500g", "Coca-Cola 1.5 L"), así que ese
+hardcode ya está mal. El catálogo se inyecta dinámico vía OrderIntelligenceEngine(menu_items);
+score_pair ya consume item["aliases"].
+
+OBJETIVO (99% real)
+El motor debe entender pedidos de CUALQUIER cliente y CUALQUIER catálogo (tornillos,
+motos, arcos, balones, guantes de boxeo, lo que sea), sin reglas por negocio, cumpliendo:
+
+1. Cualquier numeración:
+   - dígitos: 323, 1000, 1.000, 1,000
+   - palabras en español de cualquier magnitud: cincuenta, quinientos,
+     "mil doscientos veinticinco", "quinientos veinticinco"
+   - formatos: 2x, x2, 2×, "un par", "media docena", "una docena"
+   - mezclas y posición libre: "cincuenta arcos", "arcos x50", "50x guantes"
+
+2. Cualquier frase errática / mal escrita:
+   - typos y errores de ortografía, repeticiones de letras (holaaa, pizzzza),
+     palabras pegadas (dosarcos), mayúsculas/minúsculas, acentos o falta de ellos, emojis.
+   - TODA la puntuación tratada como separador o ruido según corresponda:
+     guion -, raya – —, punto ., coma ,, dos puntos :, punto y coma ;, barra / \,
+     pipe |, asterisco *, más +, ampersand &, paréntesis ( ), corchetes [ ],
+     llaves { }, comillas " ' y combinaciones.
+   - debe leer ≈99% de las combinaciones que un cliente real escribiría.
+
+3. Cualquier catálogo sin hardcode:
+   - eliminar/derivar del catálogo: distintividad (stopwords por frecuencia),
+     sinónimos (campo aliases/keywords por producto desde el dato/Services),
+     detección de categoría genérica (desde las categorías reales del catálogo).
+   - borrar la lógica de bebidas hardcodeada.
+
+ENTREGABLE
+Dame un PLAN de exactamente 4 FASES para implementar todo lo anterior. Cada fase debe
+tener SUBPUNTOS concretos y accionables. Para CADA subpunto define una COMPROBACIÓN
+ejecutable (self-check basado en assert, sin frameworks ni fixtures) que valide ese
+subpunto contra al menos 2 catálogos distintos (uno tipo ferretería: "Tornillo 3/8",
+"Arco compuesto", y uno tipo deportes: "Balón de fútbol", "Guantes de boxeo") y frases
+caóticas reales (ej: "cincuenta arcos, 500 balones; y 323 guantes-de-boxeo!!!",
+"kiero 2x tornilllos . . y media docena d arcos").
+
+PROTOCOLO DE VERIFICACIÓN (obligatorio en cada fase)
+- Cada subpunto, al pasar, imprime exactamente:  ✅ DONE [<nombre del subpunto>]
+- Si un subpunto falla, imprime:  ❌ FAIL [<nombre del subpunto>] - <motivo>  y se detiene.
+- Al final de cada fase, una COMPROBACIÓN DE INTEGRIDAD que re-ejecuta TODOS los
+  subpuntos de la fase y además corre:
+      python scripts/validate_flow.py
+      python scripts/validate_chatbot.py
+      pytest
+  Solo si todo pasa, imprime:  ✅ DONE FASE N — <nombre de la fase> (integridad verificada)
+  Si algo falla, lista los subpuntos fallidos y detente sin editar tests ni la ley.
+
+DISTRIBUCIÓN SUGERIDA DE FASES (ajústala si mejora, manteniendo 4)
+- Fase 1 — Normalización y tokenización tolerante al caos: puntuación total, repeticiones,
+  pegado, emojis, acentos, mayúsculas; segmentación robusta sin perder señal de qty/producto.
+- Fase 2 — Motor numérico genérico en español: unidades→miles, compuestos, dígitos con
+  separadores de miles, formatos 2x/x2/×, par/docena/media docena, posición libre.
+- Fase 3 — Matching genérico de catálogo sin hardcode: distintividad por frecuencia,
+  aliases/keywords data-driven, categoría genérica derivada, borrar SYNONYM_TOKEN_MAP/bebidas,
+  fuzzy/typos tolerante a cualquier nombre.
+- Fase 4 — Asociación cantidad↔producto por anclaje longest-match + QA (needs_review,
+  nunca inventar productos) + robustez end-to-end; scorer semántico opcional pluggable
+  (off por defecto, import perezoso, fallback fuzzy).
+
+REGLAS DE CALIDAD
+- Marca cada simplificación con comentario `ponytail:` nombrando su ceiling y vía de mejora.
+- No inventes productos: lo no reconocido va a "unknown"/needs_review.
+- No crees rutas fuera del JSON ni mutes estado fuera de StateManager.
+- Reduce la deuda del "parser grande": prioriza borrar hardcode sobre añadir código.
+
+Primero entrégame el PLAN completo de las 4 fases con sus subpuntos y la definición de cada
+comprobación (✅ DONE por subpunto + integridad por fase). No implementes todavía: espera mi OK.
+
+
+
+## resp cursor ##
+
+Leí ARCHITECTURE_LAW.md, el parser.py (zonas de hardcode, TextNormalizer, QuantityEngine, FuzzyMatcher, OrderIntelligenceEngine), productos_service.py, db_store.get_menu (los items NO traen aliases/keywords hoy → campo opcional), los validadores y los tests. Sin tocar ley ni tests. Aquí va el plan.
+
+Plan — 4 fases
+Marco común (vale para las 4 fases)
+Cumplimiento de la ley: parser vive en core (deuda conocida #10). Cada fase borra hardcode (reduce deuda), no añade rutas fuera de JSON, no muta estado fuera de StateManager, tenant entra por el catálogo inyectado (menu_items). Sin deps nuevas: el scorer semántico (Fase 4) es opcional con import perezoso + fallback fuzzy.
+
+Arnés de self-check (un solo archivo, ponytail = mínimos archivos): scripts/selfcheck_parser.py. Sin pytest/fixtures, solo assert + print. CLI: python scripts/selfcheck_parser.py --phase N. Helpers:
+
+def ok(name):   print(f"✅ DONE [{name}]")
+def fail(name, why):  print(f"❌ FAIL [{name}] - {why}"); raise SystemExit(1)
+def check(name, cond, why=""):  ok(name) if cond else fail(name, why)
+Dos catálogos reales (inyectados como menu_items, mismo shape que db_store.get_menu):
+
+FERRE = [
+  {"id":"f1","nombre":"Tornillo 3/8","precio":150,"categoria":"Tornillos","disponible":True},
+  {"id":"f2","nombre":"Arco compuesto","precio":80000,"categoria":"Arcos","disponible":True},
+  {"id":"f3","nombre":"Tuerca hexagonal","precio":90,"categoria":"Tuercas","disponible":True},
+  {"id":"f4","nombre":"Arroz Diana 500g","precio":2500,"categoria":"Granos","disponible":True},
+]
+DEPORTE = [
+  {"id":"d1","nombre":"Balón de fútbol","precio":60000,"categoria":"Balones","disponible":True},
+  {"id":"d2","nombre":"Guantes de boxeo","precio":120000,"categoria":"Guantes","disponible":True},
+  {"id":"d3","nombre":"Arco de fútbol","precio":300000,"categoria":"Arcos","disponible":True},
+]
+Frases caóticas canónicas (usadas en varias fases):
+
+C1 = "cincuenta arcos, 500 balones; y 323 guantes-de-boxeo!!!"
+C2 = "kiero 2x tornilllos . . y media docena d arcos"
+Integridad por fase (obligatoria): reejecuta TODOS los subpuntos de la fase, luego:
+
+python scripts/validate_flow.py
+python scripts/validate_architecture.py   # exigido por la ley
+python scripts/validate_chatbot.py
+pytest
+Si todo pasa → ✅ DONE FASE N — <nombre> (integridad verificada). Si algo falla → lista subpuntos fallidos y detente, sin tocar tests ni ley.
+
+Nota: la ley pide validate_architecture.py; tu protocolo pide validate_chatbot.py. Incluyo ambos para no romper ninguno.
+
+FASE 1 — Normalización y tokenización tolerante al caos
+Objetivo: cualquier texto sucio → tokens limpios sin perder señal de qty/producto. Toca TextNormalizer y NaturalLanguagePreprocessor. Sin deps.
+
+1.1 — Tabla única de puntuación total como separador/ruido Una sola constante PUNCT_SEPARATORS que cubra - – — . , : ; / \ | * + & ( ) [ ] { } " ' y combinaciones; colapsar a espacio. Unificar el actual zoo de regex (COMMA_SPLIT_RE, PLUS_SPLIT_RE, STAR_SPLIT_RE, [^\w\s]). ponytail: ceiling = trato uniforme (no distingue 3/8 de separador; se preserva vía 1.3/2.2). Vía de mejora: tabla con excepciones contextuales.
+
+Check punct_total: normalize(C1) no contiene ningún char de PUNCT_SEPARATORS; y "guantes-de-boxeo", "guantes/de\\boxeo", "guantes|de|boxeo" → todos producen tokens {"guantes","de","boxeo"}.
+1.2 — Repeticiones de letras Colapsar runs de ≥3 a 2 (no a 1): holaaa→hola, pizzzza→pizza, tornilllos→tornillos. ponytail: ceiling = heurística "máx 2" puede dejar realmentte; la corrige el fuzzy de Fase 3. Hoy colapsa a 1 (rompe dobles legítimas).
+
+Check repeat_chars: normalize("tornilllooos") empieza con tornillo; normalize("holaaa") == "hola"; tras colapso, tornilllos matchea Tornillo 3/8 con score ≥ ACCEPT_REVIEW_SCORE (FERRE).
+1.3 — Palabras pegadas (qty+producto y producto+producto) Mantener _split_glued_words (catálogo) y añadir separación de prefijo numérico pegado: dosarcos→dos arcos, 2arcos→2 arcos, 50xguantes→50 x guantes. Usa el vocabulario numérico de Fase 2 (token list).
+
+Check glued: dosarcos→tokens {"dos","arcos"}; 50xguantes→incluye "50" y "guantes"; validado contra DEPORTE+FERRE.
+1.4 — Emojis, mayúsculas, acentos (consolidar + blindar) Confirmar EMOJI_RE, lower(), _strip_accents en un único pipeline; añadir self-check que hoy no existe.
+
+Check case_accents_emoji: normalize("BALÓN ⚽ de FÚTBOL 🥊") == "balon de futbol" (DEPORTE).
+1.5 — Segmentación robusta sin perder señal Verificar que tras 1.1–1.4 los conectores (,/;/y/qty-boundary) parten en segmentos y cada segmento conserva qty+producto.
+
+Check segmentation: C1 → 3 segmentos, cada uno con ≥1 token de producto de DEPORTE/FERRE (arcos,balones,guantes); ningún segmento vacío.
+Integridad Fase 1: subpuntos 1.1–1.5 + 4 comandos → ✅ DONE FASE 1 — Normalización y tokenización tolerante al caos (integridad verificada).
+
+FASE 2 — Motor numérico genérico en español
+Objetivo: cualquier numeración. Toca QuantityEngine, NUMBER_WORDS, COLLOQUIAL_QTY_REPLACEMENTS, regex de qty. Reemplaza el lookup palabra-única (tope "treinta") por parser real. Sin deps.
+
+2.1 — Parser español unidades→miles→millones (compuestos) Nueva función pura spanish_to_int(text) -> int|None: tablas chicas (unidades, decenas, especiales 16–29, centenas, escalas mil/millón) y composición por acumulación. Cubre cincuenta, quinientos, quinientos veinticinco, mil doscientos veinticinco. ponytail: ceiling = español estándar (no maneja "y" obligatoria ni decimales en palabras); vía = ampliar tablas.
+
+Check words_to_int: asserts exactos: cincuenta→50, quinientos→500, "mil doscientos veinticinco"→1225, "quinientos veinticinco"→525, "veinticinco"→25. Catálogo-agnóstico (no depende de FERRE/DEPORTE).
+2.2 — Dígitos con separadores de miles 323→323, 1000→1000, 1.000→1000, 1,000→1000; NO romper 3/8 (eso es nombre, no qty) ni 1.5 de medida. Decisión: separador de miles solo si patrón \d{1,3}([.,]\d{3})+.
+
+Check digit_separators: 1.000/1,000/1000→1000; en "Tornillo 3/8" la qty resuelta es 1 (no 3 ni 8) usando FERRE.
+2.3 — Formatos 2x / x2 / 2× / ×2 Generalizar QTY_PREFIX_RE/QTY_SUFFIX_RE a ambos lados y símbolo ×/x.
+
+Check x_formats: "2x guantes","x2 guantes","guantes x2","2× guantes" → qty 2, producto Guantes de boxeo (DEPORTE).
+2.4 — par / docena / media docena / una docena Generalizar COLLOQUIAL_QTY_REPLACEMENTS con y sin de: un par→2, media docena→6, una docena/docena→12.
+
+Check colloquial_qty: "un par de arcos"→(2,arco), "media docena de tornillos"→(6,tornillo) FERRE; "una docena de balones"→(12,balón) DEPORTE.
+2.5 — Posición libre y mezcla qty antes o después, pegada o suelta: "cincuenta arcos","arcos x50","50x guantes","arcos x 50".
+
+Check free_position: las 4 variantes dan la qty correcta (50/50/50/50) y el producto correcto contra FERRE/DEPORTE.
+Integridad Fase 2: 2.1–2.5 + 4 comandos → ✅ DONE FASE 2 — Motor numérico genérico en español (integridad verificada).
+
+FASE 3 — Matching genérico de catálogo sin hardcode
+Objetivo: cero vocabulario por negocio. Borra SYNONYM_TOKEN_MAP, BEVERAGE_SYNONYM_KEYS, CATEGORY_STOPWORDS, PARTIAL_*, _detect_single/multi_beverage. Toca FuzzyMatcher, OrderIntelligenceEngine._build_catalog, db_store.get_menu (passthrough opcional de aliases/keywords).
+
+3.1 — Distintividad por frecuencia (stopwords derivadas del catálogo) Calcular en __init__ un generic_tokens = tokens cuya frecuencia entre items supera umbral (p.ej. aparecen en ≥X% de productos o ≥2 categorías). Sustituye CATEGORY_STOPWORDS global en score_pair/has_distinctive_winner/_token_keys. ponytail: ceiling = umbral fijo; vía = TF-IDF.
+
+Check distinctiveness_derived: en FERRE "arco" es distintivo (1 producto lo usa de forma única) y matchea Arco compuesto; en un catálogo restaurante (3 pizzas) "pizza" cae a generic_tokens. Asserts sobre el set derivado, sin constantes hardcodeadas.
+3.2 — Aliases/keywords data-driven por producto _build_catalog lee item.get("aliases") y item.get("keywords") (listas) y las funde en aliases; si ausentes, fallback = derivado del nombre (comportamiento actual). db_store.get_menu añade passthrough opcional de columnas si existen (negocio en Services, no en motor). Sin hardcode de marcas.
+
+Check aliases_data_driven: item DEPORTE d1 con "keywords":["futbol","balon"] → "quiero futbol" matchea Balón de fútbol; el mismo catálogo SIN keywords sigue matcheando por nombre (fallback).
+3.3 — Categoría genérica derivada de categorías reales Sustituir PARTIAL_CATEGORY_ONLY/PARTIAL_GENERIC_TOKENS por set construido desde item["categoria"] (singularizadas). Mantiene _build_category_defaults.
+
+Check category_generic_derived: "quiero arcos" (categoría Arcos) → resuelve al default de esa categoría en FERRE; "dame guantes" → Guantes de boxeo en DEPORTE; sin listas hardcodeadas.
+3.4 — Borrar el hardcode de restaurante/bebidas Eliminar SYNONYM_TOKEN_MAP, BEVERAGE_SYNONYM_KEYS, _detect_single_beverage, _detect_multi_beverage, rama bebidas de _apply_synonyms, uso de SYNONYM_TOKEN_MAP en _intent_tokens y _build_catalog. _apply_synonyms queda solo con dedupe/alias-de-catálogo o se borra si redundante (deletion > addition).
+
+Check no_hardcode: leer parser.py y assert que NO aparecen los identificadores SYNONYM_TOKEN_MAP, BEVERAGE_SYNONYM_KEYS, _detect_single_beverage, _detect_multi_beverage, PARTIAL_GENERIC_TOKENS, PARTIAL_CATEGORY_ONLY, CATEGORY_STOPWORDS; y que OrderIntelligenceEngine(FERRE).parse("dos arcos") sigue dando 1 item.
+3.5 — Fuzzy/typos tolerante a cualquier nombre Confirmar que _correct_typos/_best_vocab_match/_ratio operan solo sobre vocabulario del catálogo inyectado (ya lo hacen). Self-check nuevo.
+
+Check fuzzy_any_catalog: "tornilllos"→Tornillo 3/8 (FERRE), "balom de futbl"→Balón de fútbol (DEPORTE), ambos score ≥ ACCEPT_REVIEW_SCORE.
+Integridad Fase 3: 3.1–3.5 + 4 comandos → ✅ DONE FASE 3 — Matching genérico de catálogo sin hardcode (integridad verificada).
+
+FASE 4 — Asociación qty↔producto + QA + robustez + scorer pluggable
+Objetivo: end-to-end correcto y nunca inventar productos. Toca OrderIntelligenceEngine.parse / segmentación / scoring final.
+
+4.1 — Anclaje cantidad↔producto por longest-match Cada qty se ancla al producto contiguo (boundary de qty define inicio de segmento); el producto se resuelve por longest-match contra catálogo. Reutiliza segmentación Fase 1 + qty Fase 2.
+
+Check qty_anchor: C1 → {arco:50, balón:500, guantes:323} exacto (productos derivados de FERRE para arco y DEPORTE para balón/guantes — se corre por catálogo: en DEPORTE arcos→Arco de fútbol).
+4.2 — QA: needs_review y nunca inventar Lo no reconocido (score < umbral) → unknown/needs_review=True, nunca se fuerza un producto. Respetar ACCEPT_AUTO_SCORE/ACCEPT_REVIEW_SCORE.
+
+Check qa_unknown: "500 wakawaka" (sin match) → item en unknown, status review, 0 productos inventados; C2 → {tornillo:2, arco:6} con status aceptable.
+4.3 — Robustez end-to-end ambos catálogos parse() completo sobre FERRE y DEPORTE con C1,C2 y variantes de Fases 1–2.
+
+Check end_to_end: para cada catálogo, asserts de qty+nombre+status; ningún crash, ningún producto fuera de catálogo.
+4.4 — Scorer semántico opcional pluggable (off por defecto) Interfaz score_pair con hook opcional: si OIE_SEMANTIC=1 y backend disponible (import perezoso), úsalo; si falta → fallback fuzzy silencioso. Sin dep nueva en el camino por defecto. ponytail: ceiling = solo punto de extensión + fallback; vía = registrar backend real.
+
+Check pluggable_scorer: por defecto el resultado de parse es idéntico con/sin la flag pero backend ausente (fallback fuzzy, sin excepción); con backend falso inyectado que devuelve 1.0, el match cambia → prueba que el hook se invoca.
+Integridad Fase 4: 4.1–4.4 + 4 comandos → ✅ DONE FASE 4 — Asociación qty↔producto + QA + scorer pluggable (integridad verificada).
+
+Riesgos / decisiones que tomé (avísame si cambias alguna)
+validate_architecture.py: lo agrego a la integridad de cada fase porque la ley lo exige (además de tu validate_chatbot.py).
+Repeat-chars colapsa a 2, no a 1 (hoy es a 1, lo que rompe dobles legítimas tipo pizza).
+aliases/keywords en DB: passthrough opcional en db_store.get_menu; si la columna no existe, fallback al derivado del nombre. Los self-checks inyectan dicts directos, no requieren migración.
+Un solo archivo scripts/selfcheck_parser.py (ponytail), no uno por fase.
+Tests existentes intactos. Si una fase rompe un test de restaurante (p.ej. dependía de SYNONYM_TOKEN_MAP/bebidas), corrijo la implementación para preservar el contrato vía mecanismo genérico (aliases data-driven / categoría derivada), nunca el test. Si resultara imposible sin violar la ley, me detengo y te explico regla rota + alternativa.
+¿OK para implementar, o ajusto algo antes de empezar?
+
+
+
+
+
+
+
+#########################################

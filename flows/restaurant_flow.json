@@ -17,7 +17,7 @@
     "welcome_with_name": "Hola *{{name}}*, Bienvenido a *{{restaurant_name}}*.",
     "welcome_without_name": "Hola, Bienvenido a *{{restaurant_name}}*.",
     "start_fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir productos, pedido o ayuda.",
-    "address_prompt": "Indícame la dirección de entrega a domicilio.",
+    "address_prompt": "📍 Dirección de entrega\n\nEscribe la dirección donde deseas recibir tu pedido.\n\n💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.\n\n--\n✅ Escribe tu dirección:",
     "address_prompt_saved": "Tienes guardada esta dirección:\n*{{saved_address}}*\n\n¿Deseas usarla? Responde *sí*.\nO escribe una dirección nueva.",
     "abandon_bypass_commands": ["cancelar"],
     "active_order_command_targets": {
@@ -28,11 +28,11 @@
     "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
     "capture_order_success": "🛍️ *Tu pedido:*\n\n",
     "empty_cart_message": "Tu carrito está vacío. Cuéntame qué te gustaría pedir.",
-    "order_confirm_yes": "¡Excelente!",
+    "order_confirm_yes": "",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
     "address_saved": "Gracias. Guardé tu dirección.",
     "save_order_empty": "No encontré productos para guardar.",
-    "order_saved_success": "Pedido *{{order_id}}* registrado correctamente.\nTotal: *${{total}}*\nEstado: *pendiente* (esperando confirmación del restaurante)",
+    "order_saved_success": "",
     "capture_persons_success": "Perfecto, solicitud para *{{personas}}* personas.",
     "capture_date_success": "Fecha registrada: *{{date}}*.",
     "capture_date_missing": "Primero necesito la fecha.",
@@ -146,7 +146,7 @@
           }
         },
         "order_delivery_node": {
-          "message": "¿Cómo prefieres recibir tu pedido?\n\n1. *Domicilio*\n2. *Recoger en tienda*\n\nResponde con el número o escribe *domicilio* / *recoger*.",
+          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 Domicilio (recibe en casa 🏠)\n👉 Recoger (recoger en tienda 🛍️)",
           "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "input_mode": "free_text",
           "action": "capture_delivery_type",
@@ -190,9 +190,9 @@
         "order_saved_node": {
           "flow": "home",
           "action": "save_order",
-          "message_after_action": "\n\nGracias por tu confianza. Tu pedido fue registrado y está *pendiente* de confirmación del restaurante.\n\nSi necesitas algo más, escribe *productos*, *pedido* o *ayuda*.",
+          "message_after_action": "🎉 ¡Pedido registrado!\n\nTu pedido fue recibido correctamente y ya está siendo revisado por nuestro equipo.\n\n🆔 Pedido: *{{order_id}}*\n\n💰 *Total: ${{total}}*\n\n⏳ *Estado:* Pendiente de confirmación.\n\n--\n✅ *Escribe una opción:*\n\n👉 Productos (ver productos 🛒)\n👉 Pedido (hacer un nuevo pedido 🛍️)\n👉 Ayuda (resolver dudas 💬)",
           "transitions": {
-            "success": "home.home_node",
+            "success": null,
             "empty_cart": "order.order_start_node"
           },
           "options": {
