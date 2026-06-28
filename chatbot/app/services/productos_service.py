@@ -42,6 +42,8 @@ class ProductosService:
         return frozenset(tokens)
 
     def format_productos(self, templates: Dict[str, str] | None = None) -> str:
+        from app.core.parser import OrderParser  # lazy: evita ciclos al arrancar FlowEngine
+
         tpl = templates or {}
         empty = tpl.get("productos_empty", "")
         category_header = tpl.get("productos_category_header", "*{{category}}*")
@@ -64,7 +66,8 @@ class ProductosService:
             )
             for item in items:
                 line = item_line.replace("{{name}}", str(item["nombre"]))
-                line = line.replace("{{price}}", f"{item['precio']:.2f}")
+                precio = float(item.get("precio") or 0)
+                line = line.replace("{{price}}", OrderParser._fmt_cop(precio))
                 chunks.append(line)
             chunks.append(category_end)
         return "".join(chunks).rstrip("\n")

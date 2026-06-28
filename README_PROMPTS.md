@@ -1,4 +1,4 @@
-## v1.60
+## v1.61
 
 
 
@@ -5922,3 +5922,15 @@ Se implementaron mejoras en el diseño del menú y el flujo que ve el cliente
 ## v1.60
 
 Flujo de "Hola" , "Pedido", "Productos" "Tu pedido" listo y funcional
+
+
+
+
+
+##################################3
+## v1.61
+
+Se arregló formato de precios en "productos" y en "haz tu pedido", ya están cerrados esos dos totalmente
+
+
+

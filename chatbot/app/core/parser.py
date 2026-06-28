@@ -2194,7 +2194,7 @@ class OrderParser:
         for item in items:
             sub = OrderParser._fmt_cop(item["subtotal"])
             lines.append(
-                f"- {item['product']} x{item['qty']} - $ {sub}"
+                f"- {item['product']} x{item['qty']} - ${sub}"
             )
         total = OrderParser.cart_total(items)
         lines.append(f"\n💰 *Valor total: ${OrderParser._fmt_cop(total)}*")
