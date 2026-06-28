@@ -709,7 +709,14 @@ class FlowEngine:
             )
         else:
             address_prompt = self._resolve_ux_text("address_prompt", node)
-        return {"welcome_line": welcome, "address_prompt": address_prompt}
+        state_data = self.state_manager.get(wa_id).get("data", {})
+        return {
+            "welcome_line": welcome,
+            "address_prompt": address_prompt,
+            "order_id": str(state_data.get("order_id", "")),
+            "total": str(state_data.get("total", "")),
+            "delivery_address": str(state_data.get("delivery_address", "")),
+        }
 
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         return "", None

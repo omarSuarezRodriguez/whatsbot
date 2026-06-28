@@ -468,8 +468,7 @@ class AdminService:
                     "pero no hay teléfono del cliente para avisarle."
                 )
             confirm_body = (
-                f"✅ ¡Tu pedido fue confirmado!\n🆔 *{order_id}*\n\nYa estamos preparando tu pedido para entregarlo lo antes posible. 🚚\n\n¡Gracias por confiar en El Gran Motilón! 🏹\n\n--\n✅ ¿Te ayudamos en algo más? *Escribe una opción:*\n\n👉 Pedido (hacer un nuevo pedido 🛍️)\n👉 Ayuda (resolver dudas 💬)"
-                "¡Gracias por tu compra!"
+                f"🎉 ¡Tu pedido *{order_id}* fue confirmado!\n\nGracias por comprar en El Gran Motilón. 🏹\n\n🚚Muy pronto comenzaremos a preparar tu pedido para entregarlo.\n\n\n--\n✅ ¿Deseas comprar algo más? Escribe una opción:\n\n👉 Pedido (hacer un nuevo pedido 🛍️)👉 Ayuda (resolver dudas 💬)"
             )
             target = self._format_whatsapp_address(customer)
             if self._send_whatsapp(customer, confirm_body):

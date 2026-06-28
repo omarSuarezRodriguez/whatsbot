@@ -1,4 +1,4 @@
-## v1.67
+## v1.68
 
 
 
@@ -7550,4 +7550,79 @@ Sin regresiones en tests anteriores
 
 
 ############################################
+## v1.68
 
+
+## prompt ##
+
+Antes de implementar, lee ARCHITECTURE_LAW.md (raíz del proyecto).
+No modifiques ARCHITECTURE_LAW.md.
+No modifiques tests existentes salvo que yo lo pida explicitamente.
+
+## Objetivo
+
+Hacer que `_render()` en `flow_engine.py` tenga acceso automático a datos del estado conversacional (`order_id`, `total`, `delivery_address`), para que templates en el JSON como:
+
+  🆔 Pedido: {{order_id}}
+  💰 Total: ${{total}}
+  🚚 Entrega: {{delivery_address}}
+
+se rendericen correctamente sin que cada `_action_*` tenga que inyectarlos manualmente.
+
+## Cambio mínimo incremental
+
+El único lugar correcto para este cambio es `_build_node_context()` en `FlowEngine` (línea ~694 de `chatbot/app/core/flow_engine.py`).
+
+Actualmente `_build_node_context(wa_id, step)` devuelve:
+  {"welcome_line": ..., "address_prompt": ...}
+
+Debe extenderse para también devolver, leyendo `self.state_manager.get(wa_id)["data"]`:
+  - "order_id"        → state["data"].get("order_id", "")
+  - "total"           → state["data"].get("total", "")
+  - "delivery_address"→ state["data"].get("delivery_address", "")
+
+Estos tres campos se agregan al dict que retorna `_build_node_context`. Ya son usados en `_process_node` como `extra` que se pasa a `_render`. No se necesita tocar `_render` ni `_process_node`.
+
+## Reglas de arquitectura a respetar
+
+- JSON = mapa: los templates con {{order_id}} etc. viven en el JSON, no en Python.
+- Python = motor: `_build_node_context` es orquestación, no negocio. Leer de `StateManager` aquí es correcto.
+- StateManager = estado: solo se lee, nunca se muta.
+- Services = negocio: no agregar lógica de negocio en el motor.
+- Multi-tenant: `state_manager.get(wa_id)` ya es scoped al usuario correcto; no hay acceso global.
+- Acciones delgadas: no cambiar ninguna `_action_*`, el context se propaga automáticamente.
+
+## Lo que NO debe hacerse
+
+- No hardcodear estos valores en ninguna `_action_*` individual.
+- No agregar un parámetro nuevo a `_render()`.
+- No tocar `_process_node()`.
+- No crear un Service nuevo.
+- No modificar `ARCHITECTURE_LAW.md`.
+- No modificar tests existentes.
+
+## Verificación al terminar
+
+1. Ejecutar:
+   python scripts/validate_flow.py
+   python scripts/validate_architecture.py
+   pytest
+
+2. Reportar resultado completo de cada comando (output + exit code).
+
+3. Si algún test falla por el cambio (no por causa preexistente), corregir la implementación, NO el test.
+
+4. Confirmar manualmente que `_build_node_context` ahora retorna los tres campos nuevos mostrando el diff exacto del cambio.
+
+Si alguna regla arquitectónica se rompe, no fuerces el cambio. Explica qué regla se rompe y propón la alternativa correcta.
+
+
+
+## resp cursor ##
+
+
+Mi cambio no introdujo ningún fallo nuevo. Los templates {{order_id}}, {{total}}, {{delivery_address}} en el JSON ahora se renderizan automáticamente.
+
+
+
+###################################################
