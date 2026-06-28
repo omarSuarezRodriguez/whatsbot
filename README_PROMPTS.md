@@ -1,4 +1,4 @@
-## v1.64
+## v1.65
 
 
 
@@ -6582,3 +6582,50 @@ Plano Fase 6 — 5 bullets:
 
 
 ###########################################
+## v1.65
+
+## Prompt ##
+
+Compara objetivamente el sistema **antes y después** de las Fases 1–6.
+
+Entrega únicamente una comparación técnica de:
+
+* velocidad,
+* complejidad (Big-O donde aplique),
+* uso de CPU,
+* uso de memoria,
+* accesos a disco/DB,
+* escalabilidad,
+* mantenibilidad,
+* estabilidad,
+* integridad del sistema,
+* consistencia arquitectónica.
+
+Para cada punto indica: **Antes → Después**, explica brevemente qué cambió, por qué mejoró y estima la mejora cuando sea razonable. No inventes benchmarks; si no puedes cuantificar algo, indícalo explícitamente y justifica la estimación con base en las implementaciones realizadas.
+
+No quiero detalles, solamente dame puntajes
+
+
+
+
+## resp cursor ##
+
+| Dimensión | Antes | Después | Δ |
+|---|---|---|---|
+| **Velocidad (hot path)** | 4/10 | 8/10 | +4 |
+| **Complejidad algorítmica** | 4/10 | 8/10 | +4 |
+| **Uso de CPU** | 4/10 | 8/10 | +4 |
+| **Uso de memoria** | 6/10 | 7/10 | +1 |
+| **Accesos disco/DB** | 3/10 | 8/10 | +5 |
+| **Escalabilidad** | 4/10 | 7/10 | +3 |
+| **Mantenibilidad** | 5/10 | 8/10 | +3 |
+| **Estabilidad** | 6/10 | 8/10 | +2 |
+| **Integridad del sistema** | 7/10 | 9/10 | +2 |
+| **Consistencia arquitectónica** | 6/10 | 9/10 | +3 |
+| **TOTAL** | **49/100** | **80/100** | **+31** |
+
+
+
+
+
+#############################################
