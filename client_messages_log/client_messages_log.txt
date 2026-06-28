@@ -5627,3 +5627,2377 @@ Rápido, seguro y sin filas ⚡
 👉 *Ayuda* (resuelve dudas 💬)
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: Hola 👋 Bienvenido a El Gran Motilón 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+Navigation
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+Navigation
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00
+
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+Navigation
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al menú principal 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🌹Tamacun*
+• Polka — $1300.00
+*🍪 Luna*
+• Candy — $120.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: 🥦
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥦 *Frutas y verduras**
+• Tomate chonto 500g — $2.50
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥦 *Frutas y verduras**
+• Tomate chonto 500g — $2500.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥦 *Frutas y verduras**
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥦 *Frutas y verduras**
+• Plátano verde 500g — $1800.00
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Tomate chonto 500g — $2500.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: 🥛🥛
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+---
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+Navigation
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: 🥤
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: 🧴
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: 🍫
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Que
+
+
+-------------------------------
+
+Chatbot: No entendí eso. Escribe *productos*, *pedido* o *ayuda*.
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🍗 Carnes y embutidos*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+*🍚 Víveres y granos*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+*🥤 Bebidas*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+*🧴 Aseo personal*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico Familia x8 — $12000.00
+• Shampoo Pantene 500ml — $12000.00
+*🧼 Aseo del hogar*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🍗 Carnes y embutidos*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico Familia x8 — $12000.00
+• Shampoo Pantene 500ml — $12000.00
+
+*🧼 Aseo del hogar*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Menú
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+*🍗 Carnes y embutidos*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🥖 Panadería*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Menú
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Inicio
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🍫 Dulces y snacks 🍫*
+• Bocadillo x12 — $8000.00
+• Chocolatina Jet — $1500.00
+• Galletas Oreo x6 — $2000.00
+• Papas Margarita 200g — $4500.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+Navigation
+
+#################################################################
+################################################################
+
+Cliente: Quiero dos jabones protex, un cloro Blancox, tres café Gelves y cuatro huevos x30
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Jabón Protex 125g x2. Actualicé: Cloro Blancox 1L x1. Actualicé: Café Gelves 250g x3. Actualicé: Huevos x30 x4.• 2 x Jabón Protex 125g — $5200.00
+• 1 x Cloro Blancox 1L — $7500.00
+• 3 x Café Gelves 250g — $23700.00
+• 4 x Huevos x30 — $58000.00
+
+*Total: $94400.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Rápido, seguro y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🍫 Dulces y snacks 🍫*
+• Bocadillo x12 — $8000.00
+• Chocolatina Jet — $1500.00
+• Galletas Oreo x6 — $2000.00
+• Papas Margarita 200g — $4500.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🍫 Dulces y snacks 🍫*
+• Bocadillo x12 — $8000.00
+• Chocolatina Jet — $1500.00
+• Galletas Oreo x6 — $2000.00
+• Papas Margarita 200g — $4500.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: Perfecto, vamos con tu pedido.
+
+Cuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:
+• *2 pizza hawaiana, 1 coca cola*
+• *una hamburguesa y dos aguas*
+
+También puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: • 2 x Jabón Protex 125g — $5200.00
+• 1 x Cloro Blancox 1L — $7500.00
+• 3 x Café Gelves 250g — $23700.00
+• 4 x Huevos x30 — $58000.00
+
+*Total: $94400.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos 🍗*
+• Jamón Zenú 250g — $7200.00
+• Pechuga de pollo 500g — $9900.00
+• Pollo entero (por kg) — $12900.00
+• Salchicha Zenú x6 — $6500.00
+
+*🍚 Víveres y granos 🍚*
+• Aceite Premier 1L — $9500.00
+• Arroz Diana 500g — $2800.00
+• Frijol Diana 500g — $4200.00
+• Lenteja Doria 500g — $3900.00
+• Panela 500g — $3200.00
+
+*🍫 Dulces y snacks 🍫*
+• Bocadillo x12 — $8000.00
+• Chocolatina Jet — $1500.00
+• Galletas Oreo x6 — $2000.00
+• Papas Margarita 200g — $4500.00
+
+*🥖 Panadería 🥖*
+• Arepas El Maizal x10 — $6800.00
+• Pan tajado Bimbo — $5900.00
+
+*🥛 Lácteos y huevos 🥛*
+• Huevos x30 — $14500.00
+• Leche Alquería 1L — $4300.00
+• Queso Colanta 250g — $7800.00
+• Yogurt Alpina 1L — $8200.00
+
+*🥤 Bebidas 🥤*
+• Agua Brisa 600ml — $1800.00
+• Café Gelves 250g — $7900.00
+• Coca-Cola 1.5 L — $6000.00
+• Jugo Hit 1L — $5500.00
+
+*🥦 Frutas y verduras 🥦*
+• Cebolla cabezona 500g — $2200.00
+• Papa criolla 500g — $2800.00
+• Plátano verde 500g — $1800.00
+• Tomate chonto 500g — $2500.00
+
+*🧴 Aseo personal 🧴*
+• Jabón Protex 125g — $2600.00
+• Papel Higiénico x8 — $12000.00
+• Shampoo 500ml — $12000.00
+
+*🧼 Aseo del hogar 🧼*
+• Cloro Blancox 1L — $7500.00
+• Detergente Fab 1kg — $9800.00
+• Fabuloso 1L — $8800.00
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ Haz tu pedido
+
+Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ Haz tu pedido
+
+Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ Escribe tu pedido:
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ Haz tu pedido
+
+Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ Escribe tu pedido:
+
+#################################################################
+################################################################
+
+Cliente: 2 coca cola, 5 arroz diana, 4 chocolatinas jet, cinco cebollas cabezonas, 4 jabones protex
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Coca-Cola 1.5 L x2. Actualicé: Arroz Diana 500g x5. Actualicé: Chocolatina Jet x4. Actualicé: Cebolla cabezona 500g x5. Actualicé: Jabón Protex 125g x4.• 2 x Coca-Cola 1.5 L — $12000.00
+• 5 x Arroz Diana 500g — $14000.00
+• 4 x Chocolatina Jet — $6000.00
+• 5 x Cebolla cabezona 500g — $11000.00
+• 4 x Jabón Protex 125g — $10400.00
+
+*Total: $53400.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Claro, modifiquemos tu pedido.Sin problema. Dime qué quieres agregar, quitar o cambiar.
+
+Ejemplo: *agrega una ensalada* o *quita la coca cola*.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ Haz tu pedido
+
+Escribe los productos que deseas comprar y la cantidad de cada uno. 💡
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno. 💡
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: tres kilos de arroz y dos libras pollo
+
+
+-------------------------------
+
+Chatbot: Perfecto, actualicé tu pedido.
+
+Actualicé: Arroz Diana 500g x3. Actualicé: Pechuga de pollo 500g x2.• 3 x Arroz Diana 500g — $8400.00
+• 2 x Pechuga de pollo 500g — $19800.00
+
+*Total: $28200.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: • 3 x Arroz Diana 500g — $8400.00
+• 2 x Pechuga de pollo 500g — $19800.00
+
+*Total: $28200.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: - 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:* 
+
+
+Actualicé: Coca-Cola 1.5 L x3. Actualicé: Pechuga de pollo 500g x6. Actualicé: Chocolatina Jet x3.• 3 x Coca-Cola 1.5 L — $18000.00
+• 6 x Pechuga de pollo 500g — $59400.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $81900.00*
+
+¿Confirmamos tu pedido?
+Responde *sí* para confirmar o *no* para modificarlo.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: - 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x6. Actualicé: Pechuga de pollo 500g x12. Actualicé: Chocolatina Jet x6.• 6 x Coca-Cola 1.5 L — $36000.00
+• 12 x Pechuga de pollo 500g — $118800.00
+• 6 x Chocolatina Jet — $9000.00
+
+*Total: $163800.00*
+
+--
+✅ Escribe una opción:
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: • 6 x Coca-Cola 1.5 L — $36000.00
+• 12 x Pechuga de pollo 500g — $118800.00
+• 6 x Chocolatina Jet — $9000.00
+
+*Total: $163800.00*
+
+--
+✅ Escribe:
+
+👉 *Si* (para confirmar tu pedido 🛍️)
+👉 *No* (para modificar tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: - 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x3. Actualicé: Pechuga de pollo 500g x6. Actualicé: Chocolatina Jet x3.• 3 x Coca-Cola 1.5 L — $18000.00
+• 6 x Pechuga de pollo 500g — $59400.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $81900.00*
+
+--
+✅ Escribe:
+
+👉 *Si* (para confirmar tu pedido 🛍️)
+👉 *No* (para modificar tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: no
+
+
+-------------------------------
+
+Chatbot: Claro, modifiquemos tu pedido.Sin problema. Dime qué quieres agregar, quitar o cambiar.
+
+Ejemplo: *agrega una ensalada* o *quita la coca cola*.
+
+#################################################################
+################################################################
+
+Cliente: quita todo
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Eliminé: Lenteja Doria 500g.• 3 x Coca-Cola 1.5 L — $18000.00
+• 6 x Pechuga de pollo 500g — $59400.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $81900.00*
+
+--
+✅ Escribe:
+
+👉 *Si* (para confirmar tu pedido 🛍️)
+👉 *No* (para modificar tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: confirmar
+
+
+-------------------------------
+
+Chatbot: ¡Excelente!¿Cómo prefieres recibir tu pedido?
+
+1. *Domicilio*
+2. *Recoger en tienda*
+
+Responde con el número o escribe *domicilio* / *recoger*.
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x2. Actualicé: Arroz Diana 500g x1. Actualicé: Chocolatina Jet x3.• 2 x Coca-Cola 1.5 L — $12000.00
+• 1 x Arroz Diana 500g — $2800.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $19300.00*
+
+--
+✅ Escribe:
+
+👉 *Si* (para confirmar tu pedido 🛍️)
+👉 *No* (para modificar tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: modificar
+
+
+-------------------------------
+
+Chatbot: Claro, modifiquemos tu pedido.Sin problema. Dime qué quieres agregar, quitar o cambiar.
+
+Ejemplo: *agrega una ensalada* o *quita la coca cola*.
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: • 2 x Coca-Cola 1.5 L — $12000.00
+• 1 x Arroz Diana 500g — $2800.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $19300.00*
+
+--
+✅ Escribe:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x4. Actualicé: Arroz Diana 500g x2. Actualicé: Chocolatina Jet x6.• 4 x Coca-Cola 1.5 L — $24000.00
+• 2 x Arroz Diana 500g — $5600.00
+• 6 x Chocolatina Jet — $9000.00
+
+*Total: $38600.00*
+
+--
+✅ ¿Alistamos tu pedido para enviártelo? 📦 *Escribe*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x2. Actualicé: Arroz Diana 500g x1. Actualicé: Chocolatina Jet x3.• 2 x Coca-Cola 1.5 L — $12000.00
+• 1 x Arroz Diana 500g — $2800.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $19300.00*
+
+--
+✅ *¿Alistamos tu pedido para enviártelo? Escribe*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: Tienes un pedido en curso.
+
+¿Estás seguro de abandonar tu pedido actual?
+Responde *sí* para volver al inicio o *no* para continuar.
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x2. Actualicé: Arroz Diana 500g x1. Actualicé: Chocolatina Jet x3.• 2 x Coca-Cola 1.5 L — $12000.00
+• 1 x Arroz Diana 500g — $2800.00
+• 3 x Chocolatina Jet — $4500.00
+
+*Total: $19300.00*
+
+--
+✅ *¿Alistamos tu pedido? Escribe*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x4. Actualicé: Arroz Diana 500g x2. Actualicé: Chocolatina Jet x6.• 4 x Coca-Cola 1.5 L — $24000.00
+• 2 x Arroz Diana 500g — $5600.00
+• 6 x Chocolatina Jet — $9000.00
+
+*Total: $38600.00*
+
+--
+✅ *¿Alistamos tu pedido? Escribe una opción*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x6. Actualicé: Arroz Diana 500g x3. Actualicé: Chocolatina Jet x9.• 6 x Coca-Cola 1.5 L — $36000.00
+• 3 x Arroz Diana 500g — $8400.00
+• 9 x Chocolatina Jet — $13500.00
+
+*Total: $57900.00*
+
+--
+✅ ¿Alistamos tu pedido? Escribe una opción*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+*Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+*También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: 2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+Actualicé: Coca-Cola 1.5 L x8. Actualicé: Arroz Diana 500g x4. Actualicé: Chocolatina Jet x12.• 8 x Coca-Cola 1.5 L — $48000.00
+• 4 x Arroz Diana 500g — $11200.00
+• 12 x Chocolatina Jet — $18000.00
+
+*Total: $77200.00*
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Si* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Aquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠
+Compra fácil, rápido y sin filas ⚡
+
+✅ ¿Qué necesitas hoy? Escribe una opción:
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################

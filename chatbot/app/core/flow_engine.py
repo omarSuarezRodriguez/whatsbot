@@ -80,6 +80,9 @@ class FlowEngine:
         self.nodes = flow.get("nodes", {})
         self.meta = flow.get("meta", {})
         self.global_commands = self.meta.get("global_commands", {})
+        self.abandon_bypass_commands = frozenset(
+            self.meta.get("abandon_bypass_commands") or ("cancelar",)
+        )
 
     def reload_flow(self) -> None:
         self._apply_flow(self._load_flow())
@@ -186,6 +189,39 @@ class FlowEngine:
             return False
         return state.get("flow") in guard_flows
 
+    def _should_prompt_abandon(self, state: Dict[str, Any]) -> bool:
+        return state.get("flow") in self._cart_guard_flows()
+
+    def _target_leaves_guarded_flow(
+        self, state: Dict[str, Any], target_ref: str
+    ) -> bool:
+        guard_flows = self._cart_guard_flows()
+        current_flow = state.get("flow")
+        if current_flow not in guard_flows:
+            return False
+        target_flow, _ = self._parse_ref(str(target_ref), current_flow)
+        return target_flow not in guard_flows
+
+    def _prompt_abandon_if_leaving(
+        self,
+        wa_id: str,
+        state: Dict[str, Any],
+        current_step: str,
+        target_ref: str,
+        *,
+        bypass: bool = False,
+    ) -> Optional[str]:
+        if bypass:
+            return None
+        if not self._should_prompt_abandon(state):
+            return None
+        if not self._target_leaves_guarded_flow(state, target_ref):
+            return None
+        self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=True)
+        node = self.nodes.get(current_step, {})
+        return self._resolve_ux_text("abandon_confirm_prompt", node)
+
+
     def _resolve_ux_text(self, meta_key: str, node: Dict[str, Any]) -> str:
         text = self.meta.get(meta_key)
         if text:
@@ -270,11 +306,6 @@ class FlowEngine:
             if redirect:
                 return self._goto_ref(wa_id, str(redirect), current_flow=current_flow)
 
-        if command == "inicio" and self._has_active_order(state):
-            self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=True)
-            current_node = self.nodes.get(current_step, {})
-            return self._resolve_ux_text("abandon_confirm_prompt", current_node)
-
         if command == "cancelar":
             self.state_manager.reset(wa_id)
             cancel_message = self._resolve_ux_text(
@@ -285,6 +316,16 @@ class FlowEngine:
             )
             combined = self._join_reply(cancel_message, start_message)
             return self._append_navigation(combined, self.nodes.get(target_step, {}))
+
+        abandon = self._prompt_abandon_if_leaving(
+            wa_id,
+            state,
+            current_step,
+            str(target),
+            bypass=command in self.abandon_bypass_commands,
+        )
+        if abandon:
+            return abandon
 
         if command == "inicio":
             self.state_manager.reset(wa_id)
@@ -404,6 +445,15 @@ class FlowEngine:
         next_ref = options[normalized]
         if self._should_self_loop_fallback(next_ref, current_step, node, state):
             return self._append_navigation(self._node_fallback_message(node), node)
+        abandon = self._prompt_abandon_if_leaving(
+            wa_id,
+            state,
+            current_step,
+            next_ref,
+            bypass=normalized in self.abandon_bypass_commands,
+        )
+        if abandon:
+            return abandon
         return self._goto_ref(
             wa_id,
             next_ref,

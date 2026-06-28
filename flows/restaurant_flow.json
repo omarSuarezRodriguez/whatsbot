@@ -19,11 +19,14 @@
     "start_fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir productos, pedido o ayuda.",
     "address_prompt": "Indícame la dirección de entrega a domicilio.",
     "address_prompt_saved": "Tienes guardada esta dirección:\n*{{saved_address}}*\n\n¿Deseas usarla? Responde *sí*.\nO escribe una dirección nueva.",
+    "abandon_bypass_commands": ["cancelar"],
     "active_order_command_targets": {
       "pedido": "order.order_review_node"
     },
+    
+
     "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
-    "capture_order_success": "Perfecto, actualicé tu pedido.",
+    "capture_order_success": "🛍️ *Tu pedido:*",
     "empty_cart_message": "Tu carrito está vacío. Cuéntame qué te gustaría pedir.",
     "order_confirm_yes": "¡Excelente!",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
@@ -43,7 +46,7 @@
     "navigation_hint": "",
     "capture_order_notes_prefix": "\n\n",
     "productos_empty": "Por el momento no tenemos productos disponibles. Intenta más tarde.",
-    "productos_category_header": "\n*{{category}}*",
+    "productos_category_header": "\n\n*{{category}}*",
     "productos_item_line": "\n• {{name}} — ${{price}}",
     "productos_category_end": ""
   },
@@ -59,7 +62,7 @@
           "self_loop_behavior": "fallback",
           "suppress_repeat_message": true,
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n👉 *Productos*\n👉 *Pedido*\n👉 *Ayuda*",
-          "message": "Hola 👋 Bienvenido a El Gran Motilón 🏹\n\nAquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠\nRápido, seguro y sin filas ⚡\n\n✅ ¿Qué necesitas hoy? Escribe una opción:\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Ayuda* (resuelve dudas 💬)",
+          "message": "👋 *Bienvenido a El Gran Motilón* 🏹\n\nAquí encuentras alimentos, limpieza y todo para el hogar 🍗🧼🏠\nCompra fácil, rápido y sin filas ⚡\n\n✅ ¿Qué necesitas hoy? Escribe una opción:\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Ayuda* (resuelve dudas 💬)",
           "options": {
             "productos": "productos.productos_node",
             "pedido": "order.order_start_node",
@@ -77,10 +80,10 @@
         "productos_node": {
           "action": "show_productos",
           "intercept_products": true,
-          "message": "🛒 *Nuestros productos*",
+          "message": "🛒 *Nuestros productos*\n\nMira lo que tenemos disponible en *El Gran Motilón*: 👇\n",
           "fallback": "No entendí eso. Escribe *productos*, *pedido* o *ayuda*.",
           "message_after_action": "",
-          "navigation_hint": "",
+          "navigation_hint": "\n\n--\n✅ Escribe una opción:\n\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Inicio* (volver al inicio 🏠)",
           
           "options": {
             "pedido": "order.order_start_node",
@@ -98,12 +101,12 @@
       "initial": "order_start_node",
       "nodes": {
         "order_start_node": {
-          "message": "Perfecto, vamos con tu pedido.\n\nCuéntame qué te gustaría. Puedes escribirlo en lenguaje natural, por ejemplo:\n• *2 pizza hawaiana, 1 coca cola*\n• *una hamburguesa y dos aguas*\n\nTambién puedes decir *quita la coca cola* o *cambia pizza por hamburguesa*.",
+          "message": "🛍️ *Haz tu pedido*\n\n💡 Escribe los productos que deseas comprar y la cantidad de cada uno.\n\n*Por ejemplo:*\n- 2 Coca-Cola 1.5 L\n- 1 Arroz Diana 500g\n- 3 Chocolatinas Jet\n\n*También puedes escribir todo en un solo mensaje:*\n2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet",
           "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
           "action": "capture_order",
-          "navigation_hint": "\nNavigation",
+          "navigation_hint": "\n\n--\n✅ *Escribe tu pedido:*",
           "transitions": {
             "success": "order.order_review_node",
             "empty_cart": null
@@ -115,7 +118,7 @@
         "order_review_node": {
           "action": "show_cart",
           "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
-          "message_after_action": "\n\n¿Confirmamos tu pedido?\nResponde *sí* para confirmar o *no* para modificarlo.",
+          "message_after_action": "\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Si* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)",
           "input_mode": "free_text",
           "action_on_input": "handle_order_confirmation",
           "transitions": {
