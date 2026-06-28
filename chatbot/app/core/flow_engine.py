@@ -708,14 +708,11 @@ class FlowEngine:
             return self._resolve_ux_text("capture_order_empty", node), None
 
         self.state_manager.patch_data(wa_id, cart=result["items"])
-        notes = result.get("notes", [])
-        notes_prefix = self.meta.get("capture_order_notes_prefix", "")
-        note_text = f"{notes_prefix}{' '.join(notes)}" if notes else ""
         success = self._render(
             self._resolve_ux_text("capture_order_success", node),
             {},
         )
-        return f"{success}{note_text}", "success"
+        return success, "success"
         
     def _action_show_cart(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)

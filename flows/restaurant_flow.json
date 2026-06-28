@@ -26,7 +26,7 @@
     
 
     "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
-    "capture_order_success": "🛍️ *Tu pedido:*",
+    "capture_order_success": "🛍️ *Tu pedido:*\n\n",
     "empty_cart_message": "Tu carrito está vacío. Cuéntame qué te gustaría pedir.",
     "order_confirm_yes": "¡Excelente!",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
@@ -44,7 +44,6 @@
     "save_ayuda_incomplete": "Faltan datos para completar la solicitud.",
     "save_ayuda_success": "Solicitud *{{ayuda_id}}* confirmada.",
     "navigation_hint": "",
-    "capture_order_notes_prefix": "\n\n",
     "productos_empty": "Por el momento no tenemos productos disponibles. Intenta más tarde.",
     "productos_category_header": "\n\n*{{category}}*",
     "productos_item_line": "\n• {{name}} — ${{price}}",
@@ -118,7 +117,7 @@
         "order_review_node": {
           "action": "show_cart",
           "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
-          "message_after_action": "\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Confirmar* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
+          "message_after_action": "\n\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Confirmar* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
           "input_mode": "free_text",
           "action_on_input": "handle_order_confirmation",
           "transitions": {

@@ -2182,16 +2182,22 @@ class OrderParser:
         return round(sum(item.get("subtotal", 0) for item in items), 2)
 
     @staticmethod
+    def _fmt_cop(amount: float) -> str:
+        # ponytail: entero con punto miles; upgrade: locale/Decimal si hay centavos
+        return f"{int(round(amount)):,}".replace(",", ".")
+
+    @staticmethod
     def format_cart(items: List[Dict[str, Any]]) -> str:
         if not items:
             return "Tu carrito está vacío."
         lines = []
         for item in items:
+            sub = OrderParser._fmt_cop(item["subtotal"])
             lines.append(
-                f"• {item['qty']} x {item['product']} — ${item['subtotal']:.2f}"
+                f"- {item['product']} x{item['qty']} - $ {sub}"
             )
         total = OrderParser.cart_total(items)
-        lines.append(f"\n*Total: ${total:.2f}*")
+        lines.append(f"\n💰 *Valor total: ${OrderParser._fmt_cop(total)}*")
         return "\n".join(lines)
 
 

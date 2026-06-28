@@ -1,4 +1,4 @@
-## v1.59
+## v1.60
 
 
 
@@ -5914,3 +5914,11 @@ Se arregló la salida de flujo en medio del pedido, ahora siempre pregunta
 ############################################
 ## v1.59
 
+Se implementaron mejoras en el diseño del menú y el flujo que ve el cliente
+
+
+
+###############################################
+## v1.60
+
+Flujo de "Hola" , "Pedido", "Productos" "Tu pedido" listo y funcional
