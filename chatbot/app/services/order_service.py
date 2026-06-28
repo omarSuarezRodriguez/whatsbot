@@ -17,9 +17,14 @@ class OrderService:
         self.productos_service = productos_service
 
     def _parser(self) -> OrderParser:
-        """Always build fresh from current DB menu (multi-tenant, no stale cache)."""
+        """Build or reuse engine keyed by (business_id, catalog fingerprint)."""
         productos = self.productos_service.get_available_productos()
-        return OrderParser(productos)
+        try:
+            from chatbot.business_context import get_active_business_id  # lazy import
+            bid: str = get_active_business_id() or ""
+        except Exception:  # noqa: BLE001
+            bid = ""
+        return OrderParser(productos, business_id=bid)
 
     def parse_order_text(
         self,

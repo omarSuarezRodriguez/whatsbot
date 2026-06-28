@@ -1,5 +1,4 @@
-## v1.62 - Plan para hacer lector de pedidos 99% efectivo
-
+## v1.63
 
 
 
@@ -6161,3 +6160,123 @@ Tests existentes intactos. Si una fase rompe un test de restaurante (p.ej. depen
 
 
 #########################################
+## v1.63
+
+
+## prompt ##
+
+
+Antes de empezar, lee ARCHITECTURE_LAW.md y obedécelo al pie de la letra. NO modifiques
+ARCHITECTURE_LAW.md. NO modifiques tests existentes: si un cambio rompe un test, corrige la
+IMPLEMENTACIÓN, nunca el test ni la ley. Si algo solo se puede lograr violando la ley,
+DETENTE y explica (1) qué regla rompe, (2) por qué, (3) alternativa que preserva la arquitectura.
+
+Reglas de arquitectura: JSON = mapa conversacional, Python = motor, negocio = Services,
+estado = StateManager, tenant = business_scope. Sin dependencias nuevas en el camino por defecto
+(filosofía ponytail: borrar > añadir). Dependencias opcionales solo con import perezoso + fallback.
+Todo lo específico de un negocio se deriva del catálogo inyectado (menu_items); NUNCA se hardcodea.
+No inventes productos: lo no reconocido va a unknown/needs_review. No crees rutas fuera del JSON ni
+mutes estado fuera de StateManager. Marca cada simplificación con comentario `ponytail:` nombrando
+su ceiling y vía de mejora.
+
+CONTEXTO
+El parser vive en chatbot/app/core/parser.py. Hoy tiene vocabulario de restaurante hardcodeado
+(SYNONYM_TOKEN_MAP, CATEGORY_STOPWORDS, BEVERAGE_SYNONYM_KEYS, PARTIAL_GENERIC_TOKENS,
+PARTIAL_CATEGORY_ONLY, _detect_single/multi_beverage) y NUMBER_WORDS solo llega a "treinta" (30).
+El tenant real es un mercado (productos como "Arroz Diana 500g", "Coca-Cola 1.5 L"). El catálogo se
+inyecta vía OrderIntelligenceEngine(menu_items); score_pair ya consume item["aliases"].
+OrderService._parser() reconstruye el engine en CADA mensaje (cuello de botella de escala).
+
+OBJETIVO (99% real)
+El motor debe entender pedidos de CUALQUIER cliente y CUALQUIER catálogo (tornillos, motos, arcos,
+balones, guantes de boxeo, lo que sea), sin reglas por negocio: cualquier numeración (dígitos
+323/1000/1.000/1,000; palabras de cualquier magnitud "mil doscientos veinticinco", "quinientos
+veinticinco"; formatos 2x/x2/2×, "un par", "media docena", "una docena"; posición libre "arcos x50",
+"50x guantes", "cincuenta arcos"); cualquier frase errática (typos, repeticiones holaaa/pizzzza,
+pegado dosarcos, mayúsculas, acentos o su ausencia, emojis; TODA la puntuación - – — . , : ; / \ |
+* + & ( ) [ ] { } " ' tratada como separador/ruido); y cualquier catálogo sin hardcode
+(distintividad por frecuencia, aliases/keywords data-driven desde el dato/Services, categoría genérica
+derivada de las categorías reales, borrando la lógica de bebidas/sinónimos hardcodeada).
+
+IMPLEMENTA ESTAS 5 FASES, EN ORDEN, una a una, esperando mi OK al cerrar cada fase:
+
+Fase 1 — Normalización y tokenización tolerante al caos:
+  1.1 tabla única de puntuación total como separador/ruido
+  1.2 colapso de repeticiones (≥3 → 2)
+  1.3 split de palabras pegadas (qty+producto y producto+producto)
+  1.4 emojis/mayúsculas/acentos consolidados
+  1.5 segmentación robusta sin perder señal qty/producto
+
+Fase 2 — Motor numérico genérico en español:
+  2.1 parser unidades→miles→millones y compuestos (reemplaza el lookup palabra-única)
+  2.2 dígitos con separadores de miles sin romper "3/8" ni medidas "1.5"
+  2.3 formatos 2x/x2/2×/×2
+  2.4 par/docena/media docena/una docena (con y sin "de")
+  2.5 posición libre y mezcla
+
+Fase 3 — Matching genérico de catálogo sin hardcode:
+  3.1 distintividad por frecuencia derivada del catálogo (mata CATEGORY_STOPWORDS)
+  3.2 aliases/keywords data-driven por producto (item.get(...), fallback al nombre; passthrough opcional en db_store/menu_service)
+  3.3 categoría genérica derivada de item["categoria"] (mata PARTIAL_*)
+  3.4 BORRAR SYNONYM_TOKEN_MAP, BEVERAGE_SYNONYM_KEYS y _detect_single/multi_beverage
+  3.5 fuzzy/typos tolerante a cualquier nombre de catálogo
+
+Fase 4 — Asociación cantidad↔producto + QA + robustez:
+  4.1 anclaje cantidad↔producto por longest-match
+  4.2 QA needs_review, nunca inventar productos
+  4.3 robustez end-to-end en ambos catálogos
+  4.4 scorer semántico opcional pluggable (off por defecto, import perezoso, fallback fuzzy)
+
+Fase 5 — Seguridad, estabilidad y optimización de velocidad (sin cambiar comportamiento ni arquitectura):
+  ANTES de tocar nada, captura una salida DORADA de parse() sobre los catálogos y frases caóticas;
+  el invariante maestro de la fase es que esa salida quede IDÉNTICA tras cada subpunto.
+  5.1 precomputar datos estáticos del catálogo (tokens_set, token_keys, distinctive, compact); q_keys una sola vez
+  5.2 mapa "pegado→espaciado" precomputado una vez por catálogo
+  5.3 prefiltro de candidatos por índice invertido (fallback a escaneo completo si no hay overlap)
+  5.4 normalización única por mensaje (eliminar pasadas redundantes en resolve/parse)
+  5.5 cantidades con regex precompilado (cero re.compile en caliente)
+  5.6 reuso del engine por tenant con caché keyed por (business_id, fingerprint del catálogo) + invalidación (sin staleness, sin if business_id == ...)
+  5.7 seguridad en frontera: límite de longitud/segmentos de entrada (anti-DoS de regex/escaneo), validación de tipos del item del catálogo
+
+PROTOCOLO DE VERIFICACIÓN (OBLIGATORIO, igual en todas las fases)
+- Self-checks en un solo archivo: scripts/selfcheck_parser.py (sin pytest/fixtures, solo assert + print),
+  CLI `python scripts/selfcheck_parser.py --phase N`.
+- Cada subpunto valida contra AL MENOS 2 catálogos distintos —ferretería ("Tornillo 3/8",
+  "Arco compuesto", "Tuerca hexagonal") y deportes ("Balón de fútbol", "Guantes de boxeo",
+  "Arco de fútbol")— y frases caóticas reales (ej: "cincuenta arcos, 500 balones; y 323
+  guantes-de-boxeo!!!" y "kiero 2x tornilllos . . y media docena d arcos").
+- Self-checks de rendimiento (Fase 5): usar CONTADORES de operación (items puntuados, re.compile,
+  reconstrucciones de mapa/engine), NO wall-clock, para evitar flakiness; además golden-equality.
+- Al pasar un subpunto imprime EXACTAMENTE:  ✅ DONE [<nombre del subpunto>]
+- Si falla imprime:  ❌ FAIL [<nombre del subpunto>] - <motivo>  y se DETIENE.
+- COMPROBACIÓN DE INTEGRIDAD al cerrar cada fase: reejecuta TODOS los subpuntos de la fase y corre:
+      python scripts/validate_flow.py
+      python scripts/validate_architecture.py
+      python scripts/validate_chatbot.py
+      pytest
+  Solo si TODO pasa imprime:  ✅ DONE FASE N — <nombre de la fase> (integridad verificada)
+  Si algo falla, lista los subpuntos fallidos y detente SIN editar tests ni la ley.
+
+REGLAS DE CALIDAD
+- Prioriza BORRAR hardcode sobre añadir código (reduce la deuda del "parser grande", nunca la amplíes).
+- No agregues comentarios narrativos; solo `ponytail:` con ceiling + vía de mejora donde simplifiques.
+- Reporta cada comando ejecutado con su resultado; si un validador no se puede ejecutar, dilo.
+
+Empieza por la Fase 1. Implementa, corre sus self-checks + integridad, muéstrame los resultados y
+ESPERA mi OK antes de pasar a la Fase 2. Igual al cerrar cada fase.
+
+
+
+## resp cursor opus 4.8 ##
+
+
+
+5 fases ejecutadas correctamente y checks pasados, se incluye una 6 fase para mejorar velocidad, estabilidad y escalabilidad e integridad sin cambiar el comportamiento, siguiendo directrices de Architecture_law.md
+
+
+
+
+
+
+##################################################
+
