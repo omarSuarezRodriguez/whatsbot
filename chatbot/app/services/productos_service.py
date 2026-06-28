@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+import math
+import time
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from app.integrations.db_store import DBStore
+
+# ponytail: wall-clock TTL bucket cache for get_menu(); single (business_id, bucket) entry.
+# ceiling: stale menu visible for up to _MENU_TTL_SECONDS after a catalog change.
+# upgrade: invalidate via signal from PUT /menu endpoint in the API layer.
+_MENU_TTL_SECONDS = 30
+_menu_cache: Optional[Tuple[str, int, List[Dict[str, Any]]]] = None  # (bid, bucket, items)
 
 
 class ProductosService:
@@ -25,11 +33,31 @@ class ProductosService:
             pass
         return None
 
+    @staticmethod
+    def _active_bid() -> str:
+        try:
+            from chatbot.business_context import get_active_business_id
+
+            bid = get_active_business_id()
+            if bid:
+                return bid
+        except Exception:
+            pass
+        return ""
+
     def get_available_productos(self) -> List[Dict[str, Any]]:
+        global _menu_cache
         override = self._default_context_override()
         if override is not None:
             return override
-        return [item for item in self.sheets.get_menu() if item.get("disponible", True)]
+        bid = self._active_bid()
+        bucket = math.floor(time.monotonic() / _MENU_TTL_SECONDS)
+        cached = _menu_cache
+        if cached is not None and cached[0] == bid and cached[1] == bucket:
+            return cached[2]
+        fresh = [item for item in self.sheets.get_menu() if item.get("disponible", True)]
+        _menu_cache = (bid, bucket, fresh)
+        return fresh
 
     def productos_literal_tokens(self) -> frozenset[str]:
         from app.core.parser import TextNormalizer

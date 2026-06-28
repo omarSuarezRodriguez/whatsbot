@@ -17,14 +17,17 @@ from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
+try:
+    from chatbot.business_context import get_active_business_id as _get_active_business_id
+except ImportError:  # pragma: no cover
+    _get_active_business_id = None  # type: ignore[assignment]
+
 
 def _active_business_id() -> str:
     from config.settings import DEFAULT_BUSINESS_ID
 
     try:
-        from chatbot.business_context import get_active_business_id
-
-        bid = get_active_business_id()
+        bid = _get_active_business_id() if _get_active_business_id is not None else None
     except Exception:  # pragma: no cover - defensive
         bid = None
     return (bid or DEFAULT_BUSINESS_ID or "default").strip() or "default"

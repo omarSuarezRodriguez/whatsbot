@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from app.config import FLOWS_PATH, RESTAURANT_NAME
+
+try:
+    from chatbot.business_context import get_prompt as _ctx_get_prompt
+except ImportError:  # pragma: no cover
+    _ctx_get_prompt = None  # type: ignore[assignment]
 from app.core.state_manager import StateManager
 from app.services.admin_service import AdminService
 from app.services.productos_service import ProductosService
@@ -27,6 +33,11 @@ from app.utils.validators import (
 )
 
 logger = logging.getLogger(__name__)
+
+# ponytail: (path_str, mtime) → parsed flow dict; avoids re-parsing unchanged JSON.
+# ceiling: FAT32 mtime granularity is 2s; rapid in-test rewrites may not be detected.
+# upgrade: add sha256 of file content as secondary discriminator.
+_flow_file_cache: Dict[str, Any] = {}  # key: path_str → (mtime, flow_dict)
 
 _SYSTEM_TECHNICAL_FALLBACK = "Error interno: texto no configurado."
 
@@ -71,9 +82,20 @@ class FlowEngine:
         }
 
     def _load_flow(self) -> Dict[str, Any]:
-        with open(self.flow_path, "r", encoding="utf-8") as handle:
+        path = self.flow_path
+        try:
+            mtime = os.path.getmtime(path)
+        except OSError:
+            mtime = None
+        cached = _flow_file_cache.get(path)
+        if cached is not None and mtime is not None and cached[0] == mtime:
+            return cached[1]
+        with open(path, "r", encoding="utf-8") as handle:
             raw = json.load(handle)
-        return self._normalize_flow(raw)
+        flow = self._normalize_flow(raw)
+        if mtime is not None:
+            _flow_file_cache[path] = (mtime, flow)
+        return flow
 
     def _apply_flow(self, flow: Dict[str, Any]) -> None:
         self.flow = flow
@@ -83,6 +105,7 @@ class FlowEngine:
         self.abandon_bypass_commands = frozenset(
             self.meta.get("abandon_bypass_commands") or ("cancelar",)
         )
+        self._cart_guard_flows_set = self._build_cart_guard_flows(self.meta)
 
     def reload_flow(self) -> None:
         self._apply_flow(self._load_flow())
@@ -139,11 +162,12 @@ class FlowEngine:
         return step
 
     def _render(self, template: str, extra: Optional[Dict[str, Any]] = None) -> str:
-        # Use per-business prompts/name from contextvar when available
         try:
-            from chatbot.business_context import get_prompt as ctx_get_prompt
-
-            biz_name = ctx_get_prompt("restaurant_name", RESTAURANT_NAME)
+            biz_name = (
+                _ctx_get_prompt("restaurant_name", RESTAURANT_NAME)
+                if _ctx_get_prompt is not None
+                else RESTAURANT_NAME
+            )
         except Exception:
             biz_name = RESTAURANT_NAME
         context = {"restaurant_name": biz_name, "welcome_line": "", "address_prompt": ""}
@@ -168,14 +192,15 @@ class FlowEngine:
 
 
 
-    def _cart_guard_flows(self) -> frozenset[str]:
-        """Flows inferred from meta.active_order_command_targets; empty meta → no active order."""
-        targets = self.meta.get("active_order_command_targets") or {}
+    @staticmethod
+    def _build_cart_guard_flows(meta: Dict[str, Any]) -> frozenset:
+        """Compute once in _apply_flow; call-sites use self._cart_guard_flows_set."""
+        targets = meta.get("active_order_command_targets") or {}
         flows: set[str] = set()
         for target in targets.values():
             if not isinstance(target, str) or "." not in target:
                 continue
-            flow_name, _ = self._parse_ref(target)
+            flow_name = target.split(".", 1)[0]
             if flow_name:
                 flows.add(flow_name)
         return frozenset(flows)
@@ -184,18 +209,18 @@ class FlowEngine:
         cart = state.get("data", {}).get("cart", [])
         if not cart:
             return False
-        guard_flows = self._cart_guard_flows()
+        guard_flows = self._cart_guard_flows_set
         if not guard_flows:
             return False
         return state.get("flow") in guard_flows
 
     def _should_prompt_abandon(self, state: Dict[str, Any]) -> bool:
-        return state.get("flow") in self._cart_guard_flows()
+        return state.get("flow") in self._cart_guard_flows_set
 
     def _target_leaves_guarded_flow(
         self, state: Dict[str, Any], target_ref: str
     ) -> bool:
-        guard_flows = self._cart_guard_flows()
+        guard_flows = self._cart_guard_flows_set
         current_flow = state.get("flow")
         if current_flow not in guard_flows:
             return False

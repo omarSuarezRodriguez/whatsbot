@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import TYPE_CHECKING, Optional, Set
+from typing import TYPE_CHECKING, FrozenSet, Optional, Set
 
 from app.config import BLOCKED_USERS_CACHE_TTL_SECONDS
 
@@ -26,9 +26,16 @@ class BlockedUsersCache:
         self.sheets = store  # attr name kept for internal compatibility
         self.admin_service = admin_service
         self.ttl_seconds = max(5, ttl_seconds)
-        self._blocked: Set[str] = set()
+        # ponytail: frozenset of E.164-normalized wa_ids; O(1) lookup.
+        # ceiling: normalize_wa_id_e164 must be deterministic (same input → same output).
+        # upgrade: if normalization becomes context-dependent, key by (business_id, wa_id).
+        self._blocked_normalized: FrozenSet[str] = frozenset()
         self._lock = threading.Lock()
         self._started = False
+
+    def _normalize_set(self, raw: Set[str]) -> FrozenSet[str]:
+        norm = self.admin_service.normalize_wa_id_e164
+        return frozenset(norm(bid) or bid for bid in raw)
 
     def start(self) -> None:
         if self._started:
@@ -44,7 +51,7 @@ class BlockedUsersCache:
         logger.info(
             "Blocked users cache started (TTL=%ds, %d blocked)",
             self.ttl_seconds,
-            len(self._blocked),
+            len(self._blocked_normalized),
         )
 
     def _refresh_loop(self) -> None:
@@ -58,30 +65,26 @@ class BlockedUsersCache:
     def refresh(self) -> None:
         self.sheets.refresh_users_cache()
         blocked = self.sheets.get_blocked_wa_ids()
+        normalized = self._normalize_set(blocked)
         with self._lock:
-            self._blocked = blocked
-        logger.debug("Blocked users cache refreshed: %d user(s)", len(blocked))
+            self._blocked_normalized = normalized
+        logger.debug("Blocked users cache refreshed: %d user(s)", len(normalized))
 
     def is_blocked(self, wa_id: str) -> bool:
         normalized = self.admin_service.normalize_wa_id_e164(wa_id) or wa_id
         with self._lock:
-            for blocked_id in self._blocked:
-                if self.admin_service.phones_match(normalized, blocked_id):
-                    return True
-        return False
+            blocked = self._blocked_normalized
+        return normalized in blocked
 
     def apply_local(self, wa_id: str, blocked: bool) -> None:
         normalized = self.admin_service.normalize_wa_id_e164(wa_id) or wa_id
         with self._lock:
+            current = self._blocked_normalized
             if blocked:
-                self._blocked.add(normalized)
-                return
-            self._blocked = {
-                bid
-                for bid in self._blocked
-                if not self.admin_service.phones_match(bid, normalized)
-            }
+                self._blocked_normalized = current | {normalized}
+            else:
+                self._blocked_normalized = current - {normalized}
 
     def count(self) -> int:
         with self._lock:
-            return len(self._blocked)
+            return len(self._blocked_normalized)

@@ -1,4 +1,4 @@
-## v1.63
+## v1.64
 
 
 
@@ -6279,4 +6279,306 @@ ESPERA mi OK antes de pasar a la Fase 2. Igual al cerrar cada fase.
 
 
 ##################################################
+## v1.64
 
+
+## prompt ##
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROMPT MAESTRO — FASE 6: OPTIMIZACIÓN DE INFRAESTRUCTURA
+Proyecto: whatsbot  /  Raíz: C:\Users\Usuario\Desktop\whatsbot
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+╔═══════════════════════════════╗
+║  LEE PRIMERO — OBLIGATORIO    ║
+╚═══════════════════════════════╝
+
+Lee ARCHITECTURE_LAW.md al pie de la letra antes de escribir
+una sola línea de código.
+
+Reglas inviolables que derivan de él:
+  • JSON = mapa conversacional. Python = motor. Services = negocio.
+    StateManager = estado. business_scope = aislamiento multi-tenant.
+  • NO modificar ARCHITECTURE_LAW.md.
+  • NO modificar tests existentes salvo solicitud explícita del usuario.
+  • Toda simplificación marcada con comentario `ponytail:` indicando
+    su ceiling y vía de mejora.
+  • Al final de cada subpunto verifica que golden outputs no cambian
+    ejecutando: python scripts/selfcheck_parser.py
+  • Si alguna regla arquitectónica se rompe, detente y explica qué
+    regla se rompe y qué alternativa mantiene la arquitectura.
+
+
+╔═══════════════════════════════════════╗
+║  ESTADO ACTUAL DEL PROYECTO           ║
+╚═══════════════════════════════════════╝
+
+Fases 1–5 del parser completadas y verificadas:
+  • python scripts/selfcheck_parser.py → 27/27 ✅
+  • Fases 1–4: normalización, qty, matching, scorer pluggable.
+  • Fase 5: precomputed statics, compact map, inverted index,
+    single-pass normalization, zero runtime re.compile,
+    engine cache por (business_id, fingerprint), security boundaries.
+
+Arquitectura activa:
+  Twilio → FastAPI webhook → gateway.py → business_scope
+         → FlowEngine → StateManager → Services → DBStore → DB
+
+Archivos clave:
+  chatbot/app/core/parser.py          (~3120 líneas)
+  chatbot/app/core/flow_engine.py     (~951 líneas)
+  chatbot/app/core/state_manager.py   (~180 líneas)
+  chatbot/app/services/productos_service.py
+  chatbot/app/services/blocked_users_cache.py
+  chatbot/app/integrations/db_store.py
+  scripts/selfcheck_parser.py         (checks de fases 1–5)
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  AUDITORÍA DE CUELLOS DE BOTELLA — RUTA CALIENTE             ║
+╚══════════════════════════════════════════════════════════════╝
+
+La ruta caliente por mensaje entrante es:
+
+  process_message()
+    → state_manager.get()           → _resolve_key() → lazy import × N
+    → is_blocked()                  → O(n) scan sobre set de bloqueados
+    → get_available_productos()     → get_menu() → DB session × mensaje
+    → _parser() → engine cache      → fingerprint OK (ya optimizado, 5.6)
+    → parse()                       → ya optimizado (fases 1–5)
+    → _cart_guard_flows()           → frozenset rebuild × 3-4 por mensaje
+    → _render()                     → lazy import × cada nodo renderizado
+    → _load_flow()                  → open() + json.load() por instancia
+
+Bottlenecks ordenados por impacto:
+
+  1. BlockedUsersCache.is_blocked(): O(n) con phones_match() por entrada.
+     Cada mensaje consulta todos los bloqueados, incluso con 1 solo usuario.
+     Archivo: chatbot/app/services/blocked_users_cache.py, línea 65-70.
+
+  2. ProductosService.get_available_productos(): DB hit por cada mensaje.
+     Esto ocurre incluso cuando el catálogo no ha cambiado. El engine cache
+     (5.6) ya reutiliza el engine, pero la llamada a get_menu() sigue
+     abriendo una sesión DB para computar el fingerprint.
+     Archivo: chatbot/app/services/productos_service.py, línea 28-32.
+     Dependencia: chatbot/app/integrations/db_store.py, línea 41-57.
+
+  3. FlowEngine._cart_guard_flows(): frozenset rebuilt desde meta dict
+     en cada llamada. Se llama 3-4 veces por _process_message_body().
+     Archivo: chatbot/app/core/flow_engine.py, línea 171-181.
+
+  4. Lazy imports en hot paths: get_active_business_id() re-importado
+     dentro de StateManager._resolve_key() (cada get/update/patch),
+     FlowEngine._render() (cada nodo), DBStore._active_business_id()
+     (cada operación DB). Python cachea módulos, pero la búsqueda en
+     sys.modules ocurre en cada llamada a la función.
+     Archivos: state_manager.py:118, flow_engine.py:144, db_store.py:22-29.
+
+  5. FlowEngine._load_flow(): open() + json.load() en cada instanciación
+     de FlowEngine. Si FlowEngine se reconstruye por request (no singleton),
+     el JSON se reparsea en disco aunque no haya cambiado.
+     Archivo: chatbot/app/core/flow_engine.py, línea 73-76.
+
+
+╔════════════════════════════════════════════════════════════╗
+║  ESTRATEGIA ELEGIDA                                        ║
+╚════════════════════════════════════════════════════════════╝
+
+NO existe estrategia superior a una Fase 6 enfocada en infraestructura.
+Razones:
+  • Async: requiere cambios en Twilio/FastAPI → arquitectónico, fuera de scope.
+  • Redis/memcached: dependencia externa innecesaria; los 5 fixes son stdlib pura.
+  • Profiler-first: ya conocemos los hotspots por inspección estática directa.
+  • Rewrite: viola YAGNI y ARCHITECTURE_LAW.md invariante 9.
+
+La Fase 6 es la estrategia correcta: 5 micro-optimizaciones quirúrgicas,
+cada una dentro de su capa correcta, sin cambiar comportamiento funcional.
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  FASE 6 — PLAN (5 subpuntos)                                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+6.1  BlockedUsersCache O(1) — mantener un frozenset normalizado de wa_ids
+     bloqueados (clave E.164). is_blocked() = 1 normalize + O(1) set lookup.
+     apply_local() reconstruye el set normalizado. refresh() idem.
+     Archivo: chatbot/app/services/blocked_users_cache.py
+     Capa: Services (correcto). No toca StateManager ni FlowEngine.
+     Restricción: mantener la firma pública intacta (start/is_blocked/apply_local/count).
+
+6.2  ProductosService menu TTL cache — cache por (business_id, wall-clock
+     bucket de 30s). Si business_id y bucket coinciden con la entrada cacheada,
+     devuelve la lista sin abrir DB. Si no, refresca y guarda.
+     Archivo: chatbot/app/services/productos_service.py
+     Capa: Services (correcto). El cache vive dentro del Service; DB sigue
+     siendo la fuente de verdad. TTL garantiza que cambios en el menú
+     propagan en ≤30s.
+     Restricción: cache key DEBE incluir business_id (multi-tenant).
+     ponytail: TTL wall-clock; ceiling: menú actualizado puede tardar ≤TTL en verse.
+     Upgrade: invalidar cache vía señal al hacer PUT /menu en la API.
+
+6.3  FlowEngine._cart_guard_flows() — calcular el frozenset una sola vez
+     en _apply_flow() y guardarlo como self._cart_guard_flows_set.
+     Los tres call-sites usan self._cart_guard_flows_set directamente.
+     Archivo: chatbot/app/core/flow_engine.py
+     Capa: motor interno (correcto). No cambia contratos ni JSON routing.
+
+6.4  FlowEngine flow JSON cache — cache módulo-nivel keyed por
+     (path_str, mtime). Si el mtime del archivo no cambió, retorna el
+     dict cacheado en lugar de re-parsear. _load_flow() y reload_flow()
+     usan este cache.
+     Archivo: chatbot/app/core/flow_engine.py
+     Capa: motor interno (correcto). Hot-reload sigue funcionando porque
+     cualquier edición del JSON cambia mtime.
+     ponytail: mtime; ceiling: FAT32 tiene granularidad de 2s; en sistemas
+     con mtime coarse puede no detectar cambios rápidos en tests.
+     Upgrade: hash del contenido como segundo discriminador.
+
+6.5  Hoist de lazy imports de business_context — en StateManager,
+     FlowEngine y DBStore los imports de get_active_business_id /
+     get_prompt se hacen dentro de funciones en el hot path. Moverlos
+     a nivel de módulo con try/except (si el módulo no existe aún al
+     arrancar, el fallback sigue funcionando).
+     Archivos:
+       chatbot/app/core/state_manager.py   (_resolve_key)
+       chatbot/app/core/flow_engine.py     (_render)
+       chatbot/app/integrations/db_store.py (_active_business_id)
+     Capa: implementación interna de cada módulo (correcto).
+     Restricción: si business_context no está disponible al importar
+     (arranque sin contexto), el fallback debe ser idéntico al actual
+     (None / DEFAULT_BUSINESS_ID / RESTAURANT_NAME). No pueden romperse
+     imports en contextos de test.
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  PROTOCOLO DE VERIFICACIÓN (OBLIGATORIO)                       ║
+╚════════════════════════════════════════════════════════════════╝
+
+Tras CADA subpunto:
+  1. python scripts/selfcheck_parser.py
+     → debe imprimir ✅ en los 27 checks. Si alguno falla: corrige
+       la implementación, NO el test.
+  2. python chatbot/app/core/parser.py
+     → debe terminar sin error (suite interna de parser.py).
+
+Tras el subpunto 6.2 (menu cache) también ejecutar:
+  python scripts/validate_flow.py   (debe pasar)
+
+Al terminar todos los subpuntos — COMPROBACIÓN MAESTRA DE INTEGRIDAD:
+  python scripts/selfcheck_parser.py         → 27/27 ✅
+  python scripts/selfcheck_engine.py         → nuevo archivo, ≥5 checks ✅
+  python chatbot/app/core/parser.py          → OK
+  python scripts/validate_flow.py            → OK
+  python scripts/validate_architecture.py    → OK (si el script existe)
+  pytest                                      → sin regresiones
+
+Si cualquier comando falla, reportar:
+  - comando ejecutado
+  - salida exacta del error (línea decisiva, no el log completo)
+  - causa probable
+  - corrección aplicada
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  SELFCHECK ESPERADO — scripts/selfcheck_engine.py              ║
+╚════════════════════════════════════════════════════════════════╝
+
+Crear scripts/selfcheck_engine.py siguiendo el mismo patrón que
+selfcheck_parser.py (no pytest, solo assert + print ✅/❌).
+
+Funciones requeridas (una por subpunto):
+
+  p6_1_blocked_cache_o1():
+    - Crear BlockedUsersCache con store/admin_service stubs.
+    - Llamar refresh() simulando 100 entradas bloqueadas.
+    - Verificar que is_blocked() NO itera el set (no llama phones_match
+      para cada entrada; puede verificarse contando llamadas o midiendo
+      que is_blocked de un ID conocido retorna True en O(1) sin loops).
+    - Verificar que count() sigue correcto.
+
+  p6_2_menu_ttl_cache():
+    - Crear ProductosService con store stub que cuenta llamadas a get_menu().
+    - Llamar get_available_productos() 10 veces con mismo business_id.
+    - Verificar que get_menu() se llamó ≤2 veces (hit de cache).
+    - Cambiar business_id activo → verificar que el cache falla y refresca.
+
+  p6_3_cart_guard_flows_cached():
+    - Instanciar FlowEngine con un flow JSON mínimo válido.
+    - Verificar que engine._cart_guard_flows_set es un frozenset.
+    - Llamar _has_active_order() 5 veces; verificar que el frozenset
+      no se reconstruye (es el mismo objeto id() en cada llamada).
+
+  p6_4_flow_json_cache():
+    - Instanciar FlowEngine dos veces con el mismo path.
+    - Verificar que la segunda instancia reutiliza el dict cacheado
+      (misma id() del objeto flow, o verificar que open() se llamó ≤1 vez).
+
+  p6_5_business_context_imports_hoisted():
+    - Importar state_manager, flow_engine, db_store.
+    - Verificar que get_active_business_id y get_prompt son accesibles
+      como referencias de módulo (no solo dentro de funciones).
+    - Crear StateManager y llamar _resolve_key("test") → no debe lanzar.
+
+  integrity_check():
+    - Importar OrderIntelligenceEngine desde app.core.parser.
+    - Correr ENGINE_FER.parse(CHAOS_1) y ENGINE_DEP.parse(CHAOS_2)
+      (mismos inputs que selfcheck_parser) y verificar que status != "error".
+    - Verifica que selfcheck_parser.PHASES tiene 5 fases (1–5 intactas).
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  REGLAS DE CALIDAD                                             ║
+╚════════════════════════════════════════════════════════════════╝
+
+• Cero abstracciones no pedidas. Cero dependencias nuevas.
+• Código mínimo que resuelve el bottleneck.
+• Borrra > Agrega. Aburrido > Ingenioso.
+• Toda simplificación con `ponytail:` comment (ceiling + upgrade path).
+• No comments que narren lo que hace el código. Solo intención no obvia.
+• Si un subpunto requiere violar ARCHITECTURE_LAW.md, detente y explica.
+• No modifiques tests existentes. No toques selfcheck_parser.py (solo añade
+  funciones si es necesario, nunca modifiques las existentes).
+• Lee cada archivo que vas a modificar antes de modificarlo.
+• Usa ReadLints tras cada edición sustancial.
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  PROTOCOLO DE EJECUCIÓN                                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+1. Lee ARCHITECTURE_LAW.md (primer acto, obligatorio).
+2. Presenta este plan en 5 bullets concisos confirmando que lo entendiste.
+3. Espera mi OK.
+4. Tras el OK, ejecuta los 5 subpuntos en orden, sin pausas entre ellos.
+   - Lee el archivo → implementa → verifica (selfcheck_parser.py) → siguiente.
+5. Al terminar los 5 subpuntos, ejecuta la COMPROBACIÓN MAESTRA DE INTEGRIDAD
+   completa y reporta resultado.
+6. No pidas aprobación entre subpuntos. Solo detente si un check falla
+   o si descubres una violación de ARCHITECTURE_LAW.md.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIN DEL PROMPT MAESTRO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+## resp cursor ##
+
+Good. Now I have the full picture. Let me present the plan:
+
+Plano Fase 6 — 5 bullets:
+
+6.1 BlockedUsersCache O(1): _blocked já é set[str] com wa_ids normalizados vindos de get_blocked_wa_ids(). O problema é que is_blocked() itera com phones_match(). Fix: manter _blocked_normalized: frozenset[str]; is_blocked() = normalize + in lookup O(1). apply_local() reconstrói o frozenset.
+
+6.2 ProductosService TTL cache: Cache módulo-nível keyed por (business_id, time_bucket_30s). get_available_productos() retorna cache se bucket igual; refresh se mudou. Multi-tenant correto (key inclui business_id).
+
+6.3 _cart_guard_flows cached: Calcular frozenset uma vez em _apply_flow() → self._cart_guard_flows_set. Os 3 call-sites usam self._cart_guard_flows_set diretamente (sem recalcular).
+
+6.4 Flow JSON cache: Cache módulo-nível keyed por (path_str, mtime). _load_flow() verifica os.path.getmtime(); retorna dict cacheado se mtime não mudou.
+
+6.5 Hoist lazy imports: Mover from chatbot.business_context import get_active_business_id/get_prompt para topo de módulo com try/except ImportError; hot paths usam a referência hoistada sem re-buscar em sys.modules.
+
+
+
+
+###########################################

@@ -8,6 +8,11 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+try:
+    from chatbot.business_context import get_active_business_id as _get_active_business_id
+except ImportError:  # pragma: no cover - missing in some test environments
+    _get_active_business_id = None  # type: ignore[assignment]
+
 DEFAULT_STATE = {
     "flow": "home",
     "step": "",
@@ -115,9 +120,7 @@ class StateManager:
     def _resolve_key(wa_id: str) -> str:
         """Scope state by (business_id, wa_id) to prevent cross-tenant leakage."""
         try:
-            from chatbot.business_context import get_active_business_id
-
-            bid = get_active_business_id()
+            bid = _get_active_business_id() if _get_active_business_id is not None else None
         except Exception:
             bid = None
         if bid:
