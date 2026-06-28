@@ -228,7 +228,6 @@ def is_rejection(text: str) -> bool:
     if cleaned in {
         "no",
         "nop",
-        "cancelar",
         "cambiar",
         "modificar",
         "mejor no",

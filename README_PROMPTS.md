@@ -1,4 +1,4 @@
-## v1.58
+## v1.59
 
 
 
@@ -5906,4 +5906,11 @@ Se implementaron mejoras en la convención, se quitó menu y se reemplazó por p
 ## v1.58
 
 Se arregló la salida de flujo en medio del pedido, ahora siempre pregunta
+
+
+
+
+
+############################################
+## v1.59
 

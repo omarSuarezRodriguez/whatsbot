@@ -223,9 +223,8 @@ class FlowEngine:
 
 
     def _resolve_ux_text(self, meta_key: str, node: Dict[str, Any]) -> str:
-        text = self.meta.get(meta_key)
-        if text:
-            return str(text)
+        if meta_key in self.meta:
+            return str(self.meta[meta_key])
         fallback = node.get("fallback")
         if fallback:
             return str(fallback)
@@ -275,13 +274,18 @@ class FlowEngine:
         if not state.get("data", {}).get("awaiting_abandon_confirm"):
             return None
         node = self.nodes.get(state.get("step", ""), {})
-        if is_confirmation(text):
-            self.state_manager.reset(wa_id)
-            return self._goto_ref(wa_id, self._start_ref())
-        if is_rejection(text):
+        cleaned = normalize_text(text)
+        # Continuar pedido (UI nuevo + compat "no")
+        if cleaned in {"continuar"} or cleaned.startswith("continuar "):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
             return self._resolve_ux_text("abandon_confirm_continue", node)
+        # Cancelar / volver al inicio (UI nuevo + compat "si")
+        if cleaned in {"cancelar"} or is_confirmation(text):
+            self.state_manager.reset(wa_id)
+            return self._goto_ref(wa_id, self._start_ref())
         return self._resolve_ux_text("abandon_confirm_invalid", node)
+
+
 
     def _resolve_global_command(
         self,
