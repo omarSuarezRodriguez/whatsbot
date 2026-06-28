@@ -6949,5 +6949,302 @@ o:
 
 
 ################################################
+## 1.66
+
+## prompt ##
+
+# PROMPT MAESTRO — Resiliencia total en captura de pedidos
+## Preámbulo obligatorio (leer antes de todo)
+Lee `ARCHITECTURE_LAW.md` ahora. No lo modifiques.
+No modifiques tests existentes salvo que yo lo pida explícitamente.
+Si cualquier paso viola `ARCHITECTURE_LAW.md`, detente, explica qué regla rompe
+y propón la alternativa antes de continuar.
+---
+## FASE 0 — Auditoría y diseño del plan (presenta y espera OK)
+### 0.1 — Lee estos archivos en orden
+1. `ARCHITECTURE_LAW.md`
+2. `chatbot/app/core/parser.py` — secciones: `OrderIntelligenceEngine.parse()`,
+   `_fail_safe()`, `_quality_assurance()`, `apply_message()`, `_result()`
+3. `chatbot/app/core/flow_engine.py` — método `_action_capture_order` y el
+   diccionario `self._actions`
+4. `chatbot/app/services/order_service.py` — `parse_order_text()` y `apply_message()`
+5. `chatbot/app/core/state_manager.py` — `patch_data()`
+6. `flows/restaurant_flow.json` — estado `order` completo (todos sus nodos y
+   transiciones)
+7. Cualquier test que importe o ejerza `_action_capture_order`
+### 0.2 — Auditoría: identifica las brechas reales
+Responde las siguientes preguntas con evidencia de línea exacta:
+A. ¿El parser ya devuelve `items` (reconocidos) y `unknown` (no reconocidos)
+   en el mismo resultado, o descarta los válidos cuando hay desconocidos?
+B. ¿`_fail_safe()` se activa cuando hay ítems reconocidos pero también
+   desconocidos, o solo cuando TODOS los segmentos fallan?
+C. ¿`_action_capture_order` lee y usa `result["unknown"]` cuando
+   `result["items"]` no está vacío?
+D. ¿Existe algún nodo en el JSON que capture items parciales, informe al
+   usuario de los no reconocidos y permita aclararlos sin reiniciar el carrito?
+E. ¿Qué le dice el sistema al usuario cuando hay ítems reconocidos y también
+   desconocidos en el mismo mensaje?
+### 0.3 — Comparación de estrategias
+Evalúa las dos opciones y recomienda una:
+**Opción A — Nueva fase del parser (Phase 6)**
+Agregar un nuevo método `parse_partial()` o modificar el contrato de retorno
+del parser para que maneje internamente el flujo de aclaración.
+Pros/contras vs. ley de arquitectura:
+- ¿El parser debe saber sobre estado conversacional? ¿Viola la separación
+  JSON=mapa / Python=motor / Services=negocio?
+- Cuántos archivos toca. Cuánta deuda nueva genera.
+**Opción B — Fix dirigido (sin nueva fase del parser)**
+El parser YA devuelve `items` + `unknown` correctamente.
+El fix está en tres lugares:
+1. `_action_capture_order` en `flow_engine.py`: consumir `result["unknown"]`
+   cuando existen ítems válidos, guardar `pending_unknowns` en state y retornar
+   outcome `"partial"`.
+2. `restaurant_flow.json`: agregar transición `"partial"` en
+   `order_start_node` y `order_modify_node`; agregar nodo
+   `order_clarify_node` con su acción y transiciones.
+3. `meta` del JSON: agregar los mensajes UX para el flujo de aclaración
+   (sin copys largos en Python).
+Pros/contras vs. ley de arquitectura:
+- ¿Agrega deuda o la reduce? ¿Cuántos archivos toca? ¿Respeta todas las
+  invariantes?
+**Recomendación**: presenta cuál es mejor y por qué.
+### 0.4 — Plan de implementación detallado
+Una vez elegida la estrategia, presenta el plan completo:
+Para cada archivo que se toca:
+- Qué se agrega / modifica / elimina
+- Qué invariante de ARCHITECTURE_LAW.md aplica
+- Qué outcome nuevo se declara y en qué nodo JSON
+Lista de nodos JSON a agregar (con estructura exacta propuesta).
+Lista de acciones Python a agregar/modificar (firma completa).
+Lista de mensajes UX a agregar en `meta` del JSON.
+Lista de campos de estado que se leen/escriben en `state["data"]`.
+### 0.5 — Resumen antes del OK
+Termina con:
+PLAN LISTO. Archivos a modificar: [lista]. Sin violaciones de ARCHITECTURE_LAW.md detectadas. Escribe OK para implementar automáticamente.
+
+---
+## FASE 1 — Implementación (auto-ejecutar tras OK, sin pausas salvo bloqueo)
+Después de recibir OK, ejecuta todo lo siguiente en orden.
+No pidas confirmaciones intermedias salvo que:
+- Detectes una violación de ARCHITECTURE_LAW.md no anticipada, O
+- Encuentres un bloqueo que requiera una decisión que no puedas inferir.
+### 1.1 — Mensajes UX en `meta` del JSON
+Agrega en `flows/restaurant_flow.json` → `meta`:
+- `"capture_order_partial"`: texto que informa al usuario qué ítems SÍ se
+  reconocieron y qué segmentos NO se pudieron identificar. Debe mostrar los
+  reconocidos y preguntar por los desconocidos. Usa placeholders
+  `{{recognized}}` y `{{unknown_list}}`.
+- `"clarify_unknown_prompt"`: texto para el nodo de aclaración, que muestra el
+  siguiente ítem no reconocido y pide al usuario que lo aclare o lo omita.
+  Usa placeholder `{{unknown_item}}`.
+- `"clarify_skipped"`: texto corto confirmando que un ítem fue omitido.
+- `"clarify_resolved_all"`: texto confirmando que todos los desconocidos
+  quedaron resueltos.
+Validación 1.1:
+- [ ] Los 4 mensajes existen en `meta`
+- [ ] Todos usan `{{placeholders}}` y no copy hardcodeado en Python
+- [ ] El JSON sigue siendo válido (`python -m json.tool flows/restaurant_flow.json`)
+### 1.2 — Nodo `order_clarify_node` en el JSON
+Agrega en `flows/restaurant_flow.json` → `states.order.nodes`:
+```json
+"order_clarify_node": {
+  "input_mode": "free_text",
+  "action_on_input": "handle_order_clarification",
+  "fallback": "...",
+  "transitions": {
+    "partial_resolved": "order.order_review_node",
+    "partial_retry": null,
+    "skip": null
+  },
+  "options": {
+    "productos": "productos.productos_node"
+  }
+}
+El campo "fallback" debe ser un texto corto o referencia a un mensaje del meta. No copy largo en Python.
+
+Validación 1.2:
 
 
+ El nodo existe en states.order.nodes
+
+ Las 3 transiciones están declaradas
+
+ No hay rutas hardcodeadas en Python para este nodo
+
+ JSON válido
+1.3 — Transición "partial" en nodos existentes
+Agrega "partial": "order.order_clarify_node" en transitions de:
+
+order_start_node
+order_modify_node
+Validación 1.3:
+
+
+ Ambos nodos tienen la transición "partial"
+
+ Apunta a "order.order_clarify_node"
+
+ JSON válido
+1.4 — Modificar _action_capture_order en flow_engine.py
+La lógica nueva, respetando capas:
+
+result = self.order_service.parse_order_text(text, cart, wa_id=wa_id)
+items = result["items"]
+unknown = result.get("unknown") or []
+if not items and not unknown:
+    → retornar capture_order_empty, None
+if not items and unknown:
+    → retornar fallback con lista de desconocidos, None
+    (el mensaje de fallback viene del nodo JSON, no hardcodeado)
+if items and unknown:
+    → state_manager.patch_data(wa_id, cart=items, pending_unknowns=unknown)
+    → renderizar capture_order_partial con {{recognized}} y {{unknown_list}}
+    → retornar mensaje, "partial"
+if items and not unknown:
+    → state_manager.patch_data(wa_id, cart=items)
+    → retornar capture_order_success, "success"
+Reglas:
+
+Todo mensaje UX viene de self._resolve_ux_text(key, node) + self._render()
+pending_unknowns se guarda solo via state_manager.patch_data
+No hay rutas conversacionales hardcodeadas
+No hay copy largo en Python
+Validación 1.4:
+
+
+ Los 4 casos están manejados
+
+ pending_unknowns se escribe con patch_data, no directamente
+
+ No hay strings UX largos en Python
+
+ Ningún if step == "..." ni if current_node == "..." introducido
+1.5 — Nueva acción handle_order_clarification en flow_engine.py
+Registra "handle_order_clarification" en self._actions.
+
+Lógica:
+
+pending = state["data"].get("pending_unknowns", [])
+si el texto del usuario es "omitir" / "saltar" / "así está" / is_skip():
+    pending.pop(0) si hay pendientes
+    si pending vacío:
+        patch_data(pending_unknowns=[])
+        retornar clarify_resolved_all, "partial_resolved"
+    else:
+        patch_data(pending_unknowns=pending)
+        mostrar clarify_unknown_prompt con siguiente pending[0]
+        retornar mensaje, "skip"   # null transition → se queda en nodo
+intentar parse del texto contra catálogo (via order_service.parse_order_text)
+si hay items reconocidos:
+    mergear en cart existente
+    sacar del pending los segmentos resueltos
+    patch_data(cart=cart_actualizado, pending_unknowns=pending_restante)
+    si pending_restante vacío:
+        retornar clarify_resolved_all, "partial_resolved"
+    else:
+        mostrar clarify_unknown_prompt con siguiente pending[0]
+        retornar mensaje, "partial_retry"   # null → se queda
+si nada reconocido:
+    mostrar clarify_unknown_prompt con pending[0] otra vez
+    retornar mensaje, "partial_retry"
+Reglas:
+
+Acción delgada: solo leer state, llamar service, escribir state, retornar (msg, outcome)
+No lógica de negocio profunda aquí
+La detección de "omitir/saltar" puede ser un helper de 3-4 líneas o reusar is_rejection() si aplica
+Validación 1.5:
+
+
+ Acción registrada en self._actions
+
+ Sin lógica de negocio profunda (parser llamado via order_service)
+
+ Sin escritura directa a state (solo via patch_data)
+
+ Outcomes partial_resolved, partial_retry, skip todos declarados en JSON (1.2)
+
+ No se pierde el carrito en ninguna rama
+1.6 — Render de capture_order_partial y clarify_unknown_prompt
+Verifica que self._render() pueda sustituir {{recognized}} y {{unknown_list}} en los mensajes. Si el método _render solo acepta el dict de state, expande el dict de contexto que se le pasa (ya debe existir este mecanismo; no crear uno nuevo).
+
+Si _render no soporta claves arbitrarias de contexto, usa string .format() o f-string localmente en la acción, pero documenta por qué con comentario ponytail:.
+
+Validación 1.6:
+
+
+ Los placeholders del JSON se renderizan correctamente
+
+ Sin KeyError en paths de render
+FASE 2 — Validaciones automáticas
+Ejecuta en orden. Si algún comando falla, reporta: comando / salida / causa / corrección aplicada o pendiente. No ocultes fallos.
+
+python -m json.tool flows/restaurant_flow.json
+python scripts/validate_flow.py
+python scripts/validate_architecture.py
+pytest
+Reporta cada uno como:
+
+[PASS] python -m json.tool flows/restaurant_flow.json
+[FAIL] pytest — 2 tests fallaron: test_action_capture_order_partial (AssertionError: ...)
+       Causa: el test espera outcome "success" para mensaje mixto (items+unknown).
+       Corrección: DETENER — este test es un contrato existente.
+       Acción requerida: informar al usuario antes de continuar.
+Regla crítica: si un test existente falla:
+
+NO lo modifiques.
+Determina si el test era correcto antes del cambio (contrato válido) o si era incorrecto (bug en el test preexistente).
+Si es contrato válido roto por el cambio → revisa la implementación.
+Si es bug preexistente → reporta y espera instrucción explícita del usuario.
+FASE 3 — Comprobación Maestra de Integridad
+Revalida TODOS los subpuntos anteriores independientemente del resultado de FASE 2. Para cada uno, inspecciona el archivo en su estado actual:
+
+[PASS/FAIL] 1.1a — 4 mensajes UX en meta del JSON
+[PASS/FAIL] 1.1b — Ningún copy UX largo en Python
+[PASS/FAIL] 1.1c — JSON válido tras cambios
+[PASS/FAIL] 1.2a — order_clarify_node existe con 3 transiciones
+[PASS/FAIL] 1.2b — Sin rutas hardcodeadas en Python para el nodo
+[PASS/FAIL] 1.3a — Transición "partial" en order_start_node
+[PASS/FAIL] 1.3b — Transición "partial" en order_modify_node
+[PASS/FAIL] 1.4a — 4 casos de _action_capture_order cubiertos
+[PASS/FAIL] 1.4b — pending_unknowns escrito solo via patch_data
+[PASS/FAIL] 1.4c — Sin if step / if node en Python
+[PASS/FAIL] 1.5a — handle_order_clarification registrada en self._actions
+[PASS/FAIL] 1.5b — Sin escritura directa de state
+[PASS/FAIL] 1.5c — Carrito nunca perdido en ninguna rama
+[PASS/FAIL] 1.5d — Outcomes cubren todos los caminos del nodo
+[PASS/FAIL] 1.6a — Placeholders renderizan sin KeyError
+[PASS/FAIL] 2.1  — python -m json.tool: JSON válido
+[PASS/FAIL] 2.2  — validate_flow.py: sin errores
+[PASS/FAIL] 2.3  — validate_architecture.py: sin errores
+[PASS/FAIL] 2.4  — pytest: todos los tests pasan (o issues reportados)
+CHECKLIST ARCHITECTURE_LAW.md:
+[PASS/FAIL] La navegación sigue en JSON
+[PASS/FAIL] Python sigue siendo motor, no mapa
+[PASS/FAIL] El negocio sigue en Services
+[PASS/FAIL] El estado se muta solo por StateManager
+[PASS/FAIL] El cambio respeta multi-tenant
+[PASS/FAIL] Sin if business_id en código nuevo
+[PASS/FAIL] Sin rutas paralelas fuera del JSON
+[PASS/FAIL] Sin copy largo en FlowEngine
+[PASS/FAIL] Comandos globales siguen en meta.global_commands
+[PASS/FAIL] Acciones nuevas son delgadas
+[PASS/FAIL] Todos los outcomes tienen transiciones declaradas
+[PASS/FAIL] No se modificaron tests sin solicitud explícita
+[PASS/FAIL] Validadores y tests ejecutados y reportados
+Finaliza con uno de:
+
+
+✅ AUDITORÍA COMPLETA APROBADA — todos los subpuntos en PASS.
+   El sistema nunca descarta ítems válidos. Los desconocidos se aclaran
+   en el flujo actual sin perder el carrito.
+o:
+
+❌ AUDITORÍA COMPLETA CON FALLOS — N subpuntos en FAIL:
+   [lista de FAILs con causa y acción requerida]
+   Requiere intervención antes de considerar el cambio estable.
+
+
+
+
+
+## resp cursor ##
