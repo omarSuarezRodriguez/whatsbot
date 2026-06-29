@@ -1,4 +1,4 @@
-## v1.70
+## v1.71 - Auditoria del sistema completo - flujo del mapa, y motor
 
 
 
@@ -7835,3 +7835,210 @@ Self-check scripts/check_capture_order_paths.py (5/5 PASS)
 
 
 ##############################################
+## v1.71 - Auditoria del sistema completo - flujo del mapa, y motor
+
+
+## prompt ##
+
+Antes de dar por finalizada la mejora, audita el comportamiento del flujo de captura de pedidos.
+
+No quiero una explicación del código; quiero verificar el comportamiento final.
+
+Demuestra si el sistema cumple la siguiente invariante:
+
+Una vez que el usuario entra al flujo de captura de pedido, el parser nunca puede provocar la salida de ese flujo. El usuario solo puede abandonarlo mediante una acción explícita (Cancelar, Inicio, etc.).
+
+Reconstruye el árbol completo de decisiones y demuestra qué ocurre exactamente en estos casos:
+
+todos los productos reconocidos;
+reconocidos y desconocidos;
+únicamente productos desconocidos;
+mensaje muy largo;
+mensaje vacío;
+parser sin resultados.
+
+Para cada caso indica:
+
+nodo actual;
+nodo final;
+mensaje mostrado;
+motivo de la transición.
+
+Finalmente responde únicamente:
+
+¿Existe un único estado funcional de captura de pedidos? (Sí/No)
+¿El parser puede sacar al usuario del flujo? (Sí/No)
+¿Existe algún camino restante que vuelva al mensaje inicial sin una acción explícita del usuario? (Sí/No)
+
+Si alguna respuesta es "Sí", identifica el punto exacto del código responsable.
+
+
+
+## resp cursor ##
+
+Árbol de decisiones — pipeline en order_start_node
+El pipeline de _process_message_body ejecuta en este orden para cualquier mensaje recibido en un nodo de captura (order_start_node / order_modify_node):
+
+1. _handle_abandon_confirm      → solo si awaiting_abandon_confirm=True
+2. _try_node_options            → solo si texto normalizado == "productos"
+3. [NUEVO] greeting guard       → si order_greeting_on_greeting Y is_greeting(text)
+4. _try_normalized_global_command → si texto normalizado ∈ global_commands literalmente
+5. infer_user_intent → _try_intent_global_command → si has_products=False Y command ∈ global_commands
+6. _try_product_intercept       → bloqueado (intercept_products no declarado en nodos order)
+7. _try_order_greeting          → segunda oportunidad para saludos no capturados antes
+8. _try_free_text_input         → _execute_input_action → _action_capture_order
+Los pasos 1–7 se ejecutan antes de que el parser toque el texto. El parser solo actúa en el paso 8.
+
+Las transiciones disponibles desde order_start_node son:
+
+outcome	destino	flow
+"success"
+order_review_node
+order
+"empty_cart"
+null (self-loop)
+order
+"partial"
+order_clarify_node
+order
+"ambiguous"
+order_disambiguate_node
+order
+None
+sin transición
+order
+Todos los destinos son dentro del flow "order". El parser no tiene acceso a ninguna ruta que salga de ese flow.
+
+Casos de comportamiento
+CASO 1 — Todos los productos reconocidos
+Ejemplo: "2 pizzas y 1 coca cola" — order_start_node, carrito vacío
+
+Pipeline:
+
+Pasos 1–7: ninguna condición cumplida (no es greeting, no es comando literal, has_products=True bloquea intent)
+Paso 8: _action_capture_order → items=[pizza, coca], unknown=[], ambiguous=[] → outcome "success"
+_resolve_transition(node, "success") → "order_review_node" → set_step(order_review_node, "order")
+_process_node("order_review_node") muestra el carrito
+Nodo actual
+order_start_node
+Nodo final
+order_review_node (flow="order")
+Mensaje
+Contenido de capture_order_success + listado del carrito + "¿Alistamos tu pedido?"
+Motivo
+outcome "success" → transición declarada en JSON; el parser es la única causa
+CASO 2 — Reconocidos y desconocidos
+Ejemplo: "2 pizzas y 1 xifon" — order_start_node
+
+Pipeline:
+
+Pasos 1–7: ninguna condición (has_products=True por "pizzas")
+Paso 8: _action_capture_order → items=[pizza], unknown=["xifon"], ambiguous=[] → path if unknown or ambiguous: → outcome "partial"
+Guarda carrito + pending_unknowns=["xifon"]
+Transición "partial" → order_clarify_node
+Nodo actual
+order_start_node
+Nodo final
+order_clarify_node (flow="order")
+Mensaje
+capture_order_partial: "✅ Guardé estos productos:\n- 1x Pizza\n\nNo pude identificar: xifon\n\n¿Cómo se llama el primer producto que falta?"
+Motivo
+outcome "partial" → transición declarada en JSON; el parser es la única causa
+CASO 3 — Únicamente productos desconocidos
+Ejemplo: "xifon zarcoleta blopin" — order_start_node
+
+Pipeline:
+
+Pasos 1–7: ninguna condición (no es greeting; has_products=False pero también command=None de intent → _try_intent_global_command no activa)
+Paso 8: _action_capture_order → items=[], unknown=["xifon","zarcoleta","blopin"], ambiguous=[]
+Branch: if not items and not ambiguous: → True (all-unknown, fix aplicado)
+Returns (render(capture_order_all_unknown, {unknown_list}), None)
+_resolve_transition(node, None) → None — ninguna transición registrada para None
+_execute_input_action: message no vacío → _append_navigation(message, node)
+set_step nunca es llamado → step no cambia
+Nodo actual
+order_start_node
+Nodo final
+order_start_node (flow="order", sin cambio)
+Mensaje
+"No pude identificar ninguno de estos productos:\nxifon, zarcoleta, blopin\n\nIntenta escribirlos de otra forma o consulta nuestra lista con Productos."
+Motivo
+outcome None → sin transición → permanencia explícita
+CASO 4 — Mensaje muy largo
+Ejemplo: "2 pizzas y " + "xyztoken " × 100
+
+El parser identifica los tokens reconocibles ("pizzas") y clasifica el ruido ("xyztoken"×100) como unknowns. Resultado: items=[pizza], unknown=[xyztoken, ...].
+
+→ Idéntico al CASO 2 (partial). Si nada es reconocible → idéntico al CASO 3 (all-unknown).
+
+Nodo actual
+order_start_node
+Nodo final
+order_clarify_node o order_start_node (ambos en flow="order")
+Mensaje
+capture_order_partial o capture_order_all_unknown
+Motivo
+Misma lógica de outcomes; la longitud no altera el routing
+CASO 5 — Mensaje vacío
+process_message línea 440–441:
+
+text = (body or "").strip()
+if not text:
+    text = "hola"
+Texto vacío → sustituido por "hola" antes de entrar al pipeline.
+
+Pipeline con text="hola":
+
+Paso 1: awaiting_abandon_confirm=False → None
+Paso 2: "hola" no está en options {"productos"} → None
+Paso 3: order_greeting_on_greeting=True Y is_greeting("hola")=True → _try_order_greeting retorna order_greeting_while_ordering
+Pipeline termina en paso 3. _try_normalized_global_command ("hola" está en global_commands) nunca se ejecuta
+Nodo actual
+order_start_node
+Nodo final
+order_start_node (flow="order", sin cambio de step)
+Mensaje
+order_greeting_while_ordering: "¡Hola! Cuando quieras, cuéntame qué deseas ordenar.\nEjemplo: 2 hamburguesas y 1 agua"
+Motivo
+Greeting guard (PASO 3) intercepta antes del global_command y antes del parser
+CASO 6 — Parser sin resultados (items=[], unknown=[], ambiguous=[])
+Ocurre cuando el texto no contiene ni nombres de producto ni unknowns reconocibles (ej. texto de puro ruido normalizado como "eeee" o texto que el parser consume completamente como noise_words).
+
+Antes de llegar al parser, se debe verificar el paso 5: si infer_user_intent infiere command="pedido" con has_products=False, _try_intent_global_command lo intercepta y envía a order_start_node vía _resolve_global_command("pedido"). Eso es una variante detallada abajo.
+
+Si el texto llega al paso 8 sin interceptación:
+
+_action_capture_order → items=[], unknown=[], ambiguous=[]
+Branch: if not items and not unknown and not ambiguous: → True
+Returns (capture_order_empty, None): "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar."
+Nodo actual
+order_start_node
+Nodo final
+order_start_node (flow="order", sin cambio)
+Mensaje
+capture_order_empty: "Aún no tengo productos en tu pedido. Cuéntame qué te gustaría ordenar."
+Motivo
+outcome None → sin transición → permanece
+Punto abierto: _try_intent_global_command con command="inicio" y carrito vacío
+Existe un camino que no pasa por el parser y que puede navegar fuera del flujo. Si el usuario escribe texto que el clasificador de intenciones lee como command="inicio" con has_products=False (ej. "quiero volver al inicio", "empezar de nuevo"), y el carrito está vacío:
+
+_try_intent_global_command → _resolve_global_command("inicio")
+→ _should_prompt_abandon → False (carrito vacío)
+→ state_manager.reset() → home_node
+Esto no es causado por el parser — el parser nunca corre. Es la inferencia de intención sobre texto explícitamente navegacional. Las frases que disparan esto son: "volver al inicio", "empezar de nuevo", "desde cero", "reiniciar conversacion" (ver GLOBAL_COMMAND_INTENTS["inicio"].phrases). Son frases de navegación deliberada.
+
+Si el carrito no está vacío, _should_prompt_abandon=True → se muestra abandon_confirm_prompt y el estado no cambia — el flujo queda protegido.
+
+Respuestas finales
+¿Existe un único estado funcional de captura de pedidos? No. Hay dos nodos JSON con action: capture_order idéntica: order_start_node y order_modify_node. Ambos tienen ahora el mismo behavior (misma acción, mismas transiciones, order_greeting_on_greeting: true, mismo navigation_hint). Son estructuralmente dos pero funcionalmente uno. La unificación estructural (eliminar uno) está bloqueada por test_order_modify_then_confirm que afirma _step == "order_modify_node" — requiere autorización explícita de modificar tests.
+
+¿El parser puede sacar al usuario del flujo? No. _action_capture_order devuelve outcomes {None, "success", "empty_cart", "partial", "ambiguous"}. Todos los destinos declarados en las transiciones JSON para esos outcomes apuntan a nodos dentro del flow "order". El parser no tiene acceso a ninguna ruta fuera de ese flow. El código responsable de las transiciones son las líneas 120–123 del JSON (order_start_node.transitions) y líneas 400–418 de flow_engine.py (_execute_input_action).
+
+¿Existe algún camino restante que vuelva al mensaje inicial sin una acción explícita del usuario? No, con una precisión: el mensaje "¡Hola! Cuando quieras, cuéntame qué deseas ordenar." solo aparece cuando el usuario envía un saludo (incluyendo mensaje vacío convertido a "hola"). Es el usuario quien dispara ese path — el sistema responde al saludo con el saludo de la orden. El parser nunca lo causa. El mensaje de bienvenida de home_node ("👋 *Bienvenido*...") solo es alcanzable mediante una acción explícita de navegación (cancelar, inicio literal, o texto con intención navegacional clara como "quiero volver al inicio").
+
+
+
+
+
+#################################################
+
