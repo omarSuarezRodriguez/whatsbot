@@ -219,7 +219,11 @@ class FlowEngine:
         return state.get("flow") in guard_flows
 
     def _should_prompt_abandon(self, state: Dict[str, Any]) -> bool:
-        return state.get("flow") in self._cart_guard_flows_set
+        if state.get("flow") not in self._cart_guard_flows_set:
+            return False
+        # ponytail: only guard when there is actually something in the cart to lose.
+        # ceiling: empty-cart entry still in guarded flow → no abandon-confirm shown.
+        return bool(state.get("data", {}).get("cart"))
 
     def _target_leaves_guarded_flow(
         self, state: Dict[str, Any], target_ref: str
@@ -592,6 +596,15 @@ class FlowEngine:
         if response is not None:
             return response
 
+        # ponytail: when the node opts in to order_greeting_on_greeting, greetings
+        # must be handled before global_commands so that words like "hola" (which are
+        # also in meta.global_commands) reach _try_order_greeting instead of triggering
+        # the abandon-confirm flow. ceiling: only skips global-command for greeting words.
+        if node.get("order_greeting_on_greeting") and is_greeting(text):
+            response = self._try_order_greeting(text, node)
+            if response is not None:
+                return response
+
         response = self._try_normalized_global_command(
             wa_id, normalized, current_step, state
         )
@@ -757,7 +770,12 @@ class FlowEngine:
         if not items and not unknown and not ambiguous:
             return self._resolve_ux_text("capture_order_empty", node), None
         if not items and not ambiguous:
-            return "", None  # all unknown: node fallback handles it
+            # ponytail: all-unknown — show the unrecognized list so user can correct.
+            # outcome=None keeps user in current node; no transition fires.
+            return self._render(
+                self._resolve_ux_text("capture_order_all_unknown", node),
+                {"unknown_list": ", ".join(unknown)},
+            ), None
 
         if not items and ambiguous:
             # Only ambiguous items — ask for the first one

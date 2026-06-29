@@ -49,6 +49,7 @@ PHASE2_META_KEYS = (
     "address_prompt",
     "address_prompt_saved",
     "capture_order_empty",
+    "capture_order_all_unknown",
     "capture_order_success",
     "empty_cart_message",
     "order_confirm_yes",

@@ -55,7 +55,9 @@
     "clarify_resolved_all": "¡Listo! Todos los productos quedaron identificados. 🛍️",
 
     "disambiguate_prompt": "Encontré varias opciones para *{{segment}}*:\n{{candidates_list}}\n\nEscribe el número o nombre de tu elección.",
-    "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️"
+    "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️",
+
+    "capture_order_all_unknown": "No pude identificar ninguno de estos productos:\n*{{unknown_list}}*\n\nIntenta escribirlos de otra forma o consulta nuestra lista con *Productos*."
   },
   "states": {
     "home": {
@@ -142,11 +144,12 @@
           }
         },
         "order_modify_node": {
-          "message": "Sin problema. Dime qué quieres agregar, quitar o cambiar.\n\nEjemplo: *agrega una ensalada* o *quita la coca cola*.",
+          "message": "🛍️ *Modifica tu pedido*\n\n💡 Dime qué quieres agregar, quitar o cambiar.\n\nEjemplos:\n- *agrega 2 coca cola*\n- *quita la pizza*\n- *cambia la hamburguesa por una ensalada*",
           "order_greeting_on_greeting": true,
           "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "input_mode": "free_text",
           "action": "capture_order",
+          "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*",
           "transitions": {
             "success": "order.order_review_node",
             "empty_cart": null,

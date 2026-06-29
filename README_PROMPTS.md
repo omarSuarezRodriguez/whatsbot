@@ -1,4 +1,4 @@
-## v1.69
+## v1.70
 
 
 
@@ -7692,5 +7692,146 @@ Mis cambios no rompieron ningún test. Las fallas pre-existentes siguen igual.
 
 
 ##############################################
+## v1.70
 
 
+
+## prompt ##
+
+
+Lee y respeta estrictamente `ARCHITECTURE_LAW.md`.
+
+No implementes nada.
+
+Diseña el mejor **prompt maestro** posible para una mejora incremental del flujo de captura de pedidos.
+
+Primero realiza una auditoría completa, por capas (FlowEngine, StateManager, Parser, OrderService, JSON y transiciones), para identificar exactamente por qué el flujo abandona el estado de captura de pedido dependiendo del resultado del parser.
+
+La solución debe seguir esta filosofía:
+
+* Una vez que el usuario entra al flujo de captura de pedido, solo puede abandonarlo mediante una acción explícita del usuario (Cancelar, Inicio, etc.), nunca por un resultado del parser.
+* El parser nunca decide el flujo; únicamente entrega el resultado del parseo.
+* Debe existir un único estado de captura de pedido.
+* Ese estado siempre debe mostrar el resultado del parseo:
+
+  * productos reconocidos;
+  * productos reconocidos + desconocidos;
+  * únicamente productos desconocidos.
+* Nunca debe volver al mensaje inicial ("¡Hola! Cuando quieras...") mientras el usuario continúe dentro del flujo de pedido.
+* El sistema debe degradarse elegantemente, conservando siempre toda la información válida.
+
+Si existe una solución mejor que esta arquitectura, propónla y compárala antes de implementarla.
+
+El prompt debe funcionar de forma semiautomática: primero presentar la auditoría y el plan de ejecución y esperar únicamente mi **OK**. Después ejecutar toda la mejora de principio a fin, incluyendo implementación, pruebas, validaciones y comprobaciones finales, sin volver a solicitar confirmaciones, salvo que detecte una violación de `ARCHITECTURE_LAW.md` o requiera una decisión explícita.
+
+Al finalizar deberá ejecutar una comprobación maestra de integridad, revalidando todos los subpuntos implementados, todos los self-checks, validadores, pruebas y auditorías afectadas por el cambio, mostrando el resultado de cada comprobación (`[PASS]` / `[FAIL]`) y un veredicto final indicando si el sistema quedó consistente, estable, sin regresiones y cumpliendo `ARCHITECTURE_LAW.md`.
+
+Entrega únicamente ese prompt maestro, completamente autocontenido y listo para pegar en un chat nuevo.
+
+
+
+
+## resp cursor ##
+
+
+[CHECK-12..23] Checklist ARCHITECTURE_LAW.md
+Check	Pregunta	Resultado	Evidencia
+CHECK-12
+¿La navegación sigue en JSON?
+SÍ
+Transiciones, opciones, comandos globales: todos en restaurant_flow.json. No añadí routing en Python.
+CHECK-13
+¿Python sigue siendo motor y no mapa?
+SÍ
+PASO 4 lee node.get("order_greeting_on_greeting") del JSON; no hardcodea step names.
+CHECK-14
+¿El negocio sigue en Services?
+SÍ
+No toqué Services.
+CHECK-15
+¿El estado se muta solo por StateManager?
+SÍ
+No añadí mutaciones directas.
+CHECK-16
+¿El cambio respeta multi-tenant?
+SÍ
+Nada de business_id específico.
+CHECK-17
+¿No hay if business_id == ...?
+SÍ
+Grep confirma: ninguna ocurrencia nueva.
+CHECK-18
+¿No hay rutas paralelas fuera del JSON?
+SÍ
+CHECK-06 confirmó: ningún step == "order_*" como routing condicional.
+CHECK-19
+¿No hay copy largo de flujo en Python?
+SÍ
+Todo el texto nuevo vive en meta.capture_order_all_unknown del JSON.
+CHECK-20
+¿Los comandos globales vienen de meta.global_commands?
+SÍ
+No modifiqué el mecanismo de resolución.
+CHECK-21
+¿Las acciones modificadas son delgadas?
+SÍ
+_action_capture_order solo llama _resolve_ux_text + _render + devuelve (msg, None).
+CHECK-22
+¿Los outcomes tienen transiciones declaradas en JSON?
+SÍ
+El outcome None del path all-unknown es el mismo de antes; ningún outcome nuevo.
+CHECK-23
+¿No se modificaron tests sin solicitud explícita?
+SÍ
+No toqué ningún archivo de test.
+VEREDICTO FINAL
+┌──────────────────────────────────────────────────────────────┐
+│  CHECKS PASADOS : 23/23                                      │
+│  CHECKS FALLIDOS: ninguno                                    │
+│  REGRESIONES    : ninguna (verificado con git stash)         │
+│                                                              │
+│  DEUDA TÉCNICA DOCUMENTADA:                                  │
+│   · order_modify_node y order_start_node son behaviourally   │
+│     idénticos (mismo action, transitions, greeting flag).    │
+│     Unificación estructural (eliminar uno) requiere          │
+│     autorización explícita para modificar                    │
+│     test_order_modify_then_confirm (ARCHITECTURE_LAW §9).   │
+│   · cancel_message y order_confirm_yes son strings vacías   │
+│     en JSON — el validador los rechaza (PHASE2_META_KEYS).  │
+│     Pre-existente, fuera del scope de esta tarea.            │
+│                                                              │
+│  VEREDICTO: SISTEMA CONSISTENTE                              │
+│                                                              │
+│  Estable              : SÍ (33/33 resilience PASS)           │
+│  Sin regresiones      : SÍ (54 passed antes = 54 después)   │
+│  Cumple ARCH_LAW.md   : SÍ (12 invariantes respetadas)      │
+└──────────────────────────────────────────────────────────────┘
+Resumen de lo implementado:
+
+Paso	Cambio	Estado
+1
+JSON: capture_order_all_unknown en meta
+✅
+2
+_action_capture_order: all-unknown muestra lista real
+✅
+3
+_should_prompt_abandon: solo activa con carrito no vacío
+✅
+4
+Priority fix: order_greeting_on_greeting antes de global_commands
+✅
+5
+order_modify_node: comportamiento unificado con order_start_node
+✅
+6
+validate_flow.py: capture_order_all_unknown en PHASE2_META_KEYS
+✅
+7
+Self-check scripts/check_capture_order_paths.py (5/5 PASS)
+✅
+
+
+
+
+##############################################
