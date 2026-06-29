@@ -1017,7 +1017,7 @@ class FlowEngine:
         return (
             self._render(
                 self._resolve_ux_text("order_saved_success", node),
-                {"order_id": order_id, "total": f"{total:.2f}", "delivery_address": delivery_address},
+                {"order_id": order_id, "total": OrderParser._fmt_cop(total), "delivery_address": delivery_address},
             ),
             "success",
         )

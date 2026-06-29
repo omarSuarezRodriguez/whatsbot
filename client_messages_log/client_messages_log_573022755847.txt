@@ -1,0 +1,132 @@
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Tres jamones zenu y dos arroz diana
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Jamón Zenú 250g x3 - $21.600
+- Arroz Diana 500g x2 - $5.600
+
+💰 *Valor total: $27.200*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 ¿Cómo deseas recibir tu pedido?
+
+Elige la opción que prefieras.
+
+--
+✅ *Escribe una opción*
+
+👉 *Domicilio* (recibe en casa 🏠)
+👉 *Recoger* (recoger en tienda 🛍️)
+
+#################################################################
+################################################################
+
+Cliente: Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 Dirección de entrega
+
+Escribe la dirección donde deseas recibir tu pedido.
+
+💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.
+
+--
+✅ Escribe tu dirección:
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 Barrio Guiaimaral
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################

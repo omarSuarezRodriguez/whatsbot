@@ -12343,3 +12343,631 @@ Ejemplo: *2 hamburguesas y 1 agua*
 ✅ *Escribe tu pedido:*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: ¡Hola! Cuando quieras, cuéntame qué deseas ordenar.
+Ejemplo: *2 hamburguesas y 1 agua*
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Una pechuga de pollo, una salchicha Zenú, un aceite Premier, dos panelas, dos galletas Oreo, dos paquetes de papas Margarita, una leche Alquería y una cocacola
+
+
+-------------------------------
+
+Chatbot: ¡Hola! Cuando quieras, cuéntame qué deseas ordenar.
+Ejemplo: *2 hamburguesas y 1 agua*
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Una pechuga de pollo, una salchicha Zenú, un aceite Premier, dos panelas, dos galletas Oreo, dos paquetes de papas Margarita, una leche Alquería y una cocacola
+
+
+-------------------------------
+
+Chatbot: ¡Hola! Cuando quieras, cuéntame qué deseas ordenar.
+Ejemplo: *2 hamburguesas y 1 agua*
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Una pechuga de pollo, una salchicha Zenú, un aceite Premier, dos panelas, dos galletas Oreo, dos paquetes de papas Margarita, una leche Alquería y una cocacola
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Pechuga de pollo 500g x1 - $9.900
+- Salchicha Zenú x6 x1 - $6.500
+- Aceite Premier 1L x1 - $9.500
+- Panela 500g x2 - $6.400
+- Galletas Oreo x6 x2 - $4.000
+- Papas Margarita 200g x2 - $9.000
+- Leche Alquería 1L x1 - $4.300
+- Coca-Cola 1.5L x1 - $6.000
+
+💰 *Valor total: $55.600*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido sigue en curso*.
+
+💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.
+
+--
+✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:
+
+👉 *Continuar* (continúa tu pedido 🛍️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: continuar
+
+
+-------------------------------
+
+Chatbot: Perfecto, continuamos con tu pedido actual.
+
+#################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 🛒 *Nuestros productos*
+
+Mira lo que tenemos disponible en *El Gran Motilón*: 👇
+
+
+*🍗 Carnes y embutidos*
+- Jamón Zenú 250g - $7.200
+- Pechuga de pollo 500g - $9.900
+- Pollo entero (por kg) - $12.900
+- Salchicha Zenú x6 - $6.500
+
+*🍚 Víveres y granos*
+- Aceite Premier 1L - $9.500
+- Arroz Diana 500g - $2.800
+- Frijol Diana 500g - $4.200
+- Lenteja Doria 500g - $3.900
+- Panela 500g - $3.200
+
+*🍫 Dulces y snacks*
+- Bocadillo x12 - $8.000
+- Chocolatina Jet - $1.500
+- Galletas Oreo x6 - $2.000
+- Papas Margarita 200g - $4.500
+
+*🥖 Panadería*
+- Arepas El Maizal x10 - $6.800
+- Pan tajado Bimbo - $5.900
+
+*🥛 Lácteos y huevos*
+- Huevos x30 - $14.500
+- Leche Alquería 1L - $4.300
+- Queso Colanta 250g - $7.800
+- Yogurt Alpina 1L - $8.200
+
+*🥤 Bebidas*
+- Agua Brisa 600ml - $1.800
+- Café Gelves 250g - $7.900
+- Coca-Cola 1.5L - $6.000
+- Jugo Hit 1L - $5.500
+
+*🥦 Frutas y verduras*
+- Cebolla cabezona 500g - $2.200
+- Papa criolla 500g - $2.800
+- Plátano verde 500g - $1.800
+- Tomate chonto 500g - $2.500
+
+*🧴 Aseo personal*
+- Jabón Protex 125g - $2.600
+- Papel Higiénico x8 - $12.000
+- Shampoo 500ml - $12.000
+
+*🧼 Aseo del hogar*
+- Cloro Blancox 1L - $7.500
+- Detergente Fab 1kg - $9.800
+- Fabuloso 1L - $8.800
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: tres jamones zenu, cuatro pollos enteros, cinco salchichas zenu, un arroz diana, una lenteja doria, una panela, dos chocolatinas jet, un pan tajado, unos huevos, una leche alqueria, un queso colanta, un agua brisa, un jugo hit, 1 papa criolla, jabon protex
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Jamón Zenú 250g x3 - $21.600
+- Pollo entero (por kg) x4 - $51.600
+- Salchicha Zenú x6 x5 - $32.500
+- Arroz Diana 500g x1 - $2.800
+- Lenteja Doria 500g x1 - $3.900
+- Panela 500g x1 - $3.200
+- Chocolatina Jet x2 - $3.000
+- Pan tajado Bimbo x1 - $5.900
+- Leche Alquería 1L x1 - $4.300
+- Queso Colanta 250g x1 - $7.800
+- Agua Brisa 600ml x1 - $1.800
+- Jugo Hit 1L x1 - $5.500
+- Jabón Protex 125g x1 - $2.600
+
+💰 *Valor total: $146.500*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: modificar
+
+
+-------------------------------
+
+Chatbot: Claro, modifiquemos tu pedido.🛍️ *Modifica tu pedido*
+
+💡 Dime qué quieres agregar, quitar o cambiar.
+
+Ejemplos:
+- *agrega 2 coca cola*
+- *quita la pizza*
+- *cambia la hamburguesa por una ensalada*
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: agrega huevos
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Jamón Zenú 250g x3 - $21.600
+- Pollo entero (por kg) x4 - $51.600
+- Salchicha Zenú x6 x5 - $32.500
+- Arroz Diana 500g x1 - $2.800
+- Lenteja Doria 500g x1 - $3.900
+- Panela 500g x1 - $3.200
+- Chocolatina Jet x2 - $3.000
+- Pan tajado Bimbo x1 - $5.900
+- Leche Alquería 1L x1 - $4.300
+- Queso Colanta 250g x1 - $7.800
+- Agua Brisa 600ml x1 - $1.800
+- Jugo Hit 1L x1 - $5.500
+- Jabón Protex 125g x1 - $2.600
+- Huevos x30 x1 - $14.500
+
+💰 *Valor total: $161.000*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 ¿Cómo deseas recibir tu pedido?
+
+Elige la opción que prefieras.
+
+--
+✅ *Escribe una opción*
+
+👉 *Domicilio* (recibe en casa 🏠)
+👉 *Recoger* (recoger en tienda 🛍️)
+
+#################################################################
+################################################################
+
+Cliente: domicilio
+
+
+-------------------------------
+
+Chatbot: 🚚 Esta es la dirección que tienes registrada:
+
+*Calle 9N #11E-53 Barrio Guaimaral*
+
+--
+✅ Desea confirmar el envío? *Escribe una opción:*
+
+👉 *Confirmar* (confirma tu dirección 🏠)
+👉 *Modificar* (modifica tu dirección ✏️)
+
+#################################################################
+################################################################
+
+Cliente: confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-280CD50E
+💰 *Total:* $161000.00
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Tres jamones zenu y dos arroz diana
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Jamón Zenú 250g x3 - $21.600
+- Arroz Diana 500g x2 - $5.600
+
+💰 *Valor total: $27.200*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 ¿Cómo deseas recibir tu pedido?
+
+Elige la opción que prefieras.
+
+--
+✅ *Escribe una opción*
+
+👉 *Domicilio* (recibe en casa 🏠)
+👉 *Recoger* (recoger en tienda 🛍️)
+
+#################################################################
+################################################################
+
+Cliente: Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 Dirección de entrega
+
+Escribe la dirección donde deseas recibir tu pedido.
+
+💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.
+
+--
+✅ Escribe tu dirección:
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 Barrio Guiaimaral
+
+
+-------------------------------
+
+Chatbot: Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe *inicio* para reiniciar.
+
+#################################################################
+################################################################
+
+Cliente: Cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################

@@ -1,4 +1,4 @@
-## v1.71 - Auditoria del sistema completo - flujo del mapa, y motor
+## v1.72
 
 
 
@@ -8041,4 +8041,231 @@ Respuestas finales
 
 
 #################################################
+## v1.72
 
+
+## prompt ##
+
+La auditoría anterior no coincide con el comportamiento real.
+
+Acabo de reproducir este caso y el bot sigue mostrando:
+
+"¡Hola! Cuando quieras, cuéntame qué deseas ordenar..."
+
+cuando el usuario ya se encuentra dentro del flujo de captura de pedidos.
+
+No quiero un análisis estático del código.
+
+Quiero que rastrees la ejecución real (trace) de este caso concreto desde `process_message()` hasta el mensaje final.
+
+Para cada decisión muestra:
+
+* método ejecutado;
+* condición evaluada;
+* resultado de la condición;
+* nodo actual;
+* nodo siguiente;
+* motivo de la transición.
+
+Detente exactamente en el punto donde el flujo decide mostrar `order_greeting_while_ordering` e identifica:
+
+* qué condición devolvió `True`;
+* por qué el parser no llegó a ejecutarse o por qué su resultado fue ignorado;
+* por qué la auditoría anterior concluyó algo diferente.
+
+No propongas una solución hasta identificar la causa exacta del comportamiento observado.
+
+
+
+
+
+
+
+## prompt ##
+
+Cuando llega un nuevo cliente, y el bot le pide la dirección: 
+
+📍 Dirección de entrega
+
+Escribe la dirección donde deseas recibir tu pedido.
+
+💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.
+
+--
+✅ Escribe tu dirección:
+
+
+Y el cliente la pone:  Calle 5 #12-1 Ciudad Jardin
+
+El bot responde:
+
+Disculpa, tuve un inconveniente momentáneo. Por favor intenta de nuevo en unos segundos.
+
+Escribe inicio para reiniciar.
+
+Ubicame una solución para que no se rompa sino reciba correctamente la dirección y que no salte a otro lado, sino que se quede ahí y no salga sino con algun comando como Inicio o cancelar (y que pregunte si desea salir)
+
+
+Cambios minimos, incrementales, respetando ARCHITECTURE_LAW.md (raiz del proyecto), dame la ubicación de las lineas a cambiar, el antes y el después@chatbot/app/core/flow_engine.py @flows/restaurant_flow.json 
+
+
+
+## resp cursor ##
+
+
+Dos bugs distintos. El crash no viene de la dirección misma — viene de cuando el engine intenta guardar el pedido.
+
+Diagnóstico
+Flujo real al ingresar "Calle 5 #12-1 Ciudad Jardin":
+
+El address node guarda la dirección ✅
+Como WhatsApp ya envió el ProfileName y user_service.touch() lo guardó, profile.get("name") es truthy → outcome "success_has_name"
+Transición a order_saved_node → ejecuta _action_save_order
+Línea 1020: OrderParser._fmt_cop(total) → NameError: name 'OrderParser' is not defined → capturado por gateway.py except → "inconveniente momentáneo"
+OrderParser está en parser.py pero nunca se importó en flow_engine.py. Solo se importa infer_user_intent.
+
+Cambios
+Fix 1 — chatbot/app/core/flow_engine.py línea 1020
+Antes:
+
+
+flow_engine.py
+Lines 1017-1022
+        return (
+            self._render(
+                self._resolve_ux_text("order_saved_success", node),
+                {"order_id": order_id, "total": OrderParser._fmt_cop(total), "delivery_address": delivery_address},
+            ),
+            "success",
+        )
+Después (inline el one-liner, evita importar OrderParser):
+
+        return (
+            self._render(
+                self._resolve_ux_text("order_saved_success", node),
+                {"order_id": order_id, "total": f"{int(round(total)):,}".replace(",", "."), "delivery_address": delivery_address},
+            ),
+            "success",
+        )
+Fix 2 — chatbot/app/core/flow_engine.py líneas 346–384 (_resolve_global_command)
+Actualmente el bloque cancelar corre antes del chequeo de abandon — el prompt nunca se muestra. Hay que moverlo después.
+
+Antes (orden actual):
+
+
+flow_engine.py
+Lines 323-384
+    def _resolve_global_command(
+        self,
+        wa_id: str,
+        command: str,
+        current_step: str,
+        state: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        target = self.global_commands.get(command)
+        if not target:
+            return None
+        if state is None:
+            state = self.state_manager.get(wa_id)
+        current_flow = state.get("flow", "idle")
+        target_flow, target_step = self._parse_ref(str(target), current_flow)
+        if command == "pedido" and self._has_active_order(state):
+            active_targets = self.meta.get("active_order_command_targets") or {}
+            redirect = active_targets.get("pedido")
+            if redirect:
+                return self._goto_ref(wa_id, str(redirect), current_flow=current_flow)
+        if command == "cancelar":
+            self.state_manager.reset(wa_id)
+            cancel_message = self._resolve_ux_text(
+                "cancel_message", self.nodes.get(target_step, {})
+            )
+            start_message = self._goto_ref(
+                wa_id, target, current_flow=current_flow, include_navigation=False
+            )
+            combined = self._join_reply(cancel_message, start_message)
+            return self._append_navigation(combined, self.nodes.get(target_step, {}))
+        abandon = self._prompt_abandon_if_leaving(
+            wa_id,
+            state,
+            current_step,
+            str(target),
+            bypass=command in self.abandon_bypass_commands,
+        )
+        if abandon:
+            return abandon
+        if command == "inicio":
+            self.state_manager.reset(wa_id)
+Después (mueve cancelar después del abandon check):
+
+    def _resolve_global_command(
+        self,
+        wa_id: str,
+        command: str,
+        current_step: str,
+        state: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        target = self.global_commands.get(command)
+        if not target:
+            return None
+        if state is None:
+            state = self.state_manager.get(wa_id)
+        current_flow = state.get("flow", "idle")
+        target_flow, target_step = self._parse_ref(str(target), current_flow)
+        if command == "pedido" and self._has_active_order(state):
+            active_targets = self.meta.get("active_order_command_targets") or {}
+            redirect = active_targets.get("pedido")
+            if redirect:
+                return self._goto_ref(wa_id, str(redirect), current_flow=current_flow)
+        abandon = self._prompt_abandon_if_leaving(
+            wa_id,
+            state,
+            current_step,
+            str(target),
+            bypass=command in self.abandon_bypass_commands,
+        )
+        if abandon:
+            return abandon
+        if command == "cancelar":
+            self.state_manager.reset(wa_id)
+            cancel_message = self._resolve_ux_text(
+                "cancel_message", self.nodes.get(target_step, {})
+            )
+            start_message = self._goto_ref(
+                wa_id, target, current_flow=current_flow, include_navigation=False
+            )
+            combined = self._join_reply(cancel_message, start_message)
+            return self._append_navigation(combined, self.nodes.get(target_step, {}))
+        if command == "inicio":
+            self.state_manager.reset(wa_id)
+Fix 3 — flows/restaurant_flow.json línea 22
+Quitar "cancelar" de abandon_bypass_commands para que Fix 2 tenga efecto (sin esto, bypass=True y el check de abandon se salta igualmente).
+
+Antes:
+
+
+restaurant_flow.json
+Lines 22-22
+    "abandon_bypass_commands": ["cancelar"],
+Después:
+
+    "abandon_bypass_commands": [],
+Por qué funciona
+Situación	Resultado con fixes
+Nuevo cliente con nombre WhatsApp → ingresa dirección
+save_order se ejecuta sin crash → pedido guardado ✅
+Cliente escribe "cancelar" en address node (con carrito)
+Abandon confirm → pregunta antes de salir ✅
+Cliente escribe "cancelar" fuera de flow guardado
+_prompt_abandon_if_leaving returns None → bloque cancelar corre inmediatamente ✅
+Cliente escribe "cancelar" en abandon confirm
+_handle_abandon_confirm lo captura → reset → home ✅
+Cliente escribe "inicio" en address node (con carrito)
+Ya funciona (no estaba en bypass_commands) ✅
+Cualquier texto libre en address node
+Capturado por _action_capture_address → se queda en el nodo ✅
+
+
+
+
+
+#########################################

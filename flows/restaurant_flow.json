@@ -111,7 +111,7 @@
       "nodes": {
         "order_start_node": {
           "message": "🛍️ *Haz tu pedido*\n\n💡 Escribe los productos que deseas comprar y la cantidad de cada uno.\n\n💡 *Por ejemplo:*\n- 2 Coca-Cola 1.5 L\n- 1 Arroz Diana 500g\n- 3 Chocolatinas Jet\n\n💡 *También puedes escribir todo en un solo mensaje:*\n2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet",
-          "order_greeting_on_greeting": true,
+          "order_greeting_on_greeting": false,
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
           "action": "capture_order",
@@ -145,7 +145,7 @@
         },
         "order_modify_node": {
           "message": "🛍️ *Modifica tu pedido*\n\n💡 Dime qué quieres agregar, quitar o cambiar.\n\nEjemplos:\n- *agrega 2 coca cola*\n- *quita la pizza*\n- *cambia la hamburguesa por una ensalada*",
-          "order_greeting_on_greeting": true,
+          "order_greeting_on_greeting": false,
           "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "input_mode": "free_text",
           "action": "capture_order",
