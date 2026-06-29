@@ -995,10 +995,11 @@ class FlowEngine:
             last_order_id=order_id,
             awaiting_abandon_confirm=False,
         )
+        delivery_address = data.get("delivery_address", "")
         return (
             self._render(
                 self._resolve_ux_text("order_saved_success", node),
-                {"order_id": order_id, "total": f"{total:.2f}"},
+                {"order_id": order_id, "total": f"{total:.2f}", "delivery_address": delivery_address},
             ),
             "success",
         )

@@ -1,4 +1,4 @@
-## v1.68
+## v1.69
 
 
 
@@ -7625,4 +7625,72 @@ Mi cambio no introdujo ningún fallo nuevo. Los templates {{order_id}}, {{total}
 
 
 
+
+
+
+
+
 ###################################################
+## v1.69
+
+
+
+## prompt ##
+
+
+Antes de implementar, lee ARCHITECTURE_LAW.md (raíz del proyecto).
+No modifiques ARCHITECTURE_LAW.md.
+No modifiques tests existentes salvo que yo lo pida explicitamente.
+
+## Objetivo
+
+Agregar `order_saved_success` al `meta` del JSON del flujo para que `_action_save_order` renderice correctamente `{{order_id}}`, `{{total}}` y `{{delivery_address}}` al confirmar un pedido.
+
+## Contexto
+
+- `_action_save_order` en `flow_engine.py` ya llama `_resolve_ux_text("order_saved_success", node)` y renderiza con `{"order_id": order_id, "total": f"{total:.2f}"}`.
+- `delivery_address` está disponible en `data` antes de que `patch_data` lo limpie: leerlo de `data.get("delivery_address", "")` dentro de la acción antes del `patch_data`.
+- El `meta` del flow JSON no tiene `order_saved_success` → `_resolve_ux_text` retorna vacío → el mensaje nunca se muestra.
+- `message_after_action` en `order_saved_node` actualmente tiene el mensaje con `{{order_id}}` etc., pero se renderiza con contexto pre-acción (bug de timing). Debe vaciarse o eliminarse.
+
+## Cambio mínimo
+
+1. En `flows/restaurant_flow.json`, dentro de `meta`, agregar:
+   `"order_saved_success"`: el mensaje completo de confirmación con `{{order_id}}`, `{{total}}`, `{{delivery_address}}` (más navegación al final si aplica).
+
+2. En `flows/restaurant_flow.json`, en `order_saved_node`, eliminar o vaciar `message_after_action` (ya lo cubre `order_saved_success` renderizado por la acción).
+
+3. En `flow_engine.py`, en `_action_save_order`, capturar `delivery_address = data.get("delivery_address", "")` ANTES del `patch_data`, y pasarlo al `_render` junto con `order_id` y `total`.
+
+No tocar `_process_node`. No tocar `_build_node_context`. No crear Services nuevos. Solo JSON + un ajuste de una línea en la acción.
+
+## Verificación
+
+1. python scripts/validate_flow.py
+2. pytest
+
+Reportar output completo + exit code de cada comando.
+Si algún test falla por el cambio (no por causa preexistente), corregir implementación, NO el test.
+
+
+
+## resp cursor ##
+
+validate_flow.py
+
+Baseline: 3 errores (cancel_message, order_confirm_yes, order_saved_success)
+Tras cambio: 2 errores (cancel_message, order_confirm_yes) — order_saved_success resuelto
+Los 2 restantes son deuda pre-existente, no introducidos por este cambio
+pytest
+
+Baseline: 13 failed, 54 passed, 17 errors
+Tras cambio: 13 failed, 54 passed, 17 errors — idéntico
+Mis cambios no rompieron ningún test. Las fallas pre-existentes siguen igual.
+
+
+
+
+
+##############################################
+
+

@@ -32,7 +32,7 @@
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
     "address_saved": "Gracias. Guardé tu dirección.",
     "save_order_empty": "No encontré productos para guardar.",
-    "order_saved_success": "",
+    "order_saved_success": "🎉 ¡Pedido registrado!\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* {{order_id}}\n💰 *Total:* ${{total}}\n🚚 *Entrega:* {{delivery_address}}\n⏳ *Estado:* Pendiente de confirmación.\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (hacer un nuevo pedido 🛍️)\n👉 *Ayuda* (resolver dudas 💬)",
     "capture_persons_success": "Perfecto, solicitud para *{{personas}}* personas.",
     "capture_date_success": "Fecha registrada: *{{date}}*.",
     "capture_date_missing": "Primero necesito la fecha.",
@@ -184,7 +184,7 @@
           }
         },
         "order_delivery_node": {
-          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 Domicilio (recibe en casa 🏠)\n👉 Recoger (recoger en tienda 🛍️)",
+          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 *Domicilio* (recibe en casa 🏠)\n👉 *Recoger* (recoger en tienda 🛍️)",
           "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "input_mode": "free_text",
           "action": "capture_delivery_type",
@@ -228,7 +228,7 @@
         "order_saved_node": {
           "flow": "home",
           "action": "save_order",
-          "message_after_action": "🎉 ¡Pedido registrado!\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* *{oid}*\n💰 *Total:* *${{total}}*\n🚚 *Entrega:* *{{delivery_address}}*\n⏳ Estado: Pendiente de confirmación.\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (hacer un nuevo pedido 🛍️)\n👉 *Ayuda* (resolver dudas 💬)",
+          "message_after_action": "",
           "transitions": {
             "success": null,
             "empty_cart": "order.order_start_node"
