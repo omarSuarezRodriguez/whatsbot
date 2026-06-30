@@ -19,7 +19,7 @@
     "start_fallback": "Disculpa, no logré entenderte. ¿Podrías intentarlo de nuevo? También puedes escribir productos, pedido o ayuda.",
     "address_prompt": "📍 Dirección de entrega\n\nEscribe la dirección donde deseas recibir tu pedido.\n\n💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.\n\n--\n✅ Escribe tu dirección:",
     "address_prompt_saved": "🚚 Esta es la dirección que tienes registrada:\n\n*{{saved_address}}*\n\n--\n✅ Desea confirmar el envío? *Escribe una opción:*\n\n👉 *Confirmar* (confirma tu dirección 🏠)\n👉 *Modificar* (modifica tu dirección ✏️)",
-    "abandon_bypass_commands": ["cancelar"],
+    "abandon_bypass_commands": [],
     "active_order_command_targets": {
       "pedido": "order.order_review_node"
     },

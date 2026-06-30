@@ -343,6 +343,16 @@ class FlowEngine:
             if redirect:
                 return self._goto_ref(wa_id, str(redirect), current_flow=current_flow)
 
+        abandon = self._prompt_abandon_if_leaving(
+            wa_id,
+            state,
+            current_step,
+            str(target),
+            bypass=command in self.abandon_bypass_commands,
+        )
+        if abandon:
+            return abandon
+
         if command == "cancelar":
             self.state_manager.reset(wa_id)
             cancel_message = self._resolve_ux_text(
@@ -353,16 +363,6 @@ class FlowEngine:
             )
             combined = self._join_reply(cancel_message, start_message)
             return self._append_navigation(combined, self.nodes.get(target_step, {}))
-
-        abandon = self._prompt_abandon_if_leaving(
-            wa_id,
-            state,
-            current_step,
-            str(target),
-            bypass=command in self.abandon_bypass_commands,
-        )
-        if abandon:
-            return abandon
 
         if command == "inicio":
             self.state_manager.reset(wa_id)
@@ -1017,7 +1017,7 @@ class FlowEngine:
         return (
             self._render(
                 self._resolve_ux_text("order_saved_success", node),
-                {"order_id": order_id, "total": OrderParser._fmt_cop(total), "delivery_address": delivery_address},
+                {"order_id": order_id, "total": f"{int(round(total)):,}".replace(",", "."), "delivery_address": delivery_address},
             ),
             "success",
         )

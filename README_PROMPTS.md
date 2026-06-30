@@ -1,4 +1,4 @@
-## v1.72
+## v1.73
 
 
 
@@ -8269,3 +8269,303 @@ Capturado por _action_capture_address → se queda en el nodo ✅
 
 
 #########################################
+## v1.73
+
+
+## Prompt ##
+
+
+Quiero un resumen visual del flujo dominante definido en el JSON.
+
+NO quiero modificar código.
+NO quiero implementar nada.
+NO quiero una auditoría extensa.
+
+Solo quiero entender cómo funciona el flujo.
+
+Analiza únicamente el JSON y explícame el flujo principal de forma visual.
+
+Para cada flow muestra:
+
+FLOW
+│
+├── Nodo inicial
+│
+├── Nodo
+│   ├── Acción que ejecuta
+│   ├── Outcomes posibles
+│   ├── A qué nodo va cada outcome
+│   └── Si permanece en el mismo nodo
+│
+└── Nodo final
+
+Para cada nodo indica únicamente:
+
+• Nombre del nodo
+• Action
+• Entradas posibles
+• Outcomes posibles
+• Destinos
+• Si modifica StateManager
+• Si llama algún Service
+• Si renderiza un mensaje
+
+Al final genera un diagrama ASCII completo del flujo.
+
+Ejemplo:
+
+HOME
+│
+├── home_node
+│     ↓ Pedido
+│
+├── order_start_node
+│     ├── success ─────────▶ order_review_node
+│     ├── partial ─────────▶ order_clarify_node
+│     ├── ambiguous ───────▶ order_disambiguate_node
+│     ├── empty_cart ──────▶ permanece
+│     └── None ────────────▶ permanece
+│
+├── order_review_node
+│     ├── Confirmar ───────▶ order_delivery_node
+│     ├── Modificar ───────▶ order_modify_node
+│     └── Cancelar ────────▶ home_node
+│
+...
+
+Quiero que el resultado ocupe máximo 2-3 páginas y sea fácil de leer. No describas el código Python salvo cuando sea estrictamente necesario para entender una transición.
+
+
+
+## resp cursor ##
+
+
+Flujo: restaurant_flow.json
+Comandos globales (disponibles en cualquier nodo)
+Comando	Destino
+inicio / hola / cancelar
+home.home_node
+productos
+productos.productos_node
+pedido
+order.order_start_node (o order_review_node si hay pedido activo)
+ayuda
+ayuda.ayuda_start_node
+FLOW: HOME
+home_node — action: welcome_customer
+
+Renderiza mensaje de bienvenida
+intercept_products: true → detecta nombres de productos en texto libre
+self_loop_behavior: fallback → entrada no reconocida muestra fallback y permanece
+Entrada	Destino
+productos
+productos.productos_node
+pedido
+order.order_start_node
+ayuda
+ayuda.ayuda_start_node
+buenas / hey
+permanece (self-loop)
+otro
+fallback → permanece
+FLOW: PRODUCTOS
+productos_node — action: show_productos
+
+Renderiza catálogo de productos desde DB/service
+intercept_products: true
+Entrada	Destino
+pedido
+order.order_start_node
+inicio / hola / buenas / hey
+home.home_node
+productos
+permanece
+ayuda
+ayuda.ayuda_start_node
+FLOW: ORDER (flujo principal)
+order_start_node — action: capture_order
+
+Input libre → NLP parsea productos del mensaje
+Modifica StateManager (carrito)
+Outcome	Destino
+success
+order_review_node
+partial (algunos no reconocidos)
+order_clarify_node
+ambiguous (producto con múltiples matches)
+order_disambiguate_node
+empty_cart
+permanece
+order_clarify_node — action_on_input: handle_order_clarification
+
+Pide nombre exacto del producto no reconocido. Acepta omitir.
+Outcome	Destino
+partial_resolved (todos resueltos)
+order_review_node
+partial_retry (aún quedan)
+permanece
+skip
+permanece (siguiente ítem)
+order_disambiguate_node — action_on_input: handle_order_disambiguation
+
+Muestra lista de candidatos, espera número o nombre exacto.
+Outcome	Destino
+disambiguated (todos resueltos)
+order_review_node
+disambiguate_next (aún quedan)
+permanece
+invalid_choice
+permanece
+order_review_node — action: show_cart + action_on_input: handle_order_confirmation
+
+Renderiza resumen del carrito. Espera confirmación.
+Outcome	Destino
+confirmed
+order_delivery_node
+rejected
+order_modify_node
+empty_cart
+order_start_node
+invalid
+permanece
+order_modify_node — action: capture_order
+
+Igual que order_start_node pero modifica carrito existente.
+Outcome	Destino
+success
+order_review_node
+partial
+order_clarify_node
+ambiguous
+order_disambiguate_node
+empty_cart
+permanece
+order_delivery_node — action: capture_delivery_type
+
+Espera domicilio o recoger.
+Outcome	Destino
+domicilio
+order_address_node
+recoger_has_name
+order_saved_node
+recoger_no_name
+order_customer_name_node
+invalid
+permanece
+order_address_node — action: capture_address
+
+Muestra dirección guardada si existe. Acepta confirmación o nueva dirección.
+Outcome	Destino
+success_has_name
+order_saved_node
+success_no_name
+order_customer_name_node
+invalid
+permanece
+order_customer_name_node — action: capture_customer_name
+
+Solo si no hay nombre previo en StateManager.
+Outcome	Destino
+success
+order_saved_node
+invalid
+permanece
+order_saved_node — action: save_order ← FIN DEL PEDIDO
+
+Guarda pedido en DB. Renderiza confirmación con order_id, total, delivery_address.
+Outcome	Destino
+success
+permanece (muestra opciones post-pedido)
+empty_cart
+order_start_node
+FLOW: AYUDA
+ayuda_start_node → ayuda_date_node → ayuda_time_node → ayuda_review_node → ayuda_saved_node
+
+Captura secuencial: personas → fecha (DD/MM/AAAA) → hora → confirmación → guarda solicitud → redirige a home_node.
+
+Diagrama ASCII completo
+┌─────────────────────────────────────────────────────────────────────┐
+│  ENTRADA (mensaje WhatsApp)                                          │
+└───────────────────────────┬─────────────────────────────────────────┘
+                            │ global_command check
+                            ▼
+╔═══════════════════════════════╗
+║         home_node             ║ ◀─────────────────────────────────────┐
+║   action: welcome_customer    ║                                        │
+╚═══════════════════════════════╝                                        │
+  │ productos          │ pedido          │ ayuda                          │
+  ▼                    ▼                 ▼                                │
+╔══════════╗   ╔════════════════╗  ╔════════════════════╗               │
+║productos ║   ║order_start_node║  ║ ayuda_start_node   ║               │
+║   _node  ║   ║capture_order   ║  ║ capture_persons    ║               │
+╚══════════╝   ╚════════════════╝  ╚════════════════════╝               │
+  │ pedido         │                        │ success                    │
+  │                │ success                ▼                            │
+  │                │──────────▶  ╔═══════════════════╗                  │
+  │                │ partial     ║  ayuda_date_node   ║                  │
+  │                │──────────▶  ╚═══════════════════╝                  │
+  │        ╔═══════════════╗           │ success                        │
+  │        ║order_clarify  ║           ▼                                │
+  │        ║    _node      ║  ╔═══════════════════╗                    │
+  │        ╚═══════════════╝  ║  ayuda_time_node  ║                    │
+  │           │partial         ╚═══════════════════╝                    │
+  │           │resolved              │ success                          │
+  │        ◀──┘                      ▼                                  │
+  │                          ╔════════════════════╗                     │
+  │        ╔═══════════════╗ ║ ayuda_review_node  ║                    │
+  │  ambigu║order_disambig ║ ║show_summary+confirm║                    │
+  │  ──────▶    _node      ║ ╚════════════════════╝                    │
+  │        ╚═══════════════╝  │confirmed │rejected                     │
+  │           │disambiguated  ▼          │                              │
+  │           │         ╔════════════╗   └──▶ ayuda_start_node          │
+  ▼           ▼         ║ayuda_saved ║                                  │
+  ▼  ╔══════════════════╗   _node   ║  success ───────────────────────▶│
+  ▼  ║ order_review_node║╚════════════╝                                 │
+  ▼  ║show_cart+confirm ║                                               │
+  ▼  ╚══════════════════╝                                               │
+  ▼    │confirmed  │rejected  │empty_cart                               │
+  ▼    │           │          └──────▶ order_start_node                 │
+  ▼    │           ▼                                                     │
+  ▼    │  ╔═════════════════╗                                           │
+  ▼    │  ║order_modify_node║  (mismo comportamiento que order_start)   │
+  ▼    │  ╚═════════════════╝                                           │
+  ▼    │    │ success ──────────▶ order_review_node                     │
+  ▼    │                                                                 │
+  ▼    ▼                                                                 │
+  ▼  ╔══════════════════════╗                                           │
+  ▼  ║  order_delivery_node ║                                           │
+  ▼  ║ capture_delivery_type║                                           │
+  ▼  ╚══════════════════════╝                                           │
+  ▼    │ domicilio      │ recoger_has_name    │ recoger_no_name         │
+  ▼    ▼                │                     │                         │
+  ▼  ╔══════════════╗   │                     ▼                         │
+  ▼  ║order_address ║   │           ╔═══════════════════════╗           │
+  ▼  ║    _node     ║   │           ║order_customer_name_node║          │
+  ▼  ╚══════════════╝   │           ╚═══════════════════════╝           │
+  ▼    │success_has_name │                    │ success                 │
+  ▼    │success_no_name──┼────────────────────┘                        │
+  ▼    │                 │                                               │
+  ▼    └─────────────────┘                                              │
+  ▼                      │                                               │
+  ▼                      ▼                                               │
+  ▼          ╔══════════════════════╗                                   │
+  └─pedido──▶║   order_saved_node   ║                                   │
+             ║      save_order      ║                                   │
+             ║  [FIN - muestra ID]  ║                                   │
+             ╚══════════════════════╝                                   │
+                    │ inicio / hola / cancelar ────────────────────────▶│
+                    │ pedido ──────▶ order_start_node                   │
+                    │ ayuda ───────▶ ayuda_start_node                   │
+Resumen de paths felices:
+
+HOME → PRODUCTOS → [ver catálogo] → pedido
+HOME → ORDER: start → review → delivery → address → [name] → saved ✓
+HOME → AYUDA: start → date → time → review → saved → HOME ✓
+
+
+
+
+
+
+######################################################
+

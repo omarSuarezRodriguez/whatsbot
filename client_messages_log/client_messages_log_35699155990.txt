@@ -12042,3 +12042,189 @@ Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
 👉 *Ayuda* (resolver dudas 💬)
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Una pechuga de pollo, una salchicha Zenú, un aceite Premier, dos panelas, dos galletas Oreo, dos paquetes de papas Margarita, una leche Alquería y una cocacola
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Pechuga de pollo 500g x1 - $9.900
+- Salchicha Zenú x6 x1 - $6.500
+- Aceite Premier 1L x1 - $9.500
+- Panela 500g x2 - $6.400
+- Galletas Oreo x6 x2 - $4.000
+- Papas Margarita 200g x2 - $9.000
+- Leche Alquería 1L x1 - $4.300
+- Coca-Cola 1.5L x1 - $6.000
+
+💰 *Valor total: $55.600*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 ¿Cómo deseas recibir tu pedido?
+
+Elige la opción que prefieras.
+
+--
+✅ *Escribe una opción*
+
+👉 *Domicilio* (recibe en casa 🏠)
+👉 *Recoger* (recoger en tienda 🛍️)
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: 🚚 Esta es la dirección que tienes registrada:
+
+*Calle 9N #11E-53 Barrio Guaimaral*
+
+--
+✅ Desea confirmar el envío? *Escribe una opción:*
+
+👉 *Confirmar* (confirma tu dirección 🏠)
+👉 *Modificar* (modifica tu dirección ✏️)
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-8CB559D8
+💰 *Total:* $55.600
+🚚 *Entrega:* 1
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: 3
+
+
+-------------------------------
+
+Chatbot: Error interno: texto no configurado.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
