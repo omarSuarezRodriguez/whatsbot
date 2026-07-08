@@ -1,20 +1,27 @@
 {
   "states": {
+
     "home": {
       "initial": "home_node",
       "nodes": {
+
         "home_node": {
-          "intercept_products": true,
-          "suppress_navigation": true,
           "message": "👋 *Bienvenido a El Gran Motilón* 🏹\n\nTu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠\n\n--\n✅ Qué necesitas en casa hoy? *Escribe una opción:*\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Ayuda* (resuelve dudas 💬)",
-          "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n👉 *Productos*\n👉 *Pedido*\n👉 *Ayuda*"
+          "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n👉 *Productos*\n👉 *Pedido*\n👉 *Ayuda*",
+          "intercept_products": true,
+          "suppress_navigation": true
         }
+
       }
     },
+
     "productos": {
       "initial": "productos_node",
       "nodes": {
+
         "productos_node": {
+          "message": "🛒 *Nuestros productos*\n\nMira lo que tenemos disponible en *El Gran Motilón*: 👇\n",
+          "fallback": "No entendí eso. Escribe *productos*, *pedido* o *ayuda*.",
           "action": "show_productos",
           "intercept_products": true,
           "options": {
@@ -24,16 +31,19 @@
             "buenas": "home.home_node",
             "hey": "home.home_node"
           },
-          "message": "🛒 *Nuestros productos*\n\nMira lo que tenemos disponible en *El Gran Motilón*: 👇\n",
-          "fallback": "No entendí eso. Escribe *productos*, *pedido* o *ayuda*.",
           "navigation_hint": "\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Inicio* (volver al inicio 🏠)"
         }
+
       }
     },
+
     "order": {
       "initial": "order_start_node",
       "nodes": {
+
         "order_start_node": {
+          "message": "🛍️ *Haz tu pedido*\n\n💡 Escribe los productos que deseas comprar y la cantidad de cada uno.\n\n💡 *Por ejemplo:*\n- 2 Coca-Cola 1.5 L\n- 1 Arroz Diana 500g\n- 3 Chocolatinas Jet\n\n💡 *También puedes escribir todo en un solo mensaje:*\n2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet",
+          "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "action": "capture_order",
           "input_mode": "free_text",
           "transitions": {
@@ -44,11 +54,12 @@
           "options": {
             "productos": "productos.productos_node"
           },
-          "message": "🛍️ *Haz tu pedido*\n\n💡 Escribe los productos que deseas comprar y la cantidad de cada uno.\n\n💡 *Por ejemplo:*\n- 2 Coca-Cola 1.5 L\n- 1 Arroz Diana 500g\n- 3 Chocolatinas Jet\n\n💡 *También puedes escribir todo en un solo mensaje:*\n2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet",
-          "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*"
         },
+
         "order_review_node": {
+          "message_after_action": "\n\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Confirmar* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
+          "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
           "action": "show_cart",
           "action_on_input": "handle_order_confirmation",
           "input_mode": "free_text",
@@ -59,11 +70,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message_after_action": "\n\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Confirmar* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
-          "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido."
+          }
         },
+
         "order_modify_node": {
+          "message": "🛍️ *Modifica tu pedido*\n\n💡 Dime qué quieres agregar, quitar o cambiar.\n\nEjemplos:\n- *agrega 2 coca cola*\n- *quita la pizza*\n- *cambia la hamburguesa por una ensalada*",
+          "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "action": "capture_order",
           "input_mode": "free_text",
           "transitions": {
@@ -74,11 +86,11 @@
           "options": {
             "productos": "productos.productos_node"
           },
-          "message": "🛍️ *Modifica tu pedido*\n\n💡 Dime qué quieres agregar, quitar o cambiar.\n\nEjemplos:\n- *agrega 2 coca cola*\n- *quita la pizza*\n- *cambia la hamburguesa por una ensalada*",
-          "fallback": "No logré identificar productos. Dime qué quieres agregar, quitar o cambiar.",
           "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*"
         },
+
         "order_clarify_node": {
+          "fallback": "No reconocí ese producto. Escríbelo de nuevo, o escribe *omitir* para saltarlo.",
           "action_on_input": "handle_order_clarification",
           "input_mode": "free_text",
           "transitions": {
@@ -86,10 +98,11 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "fallback": "No reconocí ese producto. Escríbelo de nuevo, o escribe *omitir* para saltarlo."
+          }
         },
+
         "order_disambiguate_node": {
+          "fallback": "Escribe el número o nombre exacto de la opción.",
           "action_on_input": "handle_order_disambiguation",
           "input_mode": "free_text",
           "transitions": {
@@ -97,10 +110,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "fallback": "Escribe el número o nombre exacto de la opción."
+          }
         },
+
         "order_delivery_node": {
+          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 *Domicilio* (recibe en casa 🏠)\n👉 *Recoger* (recoger en tienda 🛍️)",
+          "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "action": "capture_delivery_type",
           "input_mode": "free_text",
           "transitions": {
@@ -110,11 +125,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 *Domicilio* (recibe en casa 🏠)\n👉 *Recoger* (recoger en tienda 🛍️)",
-          "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*."
+          }
         },
+
         "order_address_node": {
+          "message": "{{address_prompt}}",
+          "fallback": "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada.",
           "action": "capture_address",
           "input_mode": "free_text",
           "transitions": {
@@ -123,11 +139,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "{{address_prompt}}",
-          "fallback": "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada."
+          }
         },
+
         "order_customer_name_node": {
+          "message": "Para identificar tu pedido, ¿cuál es tu nombre?",
+          "fallback": "Escribe tu nombre (mínimo 2 caracteres).",
           "action": "capture_customer_name",
           "input_mode": "free_text",
           "transitions": {
@@ -135,10 +152,9 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "Para identificar tu pedido, ¿cuál es tu nombre?",
-          "fallback": "Escribe tu nombre (mínimo 2 caracteres)."
+          }
         },
+
         "order_saved_node": {
           "action": "save_order",
           "transitions": {
@@ -152,12 +168,17 @@
             "ayuda": "ayuda.ayuda_start_node"
           }
         }
+
       }
     },
+
     "ayuda": {
       "initial": "ayuda_start_node",
       "nodes": {
+
         "ayuda_start_node": {
+          "message": "Perfecto, en un momento nuestros asesores se pondrán en contacto contigo",
+          "fallback": "Indícame un número válido de personas (entre 1 y 30).",
           "action": "capture_persons",
           "input_mode": "free_text",
           "transitions": {
@@ -165,11 +186,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "Perfecto, en un momento nuestros asesores se pondrán en contacto contigo",
-          "fallback": "Indícame un número válido de personas (entre 1 y 30)."
+          }
         },
+
         "ayuda_date_node": {
+          "message": "Excelente. ¿Qué fecha prefieres?\n\nFormato sugerido: *DD/MM/AAAA* (ejemplo: 15/06/2026)",
+          "fallback": "Usa el formato *DD/MM/AAAA*, con una fecha igual o posterior a hoy.",
           "action": "capture_date",
           "input_mode": "free_text",
           "transitions": {
@@ -177,11 +199,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "Excelente. ¿Qué fecha prefieres?\n\nFormato sugerido: *DD/MM/AAAA* (ejemplo: 15/06/2026)",
-          "fallback": "Usa el formato *DD/MM/AAAA*, con una fecha igual o posterior a hoy."
+          }
         },
+
         "ayuda_time_node": {
+          "message": "Perfecto. ¿A qué hora te gustaría?\n\nFormato sugerido: *19:30* o *7:30 pm*",
+          "fallback": "Prueba con *19:30* o *7:30 pm*.",
           "action": "capture_time",
           "input_mode": "free_text",
           "transitions": {
@@ -190,11 +213,12 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message": "Perfecto. ¿A qué hora te gustaría?\n\nFormato sugerido: *19:30* o *7:30 pm*",
-          "fallback": "Prueba con *19:30* o *7:30 pm*."
+          }
         },
+
         "ayuda_review_node": {
+          "message_after_action": "\n\n¿Confirmamos?\nResponde *sí* para confirmar o *no* para modificar.",
+          "fallback": "Responde *sí* para confirmar o *no* para modificar.",
           "action": "show_ayuda_summary",
           "action_on_input": "handle_ayuda_confirmation",
           "input_mode": "free_text",
@@ -205,20 +229,21 @@
           },
           "options": {
             "productos": "productos.productos_node"
-          },
-          "message_after_action": "\n\n¿Confirmamos?\nResponde *sí* para confirmar o *no* para modificar.",
-          "fallback": "Responde *sí* para confirmar o *no* para modificar."
+          }
         },
+
         "ayuda_saved_node": {
+          "message_after_action": "\n\nTu solicitud quedó registrada. Te contactaremos pronto.\n\nSi necesitas algo más, escribe *productos*, *pedido* o *ayuda*.",
           "action": "save_ayuda",
           "transitions": {
             "success": "home.home_node",
             "incomplete": "ayuda.ayuda_start_node"
-          },
-          "message_after_action": "\n\nTu solicitud quedó registrada. Te contactaremos pronto.\n\nSi necesitas algo más, escribe *productos*, *pedido* o *ayuda*."
+          }
         }
+
       }
     }
+
   },
   "meta": {
     "global_commands": {
