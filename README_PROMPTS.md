@@ -1,4 +1,4 @@
-## v1.75
+## v1.76
 
 
 
@@ -8905,10 +8905,34 @@ El archivo está listo.
 
 
 
-## prompt ##
+
+
+Todo correcto. Estructura limpia, JSON válido, y orden consistente en todos los nodos:
+
+message / message_after_action primero
+fallback segundo
+action / action_on_input, input_mode, transitions, options, extras al final
+
+
+
+
+#######################
+## v1.76
+
+
+
+Quedó limpio. Observaciones:
+
+Todo correcto:
+
+initial removidos de los 4 states ✅
+suppress_navigation removido ✅
+Todos los bloques options removidos ✅
+cancel_message: "" y order_confirm_yes: "" conservados ✅
+navigation_hint en productos_node, order_start_node, order_modify_node intactos ✅
 
 
 
 
 
-
+###################################################################

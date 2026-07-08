@@ -2,43 +2,33 @@
   "states": {
 
     "home": {
-      "initial": "home_node",
       "nodes": {
 
         "home_node": {
           "message": "👋 *Bienvenido a El Gran Motilón* 🏹\n\nTu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠\n\n--\n✅ Qué necesitas en casa hoy? *Escribe una opción:*\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Ayuda* (resuelve dudas 💬)",
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n👉 *Productos*\n👉 *Pedido*\n👉 *Ayuda*",
-          "intercept_products": true,
-          "suppress_navigation": true
+          "intercept_products": true
         }
 
       }
     },
 
     "productos": {
-      "initial": "productos_node",
       "nodes": {
 
         "productos_node": {
+          "action": "show_productos",
           "message": "🛒 *Nuestros productos*\n\nMira lo que tenemos disponible en *El Gran Motilón*: 👇\n",
           "fallback": "No entendí eso. Escribe *productos*, *pedido* o *ayuda*.",
-          "action": "show_productos",
-          "intercept_products": true,
-          "options": {
-            "pedido": "order.order_start_node",
-            "inicio": "home.home_node",
-            "ayuda": "ayuda.ayuda_start_node",
-            "buenas": "home.home_node",
-            "hey": "home.home_node"
-          },
-          "navigation_hint": "\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Inicio* (volver al inicio 🏠)"
+          "navigation_hint": "\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Pedido* (haz tu pedido 🛍️)\n👉 *Inicio* (volver al inicio 🏠)",
+          "intercept_products": true
+          
         }
 
       }
     },
 
     "order": {
-      "initial": "order_start_node",
       "nodes": {
 
         "order_start_node": {
@@ -50,9 +40,6 @@
             "success": "order.order_review_node",
             "partial": "order.order_clarify_node",
             "ambiguous": "order.order_disambiguate_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           },
           "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*"
         },
@@ -67,9 +54,6 @@
             "empty_cart": "order.order_start_node",
             "confirmed": "order.order_delivery_node",
             "rejected": "order.order_modify_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -83,9 +67,6 @@
             "partial": "order.order_clarify_node",
             "ambiguous": "order.order_disambiguate_node"
           },
-          "options": {
-            "productos": "productos.productos_node"
-          },
           "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*"
         },
 
@@ -95,9 +76,6 @@
           "input_mode": "free_text",
           "transitions": {
             "partial_resolved": "order.order_review_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -107,9 +85,6 @@
           "input_mode": "free_text",
           "transitions": {
             "disambiguated": "order.order_review_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -122,9 +97,6 @@
             "domicilio": "order.order_address_node",
             "recoger_has_name": "order.order_saved_node",
             "recoger_no_name": "order.order_customer_name_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -136,9 +108,6 @@
           "transitions": {
             "success_has_name": "order.order_saved_node",
             "success_no_name": "order.order_customer_name_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -149,9 +118,6 @@
           "input_mode": "free_text",
           "transitions": {
             "success": "order.order_saved_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -160,12 +126,6 @@
           "transitions": {
             "success": null,
             "empty_cart": "order.order_start_node"
-          },
-          "options": {
-            "inicio": "home.home_node",
-            "productos": "productos.productos_node",
-            "pedido": "order.order_start_node",
-            "ayuda": "ayuda.ayuda_start_node"
           }
         }
 
@@ -173,7 +133,6 @@
     },
 
     "ayuda": {
-      "initial": "ayuda_start_node",
       "nodes": {
 
         "ayuda_start_node": {
@@ -183,9 +142,6 @@
           "input_mode": "free_text",
           "transitions": {
             "success": "ayuda.ayuda_date_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -196,9 +152,6 @@
           "input_mode": "free_text",
           "transitions": {
             "success": "ayuda.ayuda_time_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -210,9 +163,6 @@
           "transitions": {
             "success": "ayuda.ayuda_review_node",
             "missing_date": "ayuda.ayuda_date_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
@@ -226,9 +176,6 @@
             "incomplete": "ayuda.ayuda_start_node",
             "confirmed": "ayuda.ayuda_saved_node",
             "rejected": "ayuda.ayuda_start_node"
-          },
-          "options": {
-            "productos": "productos.productos_node"
           }
         },
 
