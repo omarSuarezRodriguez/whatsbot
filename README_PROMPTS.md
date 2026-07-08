@@ -1,4 +1,4 @@
-## v1.73
+## v1.74
 
 
 
@@ -8269,7 +8269,7 @@ Capturado por _action_capture_address → se queda en el nodo ✅
 
 
 #########################################
-## v1.73
+## v1.73 - flujo app
 
 
 ## Prompt ##
@@ -8568,4 +8568,341 @@ HOME → AYUDA: start → date → time → review → saved → HOME ✓
 
 
 ######################################################
+## v1.74
+
+
+## prompt ##
+
+
+
+Analiza `restaurant_flow.json` completo y crúzalo contra el `FlowEngine` real, el `StateManager`, el parser y todas las Actions que ejecutan sus nodos.
+
+NO MODIFIQUES NINGÚN ARCHIVO.
+
+Quiero reconstruir manualmente `restaurant_flow.json` desde la LÍNEA 1.
+
+Tu trabajo es darme el contenido exacto que debo ir PEGANDO desde cero, por bloques, en el orden más claro, limpio y fácil de editar posible.
+
+OBJETIVO PRINCIPAL:
+
+Quiero que `restaurant_flow.json` quede:
+
+- lo más sencillo posible;
+- ordenado para que un humano lo entienda rápido;
+- fácil de editar manualmente;
+- sin campos muertos;
+- sin outcomes imposibles;
+- sin transitions inalcanzables;
+- sin flags innecesarios;
+- sin strings vacíos inútiles;
+- sin duplicaciones;
+- sin configuración que ese nodo concreto no necesite;
+- sin cambiar el comportamiento real del bot.
+
+REGLA FUNDAMENTAL:
+
+No conserves algo solo porque el Engine lo soporta.
+
+Conserva un campo ÚNICAMENTE si puedes demostrar que ese nodo concreto lo necesita para mantener el comportamiento actual.
+
+────────────────────────────────────────
+ORDEN DEL ARCHIVO
+────────────────────────────────────────
+
+Quiero que el archivo empiece por el MAPA del sistema, no por el relleno.
+
+Ordénalo así:
+
+1. ESTRUCTURA / MAPA PRINCIPAL
+   - states
+   - flows o módulos
+   - initial de cada flow
+   - nodes
+   - actions
+   - action_on_input
+   - options
+   - transitions
+
+2. PRIMERO LA LÓGICA DEL SISTEMA
+   Quiero poder abrir el archivo y entender inmediatamente:
+
+   FLOW
+     ↓
+   NODO
+     ↓
+   ACTION
+     ↓
+   OUTCOME
+     ↓
+   TRANSITION
+     ↓
+   DESTINO
+
+3. DESPUÉS LA CONFIGURACIÓN GLOBAL REALMENTE NECESARIA
+   - global_commands
+   - cualquier configuración estructural que el Engine necesite
+
+4. AL FINAL TODO EL RELLENO / UX
+   - mensajes
+   - fallbacks
+   - prompts
+   - textos auxiliares
+   - navigation hints
+   - cualquier contenido largo que ensucie la lectura del mapa
+
+Quiero separar visualmente:
+
+MAPA Y LÓGICA
+─────────────
+primero
+
+TEXTOS Y RELLENO
+────────────────
+al final
+
+PERO MUY IMPORTANTE:
+
+Antes de mover cualquier `message`, `fallback`, `navigation_hint`, prompt o texto a otra sección, comprueba cómo lo busca realmente el Engine.
+
+Si el Engine exige que una clave esté dentro del nodo, NO la muevas.
+
+Si para poner los textos al final sería necesario modificar el Engine, NO lo hagas silenciosamente.
+
+En ese caso dime claramente:
+
+“Este texto no puede moverse al final con el Engine actual porque [función exacta] lo busca en [ubicación exacta].”
+
+No quiero una estructura bonita que rompa el sistema.
+
+────────────────────────────────────────
+ANÁLISIS OBLIGATORIO DE CADA NODO
+────────────────────────────────────────
+
+Para cada nodo comprueba:
+
+1. ¿Necesita `message`?
+2. ¿Necesita `action`?
+3. ¿Necesita `action_on_input`?
+4. ¿Necesita `input_mode`?
+5. ¿Necesita `options`?
+6. ¿Necesita `transitions`?
+7. ¿Necesita `fallback`?
+8. ¿Necesita `navigation_hint`?
+9. ¿Necesita `intercept_products`?
+10. ¿Necesita `self_loop_behavior`?
+11. ¿Necesita `suppress_navigation`?
+12. ¿Necesita `dual_message`?
+13. ¿Necesita `suppress_repeat_message`?
+14. ¿Necesita `flow` explícito?
+15. ¿Necesita `message_after_action`?
+
+Para `action` y `action_on_input`:
+
+- encuentra la función Python real;
+- sigue todos sus caminos;
+- enumera todos sus `return`;
+- diferencia:
+  - outcome string;
+  - `None`;
+  - string vacío;
+  - mensaje;
+- conserva solamente las `transitions` realmente alcanzables.
+
+Ejemplo:
+
+Si Python puede devolver:
+
+`confirmed`
+`rejected`
+`None`
+
+Entonces NO conserves:
+
+`invalid: null`
+
+a menos que demuestres que otra parte real del Engine puede producir `invalid` para ese nodo.
+
+────────────────────────────────────────
+SIMPLIFICACIÓN
+────────────────────────────────────────
+
+Quiero la simplificación MÁXIMA SEGURA.
+
+Elimina todo lo que puedas demostrar que sobra.
+
+No quiero una limpieza conservadora por miedo.
+
+Tampoco quiero una limpieza agresiva por intuición.
+
+Quiero esto:
+
+SE PUEDE DEMOSTRAR QUE SOBRA
+→ eliminar
+
+SE PUEDE DEMOSTRAR QUE ES NECESARIO
+→ mantener
+
+NO SE PUEDE DEMOSTRAR
+→ no eliminar; explicar al final
+
+Comprueba también si existen:
+
+- nodos redundantes;
+- Actions duplicadas;
+- outcomes muertos;
+- transitions muertas;
+- options duplicadas con global_commands;
+- campos con valores por defecto innecesarios;
+- flags `false` que el Engine ya interpreta igual por defecto;
+- strings vacíos;
+- configuraciones antiguas;
+- nombres heredados de versiones anteriores;
+- meta keys muertas;
+- rutas imposibles;
+- campos que nunca son leídos.
+
+NO cambies la arquitectura ni fusiones nodos automáticamente.
+
+Si detectas que dos nodos podrían fusionarse, solo indícalo al final como posible mejora futura.
+
+────────────────────────────────────────
+FORMATO DE RESPUESTA
+────────────────────────────────────────
+
+NO me muestres:
+
+“reemplaza líneas X-Y”
+
+NO me muestres:
+
+“antes / después”
+
+NO quiero parches.
+
+Quiero construir el archivo desde cero.
+
+Empieza así:
+
+# NUEVO `restaurant_flow.json`
+
+## BLOQUE 1 — LÍNEAS 1 A X
+
+Pega exactamente esto:
+
+```json
+{
+  ...
+}
+
+Después:
+
+BLOQUE 2 — CONTINÚA DESPUÉS DE LA LÍNEA X
+
+Pega exactamente esto:
+
+...
+
+Y continúa así hasta terminar TODO el archivo.
+
+Cada bloque debe:
+
+ser copiable;
+continuar exactamente donde terminó el anterior;
+tener JSON válido al unir todos los bloques;
+no repetir llaves;
+no omitir comas;
+no usar pseudocódigo;
+contener el contenido real que debo pegar.
+
+Quiero bloques pequeños y lógicos:
+
+apertura y estructura principal;
+HOME;
+PRODUCTOS;
+ORDER, nodo por nodo;
+AYUDA, nodo por nodo;
+global_commands;
+configuración necesaria;
+textos/UX que realmente puedan ir al final;
+cierre del JSON.
+
+Si los textos NO pueden ir al final con el Engine actual, manténlos donde deben estar y explícame por qué.
+
+────────────────────────────────────────
+ANTES DE DARME EL CÓDIGO
+────────────────────────────────────────
+
+Dame primero un MAPA MUY CORTO de la nueva organización:
+
+restaurant_flow.json
+│
+├── MAPA / LÓGICA
+│ ├── HOME
+│ ├── PRODUCTOS
+│ ├── ORDER
+│ └── AYUDA
+│
+├── CONFIGURACIÓN GLOBAL
+│
+└── UX / TEXTOS
+└── solo lo que realmente pueda separarse
+
+Después dame el archivo desde la línea 1.
+
+────────────────────────────────────────
+AL FINAL
+────────────────────────────────────────
+
+Incluye únicamente un resumen corto:
+
+líneas antes;
+líneas después;
+campos eliminados;
+outcomes eliminados;
+transitions eliminadas;
+elementos que no pudiste mover al final;
+elementos dudosos que decidiste conservar.
+
+NO APLIQUES CAMBIOS.
+
+NO MODIFIQUES ARCHIVOS.
+
+NO GENERES DIFF.
+
+NO ME DIGAS QUÉ REEMPLAZAR.
+
+DIME EXACTAMENTE QUÉ DEBO PEGAR DESDE LA LÍNEA 1 HASTA TERMINAR EL ARCHIVO.
+
+
+
+
+
+
+## resp cursor ##
+
+
+
+Todo correcto. Checklist completo:
+
+Nodos presentes: home_node ✓ · productos_node ✓ · order_start_node ✓ · order_review_node ✓ · order_modify_node ✓ · order_clarify_node ✓ · order_disambiguate_node ✓ · order_delivery_node ✓ · order_address_node ✓ · order_customer_name_node ✓ · order_saved_node ✓ · ayuda_start_node ✓ · ayuda_date_node ✓ · ayuda_time_node ✓ · ayuda_review_node ✓ · ayuda_saved_node ✓
+
+Todas las transitions apuntan a nodos que existen: ✓
+
+JSON válido (cierra correctamente en línea 271): ✓
+
+Meta completo con todas las keys que el engine lee: ✓
+
+Sin líneas en blanco al final: ✓
+
+El archivo está listo.
+
+
+
+
+
+#############################################################
+
+
+
+
 

@@ -12228,3 +12228,144 @@ Chatbot: 🛍️ *Haz tu pedido*
 ✅ *Escribe tu pedido:*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Haz tu pedido*
+
+💡 Escribe los productos que deseas comprar y la cantidad de cada uno.
+
+💡 *Por ejemplo:*
+- 2 Coca-Cola 1.5 L
+- 1 Arroz Diana 500g
+- 3 Chocolatinas Jet
+
+💡 *También puedes escribir todo en un solo mensaje:*
+2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: un arroz y dos huevos
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido:*
+
+- Arroz Diana 500g x1 - $2.800
+- Huevos x30 x2 - $29.000
+
+💰 *Valor total: $31.800*
+
+
+--
+✅ ¿Alistamos tu pedido? *Escribe una opción*:
+
+👉 *Confirmar* (confirma tu pedido 🛍️)
+👉 *Modificar* (modifica tu pedido ✏️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido sigue en curso*.
+
+💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.
+
+--
+✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:
+
+👉 *Continuar* (continúa tu pedido 🛍️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: si
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Gran Motilón* 🏹
+
+Tu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠
+
+--
+✅ Qué necesitas en casa hoy? *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (haz tu pedido 🛍️)
+👉 *Ayuda* (resuelve dudas 💬)
+
+#################################################################
