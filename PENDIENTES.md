@@ -124,3 +124,9 @@ Todo es configurable mediante datos.
 
 
 - TECH-DEBT: Migrar show_productos de menú textual dinámico a lista interactiva nativa de WhatsApp, manteniendo fallback textual.
+
+
+
+🟢 Prioridad baja (P3)
+
+Externalizar todos los textos hardcodeados de los servicios (AdminService, ReservationService, etc.) a un sistema centralizado de UX/JSON.

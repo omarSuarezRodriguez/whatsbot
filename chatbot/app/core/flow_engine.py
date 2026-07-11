@@ -71,6 +71,7 @@ class FlowEngine:
             "capture_order": self._action_capture_order,
             "show_cart": self._action_show_cart,
             "handle_order_confirmation": self._action_handle_order_confirmation,
+            "handle_new_address_confirmation": self._action_handle_new_address_confirmation,
             "capture_delivery_type": self._action_capture_delivery_type,
             "handle_address_confirmation": self._action_handle_address_confirmation,
             "capture_address": self._action_capture_address,
@@ -1001,16 +1002,43 @@ class FlowEngine:
         wa_id: str,
         text: str,
     ) -> Tuple[str, Optional[str]]:
-
         profile = self.user_service.get_profile(wa_id)
         normalized = normalize_text(text)
 
         if normalized == "confirm_address":
+            self.state_manager.patch_data(
+                wa_id,
+                delivery_address=profile.get("address", ""),
+            )
+
             if profile.get("name"):
                 return "", "confirmed_has_name"
+
             return "", "confirmed_no_name"
 
         if normalized == "edit_address":
+            return "", "edit"
+
+        return "", None
+
+    
+    def _action_handle_new_address_confirmation(
+        self,
+        wa_id: str,
+        text: str,
+    ) -> Tuple[str, Optional[str]]:
+
+        profile = self.user_service.get_profile(wa_id)
+        normalized = normalize_text(text)
+
+        if normalized == "confirm_new_address":
+
+            if profile.get("name"):
+                return "", "confirmed_has_name"
+
+            return "", "confirmed_no_name"
+
+        if normalized == "edit_new_address":
             return "", "edit"
 
         return "", None
@@ -1040,15 +1068,7 @@ class FlowEngine:
             delivery_address=address,
         )
 
-        profile = self.user_service.get_profile(wa_id)
-
-        if profile.get("name"):
-            return "", "success_has_name"
-
-        return self._resolve_ux_text(
-            "address_saved",
-            node,
-        ), "success_no_name"
+        return "", "confirm"
 
     def _action_capture_customer_name(
         self, wa_id: str, text: str

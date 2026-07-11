@@ -167,7 +167,7 @@ def approve_order_from_app(
             "message": f"Pedido {oid} confirmado. No hay teléfono del cliente para avisarle.",
         }
 
-    body_text = f"🎉 ¡Tu pedido *{oid}* fue confirmado!\n\nGracias por comprar en *El Gran Motilón.* 🏹\n\n🚚Muy pronto comenzaremos a preparar tu pedido para entregarlo.\n\n\n--\n✅ ¿Deseas comprar algo más? *Escribe una opción:*\n\n👉 *Pedido* (hacer un nuevo pedido 🛍️)\n👉 *Ayuda* (resolver dudas 💬)"
+    body_text = f"✅ ¡Tu pedido *{order_id}* fue confirmado!\n\n🚚Estamos preparando tu pedido para llevártelo a casa."
     if not admin._send_whatsapp(customer, body_text):
         return {
             "ok": False,

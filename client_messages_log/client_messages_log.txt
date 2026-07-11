@@ -17250,3 +17250,867 @@ Cliente: ✏️ Modificar
 Chatbot: Selecciona una opción o escribe una dirección válida.
 
 #################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+modificar
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-92C766EB
+💰 *Total:* $31.000
+🚚 *Entrega:* 
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: inicio
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+modificar
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N # 11E-53 Barrio Guaimaral
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-B2ABDBCA
+💰 *Total:* $31.000
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaimaral
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-AC2AAF57
+💰 *Total:* $31.000
+🚚 *Entrega:* 
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-13408A54
+💰 *Total:* $31.000
+🚚 *Entrega:* 
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-7A2820D5
+💰 *Total:* $31.000
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaimaral
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N # 11E-53 Barrio Guaima
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaima
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-7500EF60
+💰 *Total:* $31.000
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaima
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaima
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N # 11E-53 Barrio Guaimaral
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-E87A180A
+💰 *Total:* $31.000
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaimaral
+⏳ *Estado:* Pendiente de confirmación.
+
+
+--
+✅ *Escribe una opción:*
+
+👉 *Productos* (ver productos 🛒)
+👉 *Pedido* (hacer un nuevo pedido 🛍️)
+👉 *Ayuda* (resolver dudas 💬)
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x2 - $11.000
+
+💰 Valor total: *$31.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 ¡Pedido registrado!
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-0EFFC2C1
+💰 *Total:* $31.000
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaimaral
+⏳ *Estado:* Pendiente de confirmación.
+
+#################################################################

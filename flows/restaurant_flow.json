@@ -213,8 +213,29 @@
           "fallback": "Necesito una dirección válida.",
           "input_mode": "free_text",
           "transitions": {
-            "success_has_name": "order.order_saved_node",
-            "success_no_name": "order.order_customer_name_node"
+            "confirm": "order.order_address_confirm_node"
+          }
+        },
+
+        "order_address_confirm_node": {
+          "action": "handle_new_address_confirmation",
+          "message": "📍 *Dirección de entrega*\n\n{{delivery_address}}\n\n👇 *¿Es correcta?*",
+          "buttons": [
+            {
+              "title": "✅ Confirmar",
+              "id": "confirm_new_address"
+            },
+            {
+              "title": "✏️ Modificar",
+              "id": "edit_new_address"
+            }
+          ],
+          "fallback": "Selecciona una opción.",
+          "input_mode": "free_text",
+          "transitions": {
+            "confirmed_has_name": "order.order_saved_node",
+            "confirmed_no_name": "order.order_customer_name_node",
+            "edit": "order.order_address_edit_node"
           }
         },
 
@@ -342,7 +363,7 @@
     "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
     "save_order_empty": "No encontré productos para guardar.",
-    "order_saved_success": "🎉 ¡Pedido registrado!\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* {{order_id}}\n💰 *Total:* ${{total}}\n🚚 *Entrega:* {{delivery_address}}\n⏳ *Estado:* Pendiente de confirmación.\n\n\n--\n✅ *Escribe una opción:*\n\n👉 *Productos* (ver productos 🛒)\n👉 *Pedido* (hacer un nuevo pedido 🛍️)\n👉 *Ayuda* (resolver dudas 💬)",
+    "order_saved_success": "🎉 *¡Pedido registrado!*\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* {{order_id}}\n💰 *Total:* ${{total}}\n🚚 *Entrega:* {{delivery_address}}\n⏳ *Estado:* Pendiente de confirmación.",
     "capture_persons_success": "Perfecto, solicitud para *{{personas}}* personas.",
     "capture_date_success": "Fecha registrada: *{{date}}*.",
     "capture_date_missing": "Primero necesito la fecha.",
