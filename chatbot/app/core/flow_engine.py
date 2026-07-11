@@ -72,6 +72,7 @@ class FlowEngine:
             "show_cart": self._action_show_cart,
             "handle_order_confirmation": self._action_handle_order_confirmation,
             "capture_delivery_type": self._action_capture_delivery_type,
+            "handle_address_confirmation": self._action_handle_address_confirmation,
             "capture_address": self._action_capture_address,
             "capture_customer_name": self._action_capture_customer_name,
             "save_order": self._action_save_order,
@@ -995,23 +996,59 @@ class FlowEngine:
             return "", "recoger_has_name"
         return "", "recoger_no_name"
 
-    def _action_capture_address(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
+    def _action_handle_address_confirmation(
+        self,
+        wa_id: str,
+        text: str,
+    ) -> Tuple[str, Optional[str]]:
+
+        profile = self.user_service.get_profile(wa_id)
+        normalized = normalize_text(text)
+
+        if normalized == "confirm_address":
+            if profile.get("name"):
+                return "", "confirmed_has_name"
+            return "", "confirmed_no_name"
+
+        if normalized == "edit_address":
+            return "", "edit"
+
+        return "", None
+    
+
+    def _action_capture_address(
+        self,
+        wa_id: str,
+        text: str,
+    ) -> Tuple[str, Optional[str]]:
+
         state = self.state_manager.get(wa_id)
         node = self.nodes.get(state.get("step", ""), {})
-        profile = self.user_service.get_profile(wa_id)
-        saved = profile.get("address", "")
+
         address = text.strip()
-        if saved and is_confirmation(text):
-            address = saved
-        elif not address:
-            return "", None
+
+        if not address:
+            return self._resolve_ux_text(
+                "address_invalid",
+                node,
+            ), None
 
         self.user_service.save_address(wa_id, address)
-        self.state_manager.patch_data(wa_id, delivery_address=address)
+
+        self.state_manager.patch_data(
+            wa_id,
+            delivery_address=address,
+        )
+
         profile = self.user_service.get_profile(wa_id)
+
         if profile.get("name"):
             return "", "success_has_name"
-        return self._resolve_ux_text("address_saved", node), "success_no_name"
+
+        return self._resolve_ux_text(
+            "address_saved",
+            node,
+        ), "success_no_name"
 
     def _action_capture_customer_name(
         self, wa_id: str, text: str

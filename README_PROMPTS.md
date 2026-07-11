@@ -1,4 +1,4 @@
-## v1.78
+## v1.79
 
 
 
@@ -8957,6 +8957,14 @@ Se implementaron mejoras, actualmente se está desarrollando el nodo de direcci�
 
 
 ##################################################
+## v1.79
+
+
+Se implementó mejora en dirección de entrega
+
+
+
+##################################################3
 
 
 

@@ -5,7 +5,7 @@
       "nodes": {
 
         "home_node": {
-          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n¿Qué se te antoja hoy? *Selecciona 👇*",
+          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n👇 ¿Qué se te antoja hoy? *Selecciona*",
           "buttons": [
             {
               "title": "📖 Ver menú",
@@ -56,7 +56,7 @@
               "id": "pedido"
             }
           ],
-          "navigation_hint": "\n\n\nPulsa el botón \"*Hacer pedido*\" para comenzar. 👇",
+          "navigation_hint": "\n\n\n👇 Pulsa el botón \"*Hacer pedido*\" para comenzar.",
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n1️⃣ *Pedido* (haz tu pedido 🛍️)\n2️⃣ *Inicio* (volver al inicio 🏠)",
           "fallback_buttons": [
             {
@@ -88,7 +88,7 @@
       "nodes": {
 
         "order_start_node": {
-          "message": "🍽️ *Haz tu pedido*\n\n¿Qué te provoca hoy?\n\n💡 *Por ejemplo:*\n• 1 Bandeja paisa y 2 jugos naturales\n\n*Escribe tu pedido.* 👇",
+          "message": "🍽️ *Haz tu pedido*\n\n¿Qué te provoca hoy?\n\n💡 *Por ejemplo:*\n• 1 Bandeja paisa y 2 jugos naturales\n\n👇 *Escribe tu pedido.*",
           "action": "capture_order",
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
@@ -107,7 +107,7 @@
 
         "order_review_node": {
           "action": "show_cart",
-          "message_after_action": "\n\n*¿Alistamos tu pedido?* 👇",
+          "message_after_action": "\n\n👇 ¿*Alistamos tu pedido?*",
           "buttons": [
             {
               "title": "✅ Confirmar",
@@ -186,23 +186,35 @@
         },
 
         "order_address_node": {
-          "action": "capture_address",
-          "message": "📍 *Dirección de entrega*\n\n{{saved_address}}\n\n👇 Selecciona una opción o escribe una nueva dirección.",
+          "action": "handle_address_confirmation",
+          "message": "📍 *Dirección de entrega*\n\n{{saved_address}}\n\n👇 *Selecciona una opción.*",
           "buttons": [
             {
               "title": "✅ Confirmar",
-              "id": "confirmar"
+              "id": "confirm_address"
             },
             {
               "title": "✏️ Modificar",
-              "id": "modificar"
+              "id": "edit_address"
             }
           ],
-          "fallback": "Selecciona una opción o escribe una dirección válida.",
+          "fallback": "Selecciona una opción.",
           "input_mode": "free_text",
           "transitions": {
-            "confirmar": "order.order_saved_node",
-            "modificar": "order.order_customer_name_node"
+            "confirmed_has_name": "order.order_saved_node",
+            "confirmed_no_name": "order.order_customer_name_node",
+            "edit": "order.order_address_edit_node"
+          }
+        },
+
+        "order_address_edit_node": {
+          "action": "capture_address",
+          "message": "📍 *Escribe la dirección de entrega.*\n\nIncluye barrio, apartamento o cualquier referencia útil.\n\n👇 *Escribe tu dirección.*",
+          "fallback": "Necesito una dirección válida.",
+          "input_mode": "free_text",
+          "transitions": {
+            "success_has_name": "order.order_saved_node",
+            "success_no_name": "order.order_customer_name_node"
           }
         },
 
