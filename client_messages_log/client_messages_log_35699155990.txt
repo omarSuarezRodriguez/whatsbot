@@ -16786,3 +16786,46 @@ Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
 ⏳ *Estado:* Pendiente de confirmación.
 
 #################################################################
+################################################################
+
+Cliente: (vacío)
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: Cuéntelo
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################
+################################################################
+
+Cliente: 💬 Necesito ayuda
+
+
+-------------------------------
+
+Chatbot: 💬 *¿Necesitas ayuda?*
+
+En breve uno de nuestros asesores se pondrá en contacto contigo.
+
+--
+✅ *Escribe una opción:*
+
+👉 *Inicio* (volver al inicio 🏠)
+
+#################################################################
