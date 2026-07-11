@@ -1,4 +1,4 @@
-## v1.77
+## v1.78
 
 
 
@@ -8946,8 +8946,17 @@ Mejoras menores
 
 
 
-#######################################33
+#######################################
+## v1.78
 
+
+
+Se implementaron mejoras, actualmente se está desarrollando el nodo de dirección de entrega
+
+
+
+
+##################################################
 
 
 

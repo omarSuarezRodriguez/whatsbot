@@ -5,36 +5,36 @@
       "nodes": {
 
         "home_node": {
-          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n*¿Qué se te antoja hoy? 👇*",
+          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n¿Qué se te antoja hoy? *Selecciona 👇*",
           "buttons": [
             {
-              "title": "Ver menú 🍽️",
+              "title": "📖 Ver menú",
               "id": "productos"
             },
             {
-              "title": "Hacer pedido 🛒",
+              "title": "🍽️ Hacer pedido",
               "id": "pedido"
             }
           ],
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor selecciona una de estas opciones:",
           "fallback_buttons": [
             {
-              "id": "inicio",
-              "title": "Volver al inicio 🏠"
+              "title": "🏠 Volver al inicio",
+              "id": "inicio"
             },
             {
-              "id": "ayuda",
-              "title": "Necesito ayuda 💬"
+              "title": "💬 Necesito ayuda",
+              "id": "ayuda"
             }
           ],
           "options": {
-            "Ver menú 🍽️": "productos.productos_node",
+            "📖 Ver menú": "productos.productos_node",
             "productos": "productos.productos_node",
-            "Hacer pedido 🛒": "order.order_start_node",
+            "🍽️ Hacer pedido": "order.order_start_node",
             "pedido": "order.order_start_node",
-            "Volver al inicio 🏠": "home.home_node",
+            "🏠 Volver al inicio": "home.home_node",
             "inicio": "home.home_node",
-            "Necesito ayuda 💬": "ayuda.ayuda_node",
+            "💬 Necesito ayuda": "ayuda.ayuda_node",
             "ayuda": "ayuda.ayuda_node"
           }
         }
@@ -48,18 +48,36 @@
       "nodes": {
 
         "productos_node": {
-          "message": "🛒 *Nuestros productos*\n\nMira lo que tenemos disponible en *El Gran Motilón*: 👇\n",
+          "message": "📖 *Nuestro menú*\n\nDescubre nuestros platos preparados con el auténtico sabor colombiano. 🔥",
           "action": "show_productos",
+          "buttons": [
+            {
+              "title": "🍽️ Hacer pedido",
+              "id": "pedido"
+            }
+          ],
+          "navigation_hint": "\n\n\nPulsa el botón \"*Hacer pedido*\" para comenzar. 👇",
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n1️⃣ *Pedido* (haz tu pedido 🛍️)\n2️⃣ *Inicio* (volver al inicio 🏠)",
-          "navigation_hint": "\n\n\n--\n✅ *Escribe un número:*\n\n1️⃣ *Pedido* (haz tu pedido 🛍️)\n2️⃣ *Inicio* (volver al inicio 🏠)",
+          "fallback_buttons": [
+            {
+              "title": "🏠 Volver al inicio",
+              "id": "inicio"
+            },
+            {
+              "title": "💬 Necesito ayuda",
+              "id": "ayuda"
+            }
+          ],
+          
           "intercept_products": true,
 
           "options": {
-            "1": "order.order_start_node",
+            "🛍️ Hacer pedido": "order.order_start_node",
             "pedido": "order.order_start_node",
-
-            "2": "home.home_node",
-            "inicio": "home.home_node"
+            "🏠 Volver al inicio": "home.home_node",
+            "inicio": "home.home_node",
+            "💬 Necesito ayuda": "ayuda.ayuda_node",
+            "ayuda": "ayuda.ayuda_node"
           }
         }
 
@@ -70,7 +88,7 @@
       "nodes": {
 
         "order_start_node": {
-          "message": "🛍️ *Haz tu pedido*\n\n💡 Escribe los productos que deseas comprar y la cantidad de cada uno.\n\n💡 *Por ejemplo:*\n- 2 Coca-Cola 1.5 L\n- 1 Arroz Diana 500g\n- 3 Chocolatinas Jet\n\n💡 *También puedes escribir todo en un solo mensaje:*\n2 Coca-Cola, 1 Arroz Diana y 3 Chocolatinas Jet",
+          "message": "🍽️ *Haz tu pedido*\n\n¿Qué te provoca hoy?\n\n💡 *Por ejemplo:*\n• 1 Bandeja paisa y 2 jugos naturales\n\n*Escribe tu pedido.* 👇",
           "action": "capture_order",
           "fallback": "No logré identificar productos. Describe tu pedido, ej: *2 pizzas y 1 agua*.",
           "input_mode": "free_text",
@@ -84,12 +102,22 @@
           "capture_order_all_unknown": "No pude identificar ninguno de estos productos:\n*{{unknown_list}}*\n\nIntenta escribirlos de otra forma o consulta nuestra lista con *Productos*.",
           "capture_order_partial": "✅ Guardé estos productos:\n{{recognized}}\n\nNo pude identificar: *{{unknown_list}}*\n\n¿Cómo se llama el primer producto que falta?",
 
-          "navigation_hint": "\n\n\n--\n✅ *Escribe tu pedido:*"
+          "navigation_hint": ""
         },
 
         "order_review_node": {
           "action": "show_cart",
-          "message_after_action": "\n\n\n--\n✅ ¿Alistamos tu pedido? *Escribe una opción*:\n\n👉 *Confirmar* (confirma tu pedido 🛍️)\n👉 *Modificar* (modifica tu pedido ✏️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
+          "message_after_action": "\n\n*¿Alistamos tu pedido?* 👇",
+          "buttons": [
+            {
+              "title": "✅ Confirmar",
+              "id": "confirmar"
+            },
+            {
+              "title": "✏️ Modificar",
+              "id": "modificar"
+            }
+          ],
           "fallback": "Responde *sí* para confirmar o *no* para modificar tu pedido.",
           "action_on_input": "handle_order_confirmation",
           "input_mode": "free_text",
@@ -97,6 +125,10 @@
             "empty_cart": "order.order_start_node",
             "confirmed": "order.order_delivery_node",
             "rejected": "order.order_modify_node"
+          },
+          "options": {
+            "✅ Confirmar": "order.order_start_node",
+            "✏️ Modificar": "home.home_node"
           }
         },
 
@@ -133,7 +165,17 @@
 
         "order_delivery_node": {
           "action": "capture_delivery_type",
-          "message": "🚚 ¿Cómo deseas recibir tu pedido?\n\nElige la opción que prefieras.\n\n--\n✅ *Escribe una opción*\n\n👉 *Domicilio* (recibe en casa 🏠)\n👉 *Recoger* (recoger en tienda 🛍️)",
+          "message": "🚚 *¿Cómo prefieres recibir tu pedido?*\n\n👇 *Selecciona* una opción.",
+          "buttons": [
+            {
+              "title": "🏠 Domicilio",
+              "id": "domicilio"
+            },
+            {
+              "title": "🏪 Recoger",
+              "id": "recoger"
+            }
+          ],
           "fallback": "Responde *1* o *domicilio*, o *2* o *recoger*.",
           "input_mode": "free_text",
           "transitions": {
@@ -145,12 +187,22 @@
 
         "order_address_node": {
           "action": "capture_address",
-          "message": "{{address_prompt}}",
-          "fallback": "Necesito una dirección válida. Escríbela o responde *sí* para usar la guardada.",
+          "message": "📍 *Dirección de entrega*\n\n{{saved_address}}\n\n👇 Selecciona una opción o escribe una nueva dirección.",
+          "buttons": [
+            {
+              "title": "✅ Confirmar",
+              "id": "confirmar"
+            },
+            {
+              "title": "✏️ Modificar",
+              "id": "modificar"
+            }
+          ],
+          "fallback": "Selecciona una opción o escribe una dirección válida.",
           "input_mode": "free_text",
           "transitions": {
-            "success_has_name": "order.order_saved_node",
-            "success_no_name": "order.order_customer_name_node"
+            "confirmar": "order.order_saved_node",
+            "modificar": "order.order_customer_name_node"
           }
         },
 
@@ -271,7 +323,7 @@
     "address_saved": "Gracias. Guardé tu dirección.",
     "empty_cart_message": "Tu carrito está vacío. Cuéntame qué te gustaría pedir.",
     "capture_order_empty": "Aún no tengo productos en tu pedido.\n\nCuéntame qué te gustaría ordenar.",
-    "capture_order_success": "🛍️ *Tu pedido:*\n\n",
+    "capture_order_success": "🍽️  *Tu pedido:*\n\n",
     "clarify_unknown_prompt": "No reconocí *{{unknown_item}}*. ¿Cómo se llama exactamente? Escribe *omitir* para saltarlo.",
     "clarify_resolved_all": "¡Listo! Todos los productos quedaron identificados. 🛍️",
     "disambiguate_prompt": "Encontré varias opciones para *{{segment}}*:\n{{candidates_list}}\n\nEscribe el número o nombre de tu elección.",
@@ -297,6 +349,6 @@
     "save_reserva_success": "Reserva *{{reserva_id}}* confirmada.",
     "productos_empty": "Por el momento no tenemos productos disponibles. Intenta más tarde.",
     "productos_category_header": "\n\n*{{category}}*",
-    "productos_item_line": "\n- {{name}} - ${{price}}"
+    "productos_item_line": "\n• {{name}} - *${{price}}*"
   }
 }

@@ -116,12 +116,15 @@ class FlowEngine:
 
     def get_current_buttons(self, wa_id: str) -> list[dict]:
         state = self.state_manager.get(wa_id)
+        print("STEP:", state.get("step"))
         current_step = state.get("step")
 
         if not current_step:
             return []
 
         node = self.nodes.get(current_step, {})
+        print("NODE:", node.keys())
+        print("BUTTONS:", node.get("buttons"))
         response_type = state.get("data", {}).get("response_type", "normal")
 
         if response_type == "fallback":
@@ -189,7 +192,7 @@ class FlowEngine:
             )
         except Exception:
             biz_name = RESTAURANT_NAME
-        context = {"restaurant_name": biz_name, "welcome_line": "", "address_prompt": ""}
+        context = {"restaurant_name": biz_name}
         if extra:
             context.update(extra)
         rendered = template
@@ -755,19 +758,11 @@ class FlowEngine:
             {"name": name},
         )
 
-        node = self.nodes.get(step, {})
-        saved_address = profile.get("address", "")
-        if saved_address:
-            address_prompt = self._render(
-                self._resolve_ux_text("address_prompt_saved", node),
-                {"saved_address": saved_address},
-            )
-        else:
-            address_prompt = self._resolve_ux_text("address_prompt", node)
+        
         state_data = self.state_manager.get(wa_id).get("data", {})
         return {
             "welcome_line": welcome,
-            "address_prompt": address_prompt,
+            "saved_address": profile.get("address", ""),
             "order_id": str(state_data.get("order_id", "")),
             "total": str(state_data.get("total", "")),
             "delivery_address": str(state_data.get("delivery_address", "")),
