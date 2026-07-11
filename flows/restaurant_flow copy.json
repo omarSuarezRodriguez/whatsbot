@@ -5,41 +5,22 @@
       "nodes": {
 
         "home_node": {
-          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n*¿Qué se te antoja hoy? 👇*",
-          "buttons": [
-            {
-              "title": "Ver menú 🍽️",
-              "id": "productos"
-            },
-            {
-              "title": "Hacer pedido 🛒",
-              "id": "pedido"
-            }
-          ],
-          "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor selecciona una de estas opciones:",
-          "fallback_buttons": [
-            {
-              "id": "inicio",
-              "title": "Volver al inicio 🏠"
-            },
-            {
-              "id": "ayuda",
-              "title": "Necesito ayuda 💬"
-            }
-          ],
+          "message": "👋 *Bienvenido a El Gran Motilón* 🏹\n\nTu mercado de confianza, donde encuentras lo mejor en alimentos, aseo y hogar 🍗🧼🏠\n\n--\n✅ Qué necesitas en casa hoy? *Escribe un número:*\n\n1️⃣ *Productos* (ver productos 🛒)\n2️⃣ *Pedido* (haz tu pedido 🛍️)\n3️⃣ *Ayuda* (resuelve dudas 💬)",
+          "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n1️⃣ *Productos* (ver productos 🛒)\n2️⃣ *Pedido* (haz tu pedido 🛍️)\n3️⃣ *Ayuda* (resuelve dudas 💬)",
+          "intercept_products": true,
+
           "options": {
-            "Ver menú 🍽️": "productos.productos_node",
+            "1": "productos.productos_node",
             "productos": "productos.productos_node",
-            "Hacer pedido 🛒": "order.order_start_node",
+
+            "2": "order.order_start_node",
             "pedido": "order.order_start_node",
-            "Volver al inicio 🏠": "home.home_node",
-            "inicio": "home.home_node",
-            "Necesito ayuda 💬": "ayuda.ayuda_node",
+
+            "3": "ayuda.ayuda_node",
             "ayuda": "ayuda.ayuda_node"
           }
+          
         }
-
-
 
       }
     },

@@ -74,6 +74,14 @@ def handle_incoming_message(payload: dict) -> dict:
         or ""
     )
     body = payload.get("message") or payload.get("body") or metadata.get("Body") or ""
+    button_payload = (
+        payload.get("button_payload")
+        or metadata.get("ButtonPayload")
+        or ""
+    )
+
+    user_input = button_payload or body
+
     profile_name = (
         payload.get("profile_name")
         or metadata.get("ProfileName")
@@ -113,6 +121,7 @@ def handle_incoming_message(payload: dict) -> dict:
     is_admin = False
     blocked = False
     reply: Reply = ""
+    buttons = []
 
     try:
         with business_scope(business_id):
@@ -135,7 +144,11 @@ def handle_incoming_message(payload: dict) -> dict:
                 reply = ""
             else:
                 user_service.touch(wa_id=wa_id, name=profile_name)
-                reply = flow_engine.process_message(wa_id=wa_id, body=body)
+                reply = flow_engine.process_message(
+                    wa_id=wa_id,
+                    body=user_input,
+                )
+                buttons = flow_engine.get_current_buttons(wa_id)
             reply = _normalize_reply(reply)
     except Exception:
         logger.exception("Gateway error processing message for wa_id=%s", wa_id)
@@ -159,5 +172,5 @@ def handle_incoming_message(payload: dict) -> dict:
         "timestamp": timestamp,
         "deliver_via_rest": use_rest_webhook_replies(),
         "media": None,
-        "actions": [],
+        "actions": buttons,
     }

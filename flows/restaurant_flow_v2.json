@@ -1,0 +1,44 @@
+{
+    "states": {
+
+        "home": {
+            "nodes": {
+
+                "home_node": {
+                    "message": "👋 *Bienvenido a El Gran Motilón* 🏹\n\n¿Qué deseas hacer?",
+                    "buttons": [
+                        {
+                            "id": "productos",
+                            "title": "🛒 Productos"
+                        },
+                        {
+                            "id": "pedido",
+                            "title": "🛍️ Pedido"
+                        },
+                        {
+                            "id": "ayuda",
+                            "title": "💬 Ayuda"
+                        }
+                    ],
+                    "options": {
+                        "productos": "home.home_node",
+                        "pedido": "home.home_node",
+                        "ayuda": "home.home_node"
+                    }
+                }
+
+
+            }
+        }
+
+
+
+    },
+
+
+    "meta": {
+        "global_commands": {
+            "inicio": "home.home_node"
+        }
+    }
+}

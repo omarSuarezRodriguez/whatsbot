@@ -150,6 +150,7 @@ async def twilio_whatsapp_webhook(
     )
 
     response_text = result.get("response_text", "")
+    actions = result.get("actions", [])
     reply_wa_id = result.get("wa_id") or incoming_wa
     is_admin = bool(result.get("is_admin"))
     blocked = bool(result.get("blocked"))
@@ -178,7 +179,12 @@ async def twilio_whatsapp_webhook(
     if response_text and reply_wa_id:
         admin = get_bot_context(start_background=False).admin_service
         recipient = admin._format_whatsapp_address(reply_wa_id) or from_number or reply_wa_id
-        twiml = deliver_reply(recipient, response_text, use_rest=use_rest)
+        twiml = deliver_reply(
+            recipient,
+            response_text,
+            use_rest=use_rest,
+            actions=actions,
+        )
 
     elapsed_ms = (time.perf_counter() - started) * 1000
     logger.info(

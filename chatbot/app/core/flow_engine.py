@@ -114,6 +114,21 @@ class FlowEngine:
     def reload_flow(self) -> None:
         self._apply_flow(self._load_flow())
 
+    def get_current_buttons(self, wa_id: str) -> list[dict]:
+        state = self.state_manager.get(wa_id)
+        current_step = state.get("step")
+
+        if not current_step:
+            return []
+
+        node = self.nodes.get(current_step, {})
+        response_type = state.get("data", {}).get("response_type", "normal")
+
+        if response_type == "fallback":
+            return node.get("fallback_buttons", node.get("buttons", []))
+
+        return node.get("buttons", [])
+
     @staticmethod
     def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
         states = raw.get("states")
@@ -256,11 +271,16 @@ class FlowEngine:
 
 
     def _resolve_ux_text(self, meta_key: str, node: Dict[str, Any]) -> str:
+        if meta_key in node:
+            return str(node[meta_key])
+
         if meta_key in self.meta:
             return str(self.meta[meta_key])
+
         fallback = node.get("fallback")
         if fallback:
             return str(fallback)
+
         return _SYSTEM_TECHNICAL_FALLBACK
 
     @staticmethod
@@ -444,6 +464,10 @@ class FlowEngine:
         if normalized == "pedid":
             normalized = "pedido"
         state = self.state_manager.get(wa_id)
+        self.state_manager.patch_data(
+            wa_id,
+            response_type="normal",
+        )
         _, default_step = self._parse_ref(self._start_ref(), "idle")
         current_step = state.get("step") or default_step
 
@@ -480,8 +504,18 @@ class FlowEngine:
         if normalized not in options:
             return None
         next_ref = options[normalized]
+
         if self._should_self_loop_fallback(next_ref, current_step, node, state):
-            return self._append_navigation(self._node_fallback_message(node), node)
+            self.state_manager.patch_data(
+                wa_id,
+                response_type="fallback",
+            )
+
+            return self._append_navigation(
+                self._node_fallback_message(node),
+                node,
+            )
+        
         abandon = self._prompt_abandon_if_leaving(
             wa_id,
             state,
@@ -639,7 +673,15 @@ class FlowEngine:
         if response is not None:
             return response
 
-        return self._append_navigation(self._node_fallback_message(node), node)
+        self.state_manager.patch_data(
+            wa_id,
+            response_type="fallback",
+        )
+
+        return self._append_navigation(
+            self._node_fallback_message(node),
+            node,
+        )
 
     def _process_node(
         self,

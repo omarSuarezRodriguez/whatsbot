@@ -116,3 +116,11 @@ Todo es configurable mediante datos.
 
 - Requerimientos no funcionales (seguridad, rendimiento, monitoreo, etc.).
 - Nuevas funcionalidades (categorías, pagos, reportes, etc.).
+
+
+
+
+
+
+
+- TECH-DEBT: Migrar show_productos de menú textual dinámico a lista interactiva nativa de WhatsApp, manteniendo fallback textual.

@@ -1,4 +1,4 @@
-## v1.76
+## v1.77
 
 
 
@@ -8936,3 +8936,20 @@ navigation_hint en productos_node, order_start_node, order_modify_node intactos 
 
 
 ###################################################################
+## v1.77
+
+
+Mejoras menores
+
+
+
+
+
+
+#######################################33
+
+
+
+
+
+

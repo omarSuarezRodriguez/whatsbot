@@ -28,3 +28,8 @@ whatsbot_app/ios/Runner/GoogleService-Info.plist
 .vscode/
 .DS_Store
 Thumbs.db
+
+
+
+# Others
+test_botones.py
