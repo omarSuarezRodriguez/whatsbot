@@ -1,4 +1,4 @@
-## v1.84
+## v1.85
 
 
 
@@ -9429,6 +9429,149 @@ Validador de flujo: sin errores nuevos (la nueva acción no tiene transitions, e
 
 
 ###############################################
+## v1.85
+
+Lee y respeta completamente ARCHITECTURE_LAW.md(raiz del proyecto)
+
+Quiero agregar soporte para abrir un WhatsApp Flow desde un nodo del FlowEngine.
+
+NO quiero reemplazar el chatbot.
+
+NO quiero migrar el sistema a WhatsApp Flows.
+
+NO quiero modificar la arquitectura existente.
+
+Quiero una implementación incremental y con los mínimos cambios posibles.
+
+El FlowEngine seguirá siendo el motor principal.
+
+================================
+
+OBJETIVO
+
+Agregar un nuevo tipo de nodo que permita abrir un WhatsApp Flow.
+
+El nodo se llamará:
+
+productos_whatsapp_flow_button_node
+
+Ese nodo existirá dentro de restaurant_flow.json igual que cualquier otro nodo.
+
+Debe tener una action específica (la que consideres más adecuada) que únicamente indique al motor que debe abrir un WhatsApp Flow.
+
+No quiero lógica de negocio en el JSON.
+
+Solo quiero que el JSON declare la intención y el motor la ejecute.
+
+================================
+
+COMPORTAMIENTO
+
+Cuando el usuario llegue a:
+
+productos_whatsapp_flow_button_node
+
+el sistema debe enviar un WhatsApp Flow.
+
+Ese Flow será independiente del FlowEngine.
+
+El Flow únicamente permitirá:
+
+- navegar por todas las categorías
+- navegar por todos los productos
+- seleccionar UN SOLO producto
+
+Nada más.
+
+Cuando el usuario seleccione un producto:
+
+WhatsApp devolverá ese producto al webhook.
+
+El Flow terminará.
+
+El gateway entregará el nombre del producto al FlowEngine exactamente igual que si el usuario lo hubiera escrito manualmente.
+
+A partir de ese momento NO cambia absolutamente nada.
+
+Debe continuar exactamente el flujo actual:
+
+Parser
+↓
+
+capture_order()
+
+↓
+
+order_review_node
+
+↓
+
+"¿Deseas agregar otro producto?"
+
+Si el usuario responde "Sí", volverá al flujo actual ya existente.
+
+NO quiero seleccionar varios productos dentro del WhatsApp Flow.
+
+Solo uno.
+
+================================
+
+ARQUITECTURA
+
+Respetar completamente ARCHITECTURE_LAW.md.
+
+Mantener:
+
+- restaurant_flow.json
+- FlowEngine
+- Parser
+- OrderService
+- ProductosService
+- StateManager
+
+No romper ninguna funcionalidad existente.
+
+No cambiar el flujo actual de pedidos.
+
+El soporte para WhatsApp Flow debe ser una capacidad adicional del motor.
+
+No una sustitución.
+
+================================
+
+IMPLEMENTACIÓN
+
+Antes de escribir código:
+
+1. Analiza todo el proyecto.
+2. Analiza la documentación oficial vigente de WhatsApp Flows y Twilio.
+3. Diseña la integración con cambios mínimos.
+4. Indica exactamente qué archivos modificarás.
+5. Explica por qué cada cambio es necesario.
+
+NO hagas cambios todavía.
+
+Termina únicamente con:
+
+"Escribe OK para implementar la integración."
+
+Cuando responda únicamente "OK":
+
+- implementa toda la funcionalidad;
+- respeta ARCHITECTURE_LAW.md;
+- modifica únicamente lo indispensable;
+- reutiliza al máximo la arquitectura existente;
+- verifica que todo compile;
+- realiza una comprobación del flujo completo;
+- confirma que el nuevo nodo abre el WhatsApp Flow y que, al seleccionar un producto, el FlowEngine continúa exactamente igual que antes.
+
+
+
+
+
+
+
+##############################################
 
 
 
