@@ -28,3 +28,31 @@ Cuando quieras, escribe *pedido* para ordenar o *reservar* para agendar tu mesa.
 Escribe *inicio* para volver al inicio
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+
+👇 Selecciona una categoría de la lista.
+
+#################################################################

@@ -208,6 +208,40 @@ def send_whatsapp_list(
     )
 
 
+_LIST_PAGE_SIZE = 10
+_LIST_DATA_PER_PAGE = 8  # fixed stride; reserves room for both nav buttons (10 - 2 = 8)
+
+
+def _paginate_rows(
+    all_items: list[dict[str, Any]],
+    page: int,
+    page_size: int = _LIST_PAGE_SIZE,
+) -> list[dict[str, Any]]:
+    """
+    Generic paginator for WhatsApp List Picker.
+    Inserts __prev__ / __next__ navigation items respecting the page_size limit.
+    ponytail: fixed 8-item stride so page boundaries never overlap regardless of
+    which nav buttons are shown.  ceiling: page 0 and last page may show fewer
+    than 8 data items (normal for small/remainder slices).
+    """
+    total = len(all_items)
+    if total <= page_size:
+        return list(all_items)
+
+    start = page * _LIST_DATA_PER_PAGE
+    chunk = all_items[start: start + _LIST_DATA_PER_PAGE]
+    has_prev = page > 0
+    has_next = start + _LIST_DATA_PER_PAGE < total
+
+    rows: list[dict[str, Any]] = []
+    if has_prev:
+        rows.append({"id": "__prev__", "title": "⬅️ Anterior", "description": ""})
+    rows.extend(chunk)
+    if has_next:
+        rows.append({"id": "__next__", "title": "➡️ Siguiente", "description": ""})
+    return rows
+
+
 def deliver_reply(
     recipient: str,
     reply: Reply,
@@ -232,25 +266,49 @@ def deliver_reply(
     # RESPUESTA CON LISTA
     # --------------------------------------------------------
 
-    if interactive_list.get("source") == "menu":
+    source = interactive_list.get("source")
+    page = int(interactive_list.get("page", 0))
+
+    if source in ("menu", "categories", "category_products"):
 
         from chatbot.runtime import get_bot_context
         from app.core.parser import OrderParser
 
-        productos = (
-            get_bot_context(start_background=False)
-            .productos_service
-            .get_available_productos()
-        )
+        svc = get_bot_context(start_background=False).flow_engine.productos_service
+        rows: list[dict[str, Any]] = []
 
-        rows = [
-            {
-                "id": str(p["id"]),
-                "title": p["nombre"][:24],  # Twilio limit: 24 chars
-                "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
-            }
-            for p in productos
-        ][:10]  # Twilio limit: max 10 items
+        if source == "menu":
+            productos = svc.get_available_productos()
+            all_items = [
+                {
+                    "id": str(p["id"]),
+                    "title": p["nombre"][:24],
+                    "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
+                }
+                for p in productos
+            ]
+            rows = _paginate_rows(all_items, page)
+
+        elif source == "categories":
+            categories = svc.get_categories()
+            all_items = [
+                {"id": f"__cat__{cat}", "title": cat[:24], "description": ""}
+                for cat in categories
+            ]
+            rows = _paginate_rows(all_items, page)
+
+        elif source == "category_products":
+            category = interactive_list.get("category", "")
+            productos = svc.get_products_by_category(category)
+            all_items = [
+                {
+                    "id": str(p["id"]),
+                    "title": p["nombre"][:24],
+                    "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
+                }
+                for p in productos
+            ]
+            rows = _paginate_rows(all_items, page)
 
         if rows:
             body = "\n".join(parts)[:1024]  # Twilio limit: 1024 chars

@@ -56,7 +56,7 @@
               "id": "pedido"
             }
           ],
-          "navigation_hint": "\n\n\n👇 Pulsa el botón \"*Hacer pedido*\" para comenzar.",
+          "navigation_hint": "\n\n\n👇 Selecciona una categoría de la lista.",
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n1️⃣ *Pedido* (haz tu pedido 🛍️)\n2️⃣ *Inicio* (volver al inicio 🏠)",
           "fallback_buttons": [
             {
@@ -68,9 +68,11 @@
               "id": "ayuda"
             }
           ],
-          
+
           "intercept_products": true,
-          "list": {"source": "menu"},
+          "list": {"source": "categories"},
+          "list_navigation": true,
+          "list_category_target": "productos.productos_category_node",
 
           "options": {
             "🛍️ Hacer pedido": "order.order_start_node",
@@ -78,6 +80,28 @@
             "🏠 Volver al inicio": "home.home_node",
             "inicio": "home.home_node",
             "💬 Necesito ayuda": "ayuda.ayuda_node",
+            "ayuda": "ayuda.ayuda_node"
+          }
+        },
+
+        "productos_category_node": {
+          "message": "👇 Selecciona un producto.",
+          "action": "show_category_products",
+          "list": {"source": "category_products"},
+          "list_navigation": true,
+          "intercept_products": true,
+          "suppress_navigation": true,
+          "fallback": "Selecciona un producto de la lista, o escribe *inicio* para volver al menú.",
+          "fallback_buttons": [
+            {
+              "title": "🏠 Volver al inicio",
+              "id": "inicio"
+            }
+          ],
+          "options": {
+            "inicio": "home.home_node",
+            "🏠 Volver al inicio": "home.home_node",
+            "pedido": "order.order_start_node",
             "ayuda": "ayuda.ayuda_node"
           }
         }

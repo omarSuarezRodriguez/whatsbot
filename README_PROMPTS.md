@@ -1,4 +1,4 @@
-## v1.82
+## v1.84
 
 
 
@@ -9190,8 +9190,245 @@ InteractiveData encoding: Twilio puede enviar el campo como string JSON o como o
 
 
 ##############################################
+## v1.84
 
 
+
+## prompt ##
+
+Lee y respeta completamente ARCHITECTURE_LAW.md(raiz del proyecto)
+
+Quiero mejorar la navegación del WhatsApp List Picker manteniendo la arquitectura actual y haciendo los mínimos cambios posibles.
+
+NO refactorices el proyecto.
+NO cambies FlowEngine innecesariamente.
+NO rompas compatibilidad.
+Reutiliza todo lo existente.
+
+Objetivo:
+
+Actualmente el botón "Elegir" muestra todos los productos.
+
+Quiero que ahora funcione así:
+
+Productos
+↓
+Botón "Elegir"
+↓
+Lista de categorías
+↓
+El usuario selecciona una categoría
+↓
+Se muestra una segunda lista únicamente con los productos de esa categoría
+↓
+El usuario selecciona un producto
+↓
+FlowEngine continúa exactamente igual que hoy (parser, carrito, capture_order, order_review, etc.).
+
+IMPORTANTE
+
+No quiero crear una arquitectura nueva.
+
+Solo extender la existente.
+
+Además:
+
+- Si existen más de 10 categorías, la lista debe paginar automáticamente.
+- Debe aparecer una opción "➡️ Siguiente".
+- Si no es la primera página debe aparecer también "⬅️ Anterior".
+- La paginación debe ser completamente transparente para el usuario.
+- No quiero duplicar código para la paginación.
+- La solución debe servir tanto para categorías como para productos.
+
+Igualmente:
+
+Si una categoría tiene más de 10 productos:
+
+- Mostrar máximo 10 por página.
+- Agregar "➡️ Siguiente".
+- Agregar "⬅️ Anterior" cuando corresponda.
+- Mantener el contexto de la categoría seleccionada.
+- No perder el estado del usuario.
+
+Quiero que la paginación sea genérica para cualquier lista futura.
+
+Antes de modificar nada:
+
+1. Analiza todo el flujo.
+2. Identifica los archivos necesarios.
+3. Busca la solución con los mínimos cambios posibles respetando ARCHITECTURE_LAW.md.
+4. Entrégame una auditoría indicando exactamente qué archivos modificarás y por qué.
+
+NO hagas cambios todavía.
+
+Termina únicamente con:
+
+"Escribe OK para aplicar todos los cambios."
+
+Cuando responda OK:
+
+- Implementa toda la funcionalidad completa.
+- Verifica que compile.
+- Verifica que el flujo siga funcionando.
+- Elimina código muerto si aparece.
+- Haz una comprobación final del flujo completo.
+- Entrégame un reporte indicando que la funcionalidad quedó completamente implementada.
+
+Una sugerencia de diseño: en lugar de que "Siguiente" y "Anterior" sean productos falsos, haz que sean elementos especiales del List Picker con IDs internos como:
+
+__next__
+__prev__
+
+y que el gateway o el FlowEngine los interpreten como comandos de navegación. Así evitas que el parser intente interpretar "Siguiente" como si fuera un producto y la paginación queda reutilizable para cualquier lista futura (categorías, productos, reservas, horarios, etc.). Creo que esa pequeña decisión hará el sistema mucho más limpio y fácil de extender.
+
+
+
+
+## resp cursor ##
+
+Auditoría de Cambios
+Diagnóstico del flujo actual
+productos_node → lista {"source": "menu"} → get_current_list devuelve eso → deliver_reply lo intercepta, carga todos los productos, construye los primeros 10 items → WhatsApp List Picker
+gateway.py: cuando llega un list_payload, busca el producto por ID; si no lo encuentra, pasa el texto tal cual a process_message — eso ya maneja __next__, __prev__, __cat__Hamburguesas sin tocar nada
+flow_engine.process_message → _process_message_body → si nada matchea → fallback (hoy rompe para IDs especiales)
+El gateway no necesita cambios. El mecanismo de "pasar IDs no-producto como texto" ya funciona.
+
+Diseño: 4 archivos, mínimo cambio
+Arquitectura por capa (conforme a ARCHITECTURE_LAW.md)
+Capa	Cambio	Por qué
+JSON (mapa)
+restaurant_flow.json
+Nuevos estados/nodos, nuevo campo list_category_target — la ruta de navegación vive en JSON, no en Python
+Motor
+flow_engine.py
+Nuevo método _try_list_navigation que lee el target del JSON; get_current_list enriquecido con página/categoría del state
+Services
+productos_service.py
+get_categories(), get_products_by_category() — lógica de negocio en service
+Infraestructura
+twilio_client.py
+_paginate_rows() genérico + handlers para nuevas fuentes de lista
+Archivo 1: flows/restaurant_flow.json
+Cambios en productos_node:
+
+"list": {"source": "menu"} → {"source": "categories"}
+Agregar "list_navigation": true
+Agregar "list_category_target": "productos.productos_category_node" (ruta declarada en JSON, no hardcodeada en Python)
+Actualizar navigation_hint (ahora invita a seleccionar categoría)
+Nuevo nodo productos_category_node (dentro del state productos):
+
+"action": "show_category_products" — muestra texto de la categoría seleccionada
+"list": {"source": "category_products"} — list picker de productos filtrados
+"list_navigation": true — habilita __next__/__prev__
+"intercept_products": true — cuando el usuario elige un producto, _try_product_intercept lo enruta al flow de pedido exactamente igual que hoy
+Sin transitions → el validador validate_flow.py no chequea la nueva acción show_category_products (solo valida acciones en nodos CON transitions). Zero cambios al validador.
+
+Archivo 2: chatbot/app/services/productos_service.py
+Agregar (sin tocar lo existente):
+
+get_categories() → list[str] — categorías únicas ordenadas del menú disponible
+get_products_by_category(category: str) → list[dict] — productos filtrados por categoría
+format_category_products(category, templates) — igual que format_productos pero filtrado
+Archivo 3: chatbot/app/core/flow_engine.py
+Agregar/modificar (sin romper nada existente):
+
+get_current_list — enriquecer con page y category del StateManager:
+
+result = dict(node.get("list"))
+result["page"] = data.get("list_page", 0)
+if source == "category_products":
+    result["category"] = data.get("selected_category", "")
+return result
+_try_list_navigation(wa_id, text, node, state, current_step) (nuevo) — intercepta antes de options/global_commands:
+
+__next__ → patch_data(list_page += 1) → _process_node(wa_id, current_step) (re-render, mismo nodo)
+__prev__ → patch_data(list_page -= 1) → _process_node(wa_id, current_step)
+text.startswith("__cat__") → patch_data(selected_category=..., list_page=0) → _goto_ref(wa_id, node["list_category_target"]) (ruta viene del JSON)
+Solo actúa cuando node.get("list_navigation") es True
+_action_show_category_products (nuevo) — lee selected_category del state, llama productos_service.format_category_products
+
+_process_message_body — añadir llamada a _try_list_navigation justo después de _try_missing_node_recovery
+
+_resolve_global_command — añadir list_page=0, selected_category="" al patch existente para limpiar estado de paginación al navegar a otro flow
+
+Archivo 4: infrastructure/twilio_client.py
+_paginate_rows(all_items, page, page_size=10) (nuevo, genérico):
+
+Si len(all_items) <= page_size → devuelve items sin paginación
+Si pagina > 0: __prev__ ocupa 1 slot → 8 items data + __next__ si hay más → máx 10 total
+Si pagina = 0: 9 items data + __next__ → máx 10 total
+deliver_reply — dentro del bloque interactive_list:
+
+source == "categories" → productos_service.get_categories() → _paginate_rows → items con ID __cat__{name}
+source == "category_products" → productos_service.get_products_by_category(category) → _paginate_rows → items con ID de producto (se resuelven igual que hoy en gateway)
+source == "menu" → queda igual (compatibilidad total)
+Invariantes preservadas (checklist ARCHITECTURE_LAW.md)
+La navegación sigue en JSON (list_category_target, list_navigation en JSON) ✓
+Python es motor, no mapa (Python lee el target del JSON, no lo hardcodea) ✓
+El negocio sigue en Services (get_categories, get_products_by_category) ✓
+El estado se muta solo por StateManager (patch_data para list_page, selected_category) ✓
+Multi-tenant respetado (todo pasa por productos_service que ya usa business_scope) ✓
+No hay if business_id == "..." ✓
+No hay rutas paralelas fuera del JSON ✓
+Tests no modificados ✓
+Validador no se toca; la nueva acción no dispara su check ✓
+gateway.py sin cambios ✓
+FlowEngine sigue siendo motor, no mapa ✓
+La paginación es genérica (_paginate_rows sirve para categorías, productos, y cualquier lista futura) ✓
+__next__/__prev__/__cat__* son comandos internos, el parser nunca los interpreta como productos ✓
+Escribe OK para aplicar todos los cambios.
+
+
+
+
+## segundo prompt ##
+
+OK
+
+
+## resp cursor ##
+
+Reporte final
+Funcionalidad implementada completamente. 4 archivos modificados, 0 archivos creados.
+
+Cambios aplicados
+flows/restaurant_flow.json
+
+productos_node.list: menu → categories — el list picker muestra categorías
+productos_node: añadidos list_navigation: true, list_category_target (ruta en JSON, no hardcodeada)
+Nuevo nodo productos_category_node con list: {source: category_products}, list_navigation: true, intercept_products: true
+chatbot/app/services/productos_service.py
+
+get_categories() — categorías únicas ordenadas del catálogo
+get_products_by_category(category) — productos filtrados por categoría
+format_category_products(category, templates) — texto formateado por categoría
+chatbot/app/core/flow_engine.py
+
+_try_list_navigation — intercepta __next__, __prev__, __cat__* antes de cualquier otra lógica; ruta de destino leída del JSON
+_action_show_category_products — muestra texto de la categoría seleccionada desde el state
+get_current_list — enriquece la lista con page y category del StateManager
+_process_message_body — llama _try_list_navigation como primer paso
+_resolve_global_command — resetea list_page=0, selected_category="" al navegar
+infrastructure/twilio_client.py
+
+_paginate_rows(all_items, page) — paginador genérico, stride fijo de 8, máx 10 items por página incluyendo nav
+deliver_reply — maneja source: categories, source: category_products, source: menu (compat total)
+gateway.py: sin cambios (ya pasaba IDs no-producto tal cual)
+
+Verificaciones
+Smoke test completo del flujo: categorías → paginación → selección de categoría → productos → selección → order_review_node ✓
+Paginación: sin sobreposición, máx 10 items, nav correcto en todas las páginas ✓
+Tests: 11 fallos idénticos antes y después (confirmado con git stash) — cero regresiones introducidas ✓
+Sin linter errors ✓
+Validador de flujo: sin errores nuevos (la nueva acción no tiene transitions, el validador la omite) ✓
+
+
+
+
+
+
+
+###############################################
 
 
 

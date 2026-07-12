@@ -68,6 +68,7 @@ class FlowEngine:
         self._actions: Dict[str, Callable[..., Tuple[str, Optional[str]]]] = {
             "welcome_customer": self._action_welcome_customer,
             "show_productos": self._action_show_productos,
+            "show_category_products": self._action_show_category_products,
             "capture_order": self._action_capture_order,
             "show_cart": self._action_show_cart,
             "handle_order_confirmation": self._action_handle_order_confirmation,
@@ -144,8 +145,16 @@ class FlowEngine:
             return None
 
         node = self.nodes.get(current_step, {})
+        list_def = node.get("list")
+        if not list_def:
+            return None
 
-        return node.get("list")
+        result = dict(list_def)
+        data = state.get("data", {})
+        result["page"] = data.get("list_page", 0)
+        if result.get("source") == "category_products":
+            result["category"] = data.get("selected_category", "")
+        return result
 
     @staticmethod
     def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -417,6 +426,8 @@ class FlowEngine:
                 cart=[],
                 ayuda={},
                 awaiting_abandon_confirm=False,
+                list_page=0,
+                selected_category="",
             )
 
         return self._goto_ref(wa_id, target, current_flow=current_flow)
@@ -625,6 +636,37 @@ class FlowEngine:
             return None
         return self._execute_input_action(wa_id, text, node, current_step, state)
 
+    def _try_list_navigation(
+        self,
+        wa_id: str,
+        text: str,
+        node: Dict[str, Any],
+        state: Dict[str, Any],
+        current_step: str,
+    ) -> Optional[str]:
+        if not node.get("list_navigation"):
+            return None
+
+        if text in ("__next__", "__prev__"):
+            data = state.get("data", {})
+            page = data.get("list_page", 0)
+            page = page + 1 if text == "__next__" else max(0, page - 1)
+            self.state_manager.patch_data(wa_id, list_page=page)
+            return self._process_node(wa_id, current_step)
+
+        if text.startswith("__cat__"):
+            category = text[7:]
+            self.state_manager.patch_data(
+                wa_id, selected_category=category, list_page=0
+            )
+            target = node.get("list_category_target")
+            if target:
+                return self._goto_ref(
+                    wa_id, target, current_flow=state.get("flow", "idle")
+                )
+
+        return None
+
     def _process_message_body(
         self,
         wa_id: str,
@@ -639,6 +681,10 @@ class FlowEngine:
 
         node = self.nodes.get(current_step)
         response = self._try_missing_node_recovery(wa_id, node)
+        if response is not None:
+            return response
+
+        response = self._try_list_navigation(wa_id, text, node, state, current_step)
         if response is not None:
             return response
 
@@ -798,6 +844,15 @@ class FlowEngine:
             if key in self.meta
         }
         return self.productos_service.format_productos(templates), None
+
+    def _action_show_category_products(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
+        category = self.state_manager.get(wa_id).get("data", {}).get("selected_category", "")
+        templates = {
+            key: str(self.meta[key])
+            for key in ("productos_empty", "productos_item_line")
+            if key in self.meta
+        }
+        return self.productos_service.format_category_products(category, templates), None
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)

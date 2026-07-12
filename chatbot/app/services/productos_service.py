@@ -113,3 +113,40 @@ class ProductosService:
                 return item
 
         return None
+
+    def get_categories(self) -> List[str]:
+        seen: set[str] = set()
+        result: List[str] = []
+        for item in self.get_available_productos():
+            cat = item.get("categoria") or "General"
+            if cat not in seen:
+                seen.add(cat)
+                result.append(cat)
+        return result
+
+    def get_products_by_category(self, category: str) -> List[Dict[str, Any]]:
+        return [
+            item for item in self.get_available_productos()
+            if (item.get("categoria") or "General") == category
+        ]
+
+    def format_category_products(
+        self, category: str, templates: Dict[str, str] | None = None
+    ) -> str:
+        from app.core.parser import OrderParser
+
+        tpl = templates or {}
+        empty = tpl.get("productos_empty", "")
+        item_line = tpl.get("productos_item_line", "• {{name}} — ${{price}}")
+
+        productos = self.get_products_by_category(category)
+        if not productos:
+            return empty
+
+        chunks: List[str] = []
+        for item in productos:
+            line = item_line.replace("{{name}}", str(item["nombre"]))
+            precio = float(item.get("precio") or 0)
+            line = line.replace("{{price}}", OrderParser._fmt_cop(precio))
+            chunks.append(line)
+        return "".join(chunks).rstrip("\n")
