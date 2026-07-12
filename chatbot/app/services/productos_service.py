@@ -99,3 +99,17 @@ class ProductosService:
                 chunks.append(line)
             chunks.append(category_end)
         return "".join(chunks).rstrip("\n")
+
+
+    
+    def get_producto_by_id(
+        self,
+        producto_id: str,
+    ) -> dict | None:
+
+        for item in self.get_available_productos():
+
+            if str(item["id"]) == str(producto_id):
+                return item
+
+        return None

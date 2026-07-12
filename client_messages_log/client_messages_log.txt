@@ -18157,3 +18157,1217 @@ En breve uno de nuestros asesores se pondrá en contacto contigo.
 👉 *Inicio* (volver al inicio 🏠)
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Una bandeja paisa y cinco jugos
+
+
+-------------------------------
+
+Chatbot: ✅ Guardé estos productos:
+- 1x Bandeja Paisa
+
+No pude identificar: *jugos*
+
+¿Cómo se llama el primer producto que falta?
+
+#################################################################
+################################################################
+
+Cliente: Jugo natural
+
+
+-------------------------------
+
+Chatbot: ¡Listo! Todos los productos quedaron identificados. 🛍️- Bandeja Paisa x1 - $20.000
+
+💰 Valor total: *$20.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: Claro, modifiquemos tu pedido.🛍️ *Modifica tu pedido*
+
+💡 Dime qué quieres agregar, quitar o cambiar.
+
+Ejemplos:
+- *agrega 2 coca cola*
+- *quita la pizza*
+- *cambia la hamburguesa por una ensalada*
+
+
+--
+✅ *Escribe tu pedido:*
+
+#################################################################
+################################################################
+
+Cliente: Agregar cinco jugos naturales
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Natural x5 - $27.500
+
+💰 Valor total: *$47.500*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-FF3BF51E
+💰 *Total:* $47.500
+🚚 *Entrega:* Calle 9N # 11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Dos bistecs rancheros y 5 changuas con 4 cocacolas
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bistec Ranchero x2 - $36.000
+- Changua x5 - $60.000
+- Coca-Cola x4 - $18.000
+
+💰 Valor total: *$114.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 Barrio Guaimaral
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-6BCFC835
+💰 *Total:* $114.000
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Un bistec Ranchero, una carne asada, dos churrascos y 6 cocacolas
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bistec Ranchero x1 - $18.000
+- Carne Asada x1 - $17.000
+- Churrasco x2 - $40.000
+- Coca-Cola x6 - $27.000
+
+💰 Valor total: *$102.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-EAB5423B
+💰 *Total:* $102.000
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Una bandeja paisa y dos jugos
+
+
+-------------------------------
+
+Chatbot: ✅ Guardé estos productos:
+- 1x Bandeja Paisa
+
+No pude identificar: *jugos*
+
+¿Cómo se llama el primer producto que falta?
+
+#################################################################
+################################################################
+
+Cliente: Cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Tres pollos y 4 jugos hit
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Pollo BBQ x3 - $51.000
+- Jugo Hit x4 - $18.000
+
+💰 Valor total: *$69.000*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-461E73A9
+💰 *Total:* $69.000
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Bandeja Paisa y coca cola
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Coca-Cola x1 - $4.500
+
+💰 Valor total: *$24.500*
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N # 11E-52
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 Barrio Guaimaral
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🎉 *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-F6DC84D9
+💰 *Total:* $24.500
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Una bandeja paisa y tres jugos hits
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Jugo Hit x3 - $13.500
+
+💰 Valor total: *$33.500*
+
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: ✅ *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-8768962D
+💰 *Total:* $33.500
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Una bandeja paisa y dos changuas con tres cocacolas
+
+
+-------------------------------
+
+Chatbot: 🍽️  *Tu pedido:*
+
+- Bandeja Paisa x1 - $20.000
+- Changua x2 - $24.000
+- Coca-Cola x3 - $13.500
+
+💰 Valor total: *$57.500*
+
+
+👇 ¿*Alistamos tu pedido?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 🚚 *¿Cómo prefieres recibir tu pedido?*
+
+👇 *Selecciona* una opción.
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guaimaral
+
+👇 *Selecciona una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: ✅ *¡Pedido registrado!*
+
+Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
+
+🆔 *Pedido:* ORD-BFED3B1F
+💰 *Total:* $57.500
+🚚 *Entrega:* Calle 9N #11E-53 Barrio Guaimaral
+
+👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
+
+#################################################################
+################################################################
+
+Cliente: Una pregunta
+
+
+-------------------------------
+
+Chatbot: Error interno: texto no configurado.
+
+#################################################################
+################################################################
+
+Cliente: Como así que texto no configurado
+
+
+-------------------------------
+
+Chatbot: Error interno: texto no configurado.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: 🍽️ Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################
+################################################################
+
+Cliente: productos
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos principales*
+• Bandeja Paisa - *$20.000*
+• Bistec Ranchero - *$18.000*
+• Carne Asada - *$17.000*
+• Chuleta - *$15.000*
+• Churrasco - *$20.000*
+• Pollo BBQ - *$17.000*
+
+*🍲 Sopas*
+• Changua - *$12.000*
+• Mute - *$16.000*
+• Sancocho - *$15.000*
+
+*🥤 Bebidas*
+• Coca-Cola - *$4.500*
+• Jugo Hit - *$4.500*
+• Jugo Natural - *$5.500*
+
+
+👇 Pulsa el botón "*Hacer pedido*" para comenzar.
+
+#################################################################

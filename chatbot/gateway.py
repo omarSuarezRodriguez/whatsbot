@@ -74,13 +74,36 @@ def handle_incoming_message(payload: dict) -> dict:
         or ""
     )
     body = payload.get("message") or payload.get("body") or metadata.get("Body") or ""
+    import json
+
     button_payload = (
         payload.get("button_payload")
         or metadata.get("ButtonPayload")
         or ""
     )
 
-    user_input = button_payload or body
+    list_payload = ""
+
+    interactive_data = metadata.get("InteractiveData")
+
+    if interactive_data:
+
+        try:
+
+            if isinstance(interactive_data, str):
+                interactive_data = json.loads(interactive_data)
+
+            list_payload = (
+                interactive_data
+                .get("interactive", {})
+                .get("list_reply", {})
+                .get("id", "")
+            )
+
+        except Exception:
+            pass
+
+    user_input = button_payload or list_payload or body
 
     profile_name = (
         payload.get("profile_name")
@@ -122,6 +145,7 @@ def handle_incoming_message(payload: dict) -> dict:
     blocked = False
     reply: Reply = ""
     buttons = []
+    interactive_list = None
 
     try:
         with business_scope(business_id):
@@ -144,11 +168,19 @@ def handle_incoming_message(payload: dict) -> dict:
                 reply = ""
             else:
                 user_service.touch(wa_id=wa_id, name=profile_name)
+                if list_payload:
+                    try:
+                        producto = flow_engine.productos_service.get_producto_by_id(list_payload)
+                        if producto:
+                            user_input = producto["nombre"]
+                    except Exception:
+                        pass
                 reply = flow_engine.process_message(
                     wa_id=wa_id,
                     body=user_input,
                 )
                 buttons = flow_engine.get_current_buttons(wa_id)
+                interactive_list = flow_engine.get_current_list(wa_id)
             reply = _normalize_reply(reply)
     except Exception:
         logger.exception("Gateway error processing message for wa_id=%s", wa_id)
@@ -173,4 +205,5 @@ def handle_incoming_message(payload: dict) -> dict:
         "deliver_via_rest": use_rest_webhook_replies(),
         "media": None,
         "actions": buttons,
+        "list": interactive_list,
     }

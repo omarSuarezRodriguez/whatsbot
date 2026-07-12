@@ -130,3 +130,43 @@ Todo es configurable mediante datos.
 🟢 Prioridad baja (P3)
 
 Externalizar todos los textos hardcodeados de los servicios (AdminService, ReservationService, etc.) a un sistema centralizado de UX/JSON.
+
+
+
+
+
+
+
+Hoy tu flujo ya aprovecha varias capacidades:
+
+✅ Mensajes
+✅ Botones
+✅ Listas
+✅ Estado de la conversación
+✅ Parser inteligente
+✅ Carrito
+✅ Reservas
+
+Y todavía puedes agregar:
+
+💳 Pagos
+
+📍 Compartir ubicación
+
+📷 Recibir imágenes
+(por ejemplo comprobantes)
+
+📄 Documentos
+(facturas, menús PDF)
+
+🔔 Plantillas
+(avisar que el pedido va en camino)
+
+📦 Estados del pedido
+
+👨‍💼 Transferir a un asesor humano
+
+
+
+
+

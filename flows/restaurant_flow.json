@@ -70,6 +70,7 @@
           ],
           
           "intercept_products": true,
+          "list": {"source": "menu"},
 
           "options": {
             "🛍️ Hacer pedido": "order.order_start_node",
@@ -107,7 +108,7 @@
 
         "order_review_node": {
           "action": "show_cart",
-          "message_after_action": "\n\n👇 ¿*Alistamos tu pedido?*",
+          "message_after_action": "\n\n\n👇 ¿*Alistamos tu pedido?*",
           "buttons": [
             {
               "title": "✅ Confirmar",
@@ -363,7 +364,7 @@
     "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
     "save_order_empty": "No encontré productos para guardar.",
-    "order_saved_success": "🎉 *¡Pedido registrado!*\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* {{order_id}}\n💰 *Total:* ${{total}}\n🚚 *Entrega:* {{delivery_address}}\n\n👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.",
+    "order_saved_success": "✅ *¡Pedido registrado!*\n\nHemos recibido tu pedido y ya está siendo revisado por nuestro equipo.\n\n🆔 *Pedido:* {{order_id}}\n💰 *Total:* ${{total}}\n🚚 *Entrega:* {{delivery_address}}\n\n👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.",
     "capture_persons_success": "Perfecto, solicitud para *{{personas}}* personas.",
     "capture_date_success": "Fecha registrada: *{{date}}*.",
     "capture_date_missing": "Primero necesito la fecha.",

@@ -134,6 +134,19 @@ class FlowEngine:
 
         return node.get("buttons", [])
 
+    def get_current_list(self, wa_id: str):
+
+        state = self.state_manager.get(wa_id)
+
+        current_step = state.get("step")
+
+        if not current_step:
+            return None
+
+        node = self.nodes.get(current_step, {})
+
+        return node.get("list")
+
     @staticmethod
     def _normalize_flow(raw: Dict[str, Any]) -> Dict[str, Any]:
         states = raw.get("states")

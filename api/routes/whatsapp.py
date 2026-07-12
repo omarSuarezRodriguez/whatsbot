@@ -151,6 +151,7 @@ async def twilio_whatsapp_webhook(
 
     response_text = result.get("response_text", "")
     actions = result.get("actions", [])
+    interactive_list = result.get("list")
     reply_wa_id = result.get("wa_id") or incoming_wa
     is_admin = bool(result.get("is_admin"))
     blocked = bool(result.get("blocked"))
@@ -184,6 +185,7 @@ async def twilio_whatsapp_webhook(
             response_text,
             use_rest=use_rest,
             actions=actions,
+            interactive_list=interactive_list,
         )
 
     elapsed_ms = (time.perf_counter() - started) * 1000

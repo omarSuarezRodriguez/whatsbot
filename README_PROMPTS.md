@@ -1,4 +1,4 @@
-## v1.81
+## v1.82
 
 
 
@@ -8979,6 +8979,218 @@ Mejoras en el mapa, en los strings
 
 
 ##############################################
+## v1.82
+
+
+## prompt ##
+
+Lee y respeta completamente ARCHITECTURE_LAW.md.
+
+Objetivo: dejar COMPLETAMENTE FUNCIONAL la implementación de WhatsApp List Picker con los mínimos cambios posibles, sin refactorizar la arquitectura existente.
+
+Primero analiza TODO el flujo de extremo a extremo:
+
+restaurant_flow.json
+→ FlowEngine
+→ gateway.py
+→ routes/whatsapp.py
+→ twilio_client.py
+→ ProductosService
+→ parser
+→ OrderService
+
+Verifica:
+
+- flujo completo
+- firmas
+- imports
+- tipos
+- parámetros
+- llamadas
+- payloads de Twilio
+- build_list_content()
+- send_whatsapp_list()
+- deliver_reply()
+- ButtonPayload
+- InteractiveData
+- get_current_list()
+- parser
+- transitions
+- options
+
+Usa únicamente la documentación oficial vigente de Twilio para List Picker.
+
+No inventes payloads.
+
+NO hagas cambios todavía.
+
+Primero entrégame una auditoría con:
+
+- Archivo
+- Problema encontrado
+- Corrección mínima necesaria
+
+Termina únicamente con:
+
+"Escribe OK para aplicar todos los cambios."
+
+Cuando responda únicamente "OK":
+
+- aplica TODOS los cambios necesarios para dejar la funcionalidad completamente operativa;
+- modifica únicamente lo indispensable;
+- respeta ARCHITECTURE_LAW.md;
+- no agregues complejidad innecesaria;
+- elimina código muerto si aparece;
+- verifica nuevamente todo el flujo de extremo a extremo;
+- comprueba que no existan errores de integración ni compilación;
+- confirma que el flujo completo funciona hasta donde es posible verificar sin una llamada real a Twilio.
+
+Al finalizar entrega:
+
+- archivos modificados;
+- resumen de cambios;
+- posibles limitaciones que solo puedan verificarse con Twilio real;
+
+y termina con una sola conclusión:
+
+✅ Implementación completa
+
+o
+
+❌ Implementación incompleta
+
+explicando exactamente qué falta.
+
+
+
+
+## resp cursor ##
+
+
+Auditoría — WhatsApp List Picker (extremo a extremo)
+Trace del flujo
+restaurant_flow.json [productos_node]
+  → list: {"source": "menu"}, action: "show_productos", intercept_products: true
+  → FlowEngine._action_show_productos() → formatea menú como texto
+  → FlowEngine.get_current_list() → devuelve {"source": "menu"}
+  → gateway.py → interactive_list = {"source": "menu"}
+  → result dict → "list": {"source": "menu"}
+  → whatsapp.py → interactive_list = result.get("list")
+  → deliver_reply(..., interactive_list={"source": "menu"})
+  → twilio_client.py: detecta source=="menu" → construye rows → send_whatsapp_list()
+  → build_list_content() → Content API → content_sid → messages.create()
+Respuesta de usuario (toca ítem de lista):
+  → Twilio POST webhook con InteractiveData = JSON
+  → gateway.py parsea interactive_data.get("interactive",{}).get("list_reply",{}).get("id","")
+  → list_payload = product_id (ej. "3")
+  → get_producto_by_id(list_payload) → producto["nombre"]
+  → process_message(wa_id, "Bandeja Paisa")
+  → _try_product_intercept → intercept_products=true → redirige a order flow
+Hallazgos
+#	Archivo	Problema	Corrección mínima
+1
+infrastructure/twilio_client.py — deliver_reply
+rows construido sin cap de 10 ítems. Twilio Content API rechaza twilio/list-picker con más de 10 ítems → HTTP 400 → _send_content lanza excepción → message_sid = None → cae a texto sin mostrar lista jamás
+rows = rows[:10] antes de llamar send_whatsapp_list
+2
+infrastructure/twilio_client.py — deliver_reply
+Campo item (mapeado desde p["nombre"]) no se trunca. Límite oficial Twilio: 24 caracteres. Nombre largo (ej. "Sancocho de Gallina con Papa") = 29 chars → API rechaza toda la request → fallback a texto
+"title": p["nombre"][:24] en el dict de cada row
+3
+infrastructure/twilio_client.py — deliver_reply
+body = "\n".join(parts) incluye el mensaje base del nodo + todo el menú formateado por show_productos + navigation hint. Límite oficial Twilio: 1024 caracteres. Un menú mediano con 15 ítems supera ese límite → Content API rechaza → fallback a texto
+body = "\n".join(parts)[:1024]
+4
+infrastructure/twilio_client.py — deliver_reply
+No hay guard para rows vacío. Si no hay productos disponibles, se llama send_whatsapp_list con 0 ítems. Twilio Content API exige mínimo 1 ítem → error innecesario en logs → fallback
+if not rows: → skip la llamada de lista
+Verificaciones que pasaron ✓
+Componente	Estado
+build_list_content payload — estructura twilio/list-picker con body/button/items[{id,item,description}]
+✓ Correcto según docs oficiales Twilio
+InteractiveData parsing: .get("interactive",{}).get("list_reply",{}).get("id","")
+✓ Estructura exacta del webhook WhatsApp/Twilio
+gateway.py — list_payload → get_producto_by_id → user_input = producto["nombre"]
+✓ Correcto
+gateway.py — prioridad button_payload or list_payload or body
+✓ Correcto (list-picker usa InteractiveData, no ButtonPayload)
+flow_engine.get_current_list() retorna node.get("list")
+✓ Correcto
+restaurant_flow.json — productos_node con list, intercept_products, action, options
+✓ Correcto
+whatsapp.py → extrae result.get("list") → pasa a deliver_reply
+✓ Correcto
+_send_content — crea content template + messages.create(content_sid=...)
+✓ Flujo correcto para list-picker en sesión
+OrderParser._fmt_cop como @staticmethod accesible desde twilio_client.py
+✓ Correcto
+Fallback a texto cuando falla list delivery
+✓ Correcto
+deliver_reply — interactive_list = interactive_list or {} cubre None
+✓ Correcto
+Los 4 bugs son todos en twilio_client.py:deliver_reply. Ningún cambio toca JSON, FlowEngine, StateManager, Services, ni arquitectura. Todos son guardrails de límites de la API de Twilio.
+
+Escribe OK para aplicar todos los cambios.
+
+
+
+
+
+
+## next prompt ##
+
+
+OK
+
+
+
+## resp cursor ##
+
+
+Resultado
+Archivo modificado: infrastructure/twilio_client.py
+
+Cambios aplicados (bloque deliver_reply, rama source=="menu"):
+
+Fix	Línea	Qué hace
+Truncar nombre a 24 chars
+249
+p["nombre"][:24] — campo item de Twilio, máx 24
+Cap de 10 ítems
+253
+][:10] — Twilio list-picker, máx 10 rows
+Guard de lista vacía
+255
+if rows: — evita llamada a Content API con 0 ítems (mínimo 1)
+Truncar body a 1024 chars
+256
+[:1024] — límite oficial del campo body en twilio/list-picker
+ARCHITECTURE_LAW checklist:
+
+Navegación sigue en JSON ✓
+Motor no toca mapa ✓
+Negocio en Services ✓
+Estado solo vía StateManager ✓
+Multi-tenant respetado ✓
+Cambio incremental dentro de capa infrastructure ✓
+Limitaciones verificables solo con Twilio real:
+
+Credenciales: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM deben estar configuradas; sin ellas _send_content hace early return.
+Sesión 24h: twilio/list-picker solo funciona dentro de ventana de sesión activa (usuario debe haber escrito primero).
+Content templates huérfanos: se crea un template nuevo por cada envío de lista; Twilio no los elimina automáticamente. No afecta funcionalidad pero acumula objetos en la cuenta.
+InteractiveData encoding: Twilio puede enviar el campo como string JSON o como objeto; el código maneja ambos (isinstance check en gateway). No verificable sin webhook real.
+✅ Implementación completa
+
+
+
+
+
+
+
+
+
+##############################################
+
 
 
 

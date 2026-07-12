@@ -65,16 +65,16 @@ def send_whatsapp_message(to_number: str, body: str) -> str | None:
         logger.exception("send_whatsapp_message failed for %s", to_number)
         return None
 
-def send_whatsapp_buttons(
+
+def _send_content(
     to_number: str,
-    body: str,
-    buttons: list[dict[str, Any]],
+    content: dict,
 ) -> str | None:
     """
-    Crea un contenido interactivo dinámico en Twilio y lo envía.
-
-    Returns MessageSid on success, None on failure.
+    Envía cualquier contenido de Twilio Content API
+    (botones, listas, etc.)
     """
+
     if not (
         TWILIO_ACCOUNT_SID
         and TWILIO_AUTH_TOKEN
@@ -86,21 +86,8 @@ def send_whatsapp_buttons(
         )
         return None
 
-    if not buttons:
-        return None
-
-    content = {
-        "friendly_name": "whatsbot_dynamic_buttons",
-        "language": "es",
-        "types": {
-            "twilio/quick-reply": {
-                "body": body,
-                "actions": buttons,
-            }
-        },
-    }
-
     try:
+
         response = requests.post(
             "https://content.twilio.com/v1/Content",
             json=content,
@@ -130,10 +117,95 @@ def send_whatsapp_buttons(
 
     except Exception:
         logger.exception(
-            "send_whatsapp_buttons failed for %s",
+            "Interactive content send failed for %s",
             to_number,
         )
         return None
+
+
+
+def send_whatsapp_buttons(
+    to_number: str,
+    body: str,
+    buttons: list[dict[str, Any]],
+) -> str | None:
+    """
+    Envía botones interactivos usando Twilio Content API.
+
+    Returns MessageSid on success, None on failure.
+    """
+    if not buttons:
+        return None
+
+    content = {
+        "friendly_name": "whatsbot_dynamic_buttons",
+        "language": "es",
+        "types": {
+            "twilio/quick-reply": {
+                "body": body,
+                "actions": buttons,
+            }
+        },
+    }
+
+    return _send_content(
+        to_number=to_number,
+        content=content,
+    )
+
+
+def build_list_content(
+    *,
+    friendly_name: str,
+    body: str,
+    button: str,
+    rows: list[dict[str, Any]],
+) -> dict:
+
+    items = []
+
+    for row in rows:
+
+        items.append({
+            "id": row["id"],
+            "item": row["title"],
+            "description": row["description"],
+        })
+
+    return {
+        "friendly_name": friendly_name,
+        "language": "es",
+        "types": {
+            "twilio/list-picker": {
+                "body": body,
+                "button": button,
+                "items": items,
+            }
+        },
+    }
+
+
+def send_whatsapp_list(
+    to_number: str,
+    body: str,
+    rows: list[dict[str, Any]],
+) -> str | None:
+    """
+    Envía una lista interactiva (WhatsApp List Picker)
+    usando Twilio Content API.
+    """
+
+    content = build_list_content(
+        friendly_name="whatsbot_dynamic_list",
+        body=body,
+        button="🍽️ Elegir",
+        rows=rows,
+    )
+
+    return _send_content(
+        to_number=to_number,
+        content=content,
+    )
 
 
 def deliver_reply(
@@ -142,28 +214,67 @@ def deliver_reply(
     *,
     use_rest: bool,
     actions: list[dict[str, Any]] | None = None,
+    interactive_list: dict | None = None,
 ) -> str:
     """
-    Envía texto normal o botones interactivos.
-
-    Si hay actions:
-        crea contenido interactivo y lo envía por REST.
-
-    Si no hay actions:
-        mantiene el comportamiento anterior.
+    Envía texto, botones o listas interactivas.
     """
+
     parts = reply_parts(reply)
 
     if not parts:
         return build_twiml_response("")
 
     actions = actions or []
+    interactive_list = interactive_list or {}
 
     # --------------------------------------------------------
-    # RESPUESTA INTERACTIVA
+    # RESPUESTA CON LISTA
+    # --------------------------------------------------------
+
+    if interactive_list.get("source") == "menu":
+
+        from chatbot.runtime import get_bot_context
+        from app.core.parser import OrderParser
+
+        productos = (
+            get_bot_context(start_background=False)
+            .productos_service
+            .get_available_productos()
+        )
+
+        rows = [
+            {
+                "id": str(p["id"]),
+                "title": p["nombre"][:24],  # Twilio limit: 24 chars
+                "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
+            }
+            for p in productos
+        ][:10]  # Twilio limit: max 10 items
+
+        if rows:
+            body = "\n".join(parts)[:1024]  # Twilio limit: 1024 chars
+
+            message_sid = send_whatsapp_list(
+                to_number=recipient,
+                body=body,
+                rows=rows,
+            )
+
+            if message_sid:
+                return build_twiml_response("")
+
+            logger.warning(
+                "Interactive list delivery failed for %s; falling back to text",
+                recipient,
+            )
+
+    # --------------------------------------------------------
+    # RESPUESTA CON BOTONES
     # --------------------------------------------------------
 
     if actions:
+
         body = "\n".join(parts)
 
         message_sid = send_whatsapp_buttons(
@@ -176,7 +287,7 @@ def deliver_reply(
             return build_twiml_response("")
 
         logger.warning(
-            "Interactive delivery failed for %s; falling back to text",
+            "Interactive buttons delivery failed for %s; falling back to text",
             recipient,
         )
 
@@ -185,9 +296,11 @@ def deliver_reply(
     # --------------------------------------------------------
 
     if use_rest:
+
         delivered = False
 
         for part in parts:
+
             if send_whatsapp_message(recipient, part):
                 delivered = True
 
@@ -200,3 +313,5 @@ def deliver_reply(
         )
 
     return build_twiml_response(reply)
+
+
