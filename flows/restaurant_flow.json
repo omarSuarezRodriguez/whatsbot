@@ -85,7 +85,7 @@
         },
 
         "productos_category_node": {
-          "message": "👇 Selecciona un producto.",
+          "message": "👇 *Selecciona un producto.*\n",
           "action": "show_category_products",
           "list": {"source": "category_products"},
           "list_navigation": true,

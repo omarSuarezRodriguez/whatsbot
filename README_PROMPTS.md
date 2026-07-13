@@ -1,4 +1,4 @@
-## v1.85
+## v1.86
 
 
 
@@ -9572,8 +9572,10 @@ Cuando responda únicamente "OK":
 
 
 ##############################################
+## v1.86
 
 
+Se implementaron mejoras
 
 
 

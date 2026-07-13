@@ -58,6 +58,9 @@ def handle_incoming_message(payload: dict) -> dict:
     No envía Twilio; solo devuelve la respuesta para la capa API/webhook.
     """
     metadata = payload.get("metadata") or {}
+    logger.info("PAYLOAD COMPLETO:\n%s", payload)
+    logger.info("METADATA COMPLETA:\n%s", metadata)
+
     if not isinstance(metadata, dict):
         metadata = {}
 
@@ -179,12 +182,6 @@ def handle_incoming_message(payload: dict) -> dict:
                     wa_id=wa_id,
                     body=user_input,
                 )
-                logger.info("Body: %r", body)
-                logger.info("InteractiveData: %r", interactive_data)
-                logger.info("list_payload: %r", list_payload)
-                logger.info("user_input: %r", user_input)
-                
-
                 buttons = flow_engine.get_current_buttons(wa_id)
                 interactive_list = flow_engine.get_current_list(wa_id)
             reply = _normalize_reply(reply)
