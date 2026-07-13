@@ -1803,6 +1803,8 @@ class OrderIntelligenceEngine:
     def parse(self, text: str) -> Dict[str, Any]:
         """Canonical output contract."""
         raw = (text or "").strip()
+        # Interactive list replies: "Bandeja Paisa\n$20.000" → keep only first line
+        raw = re.sub(r"\r?\n\$[\d.,]+\s*$", "", raw).strip()
         if not raw:
             return self._result([], "needs_clarification", ["entrada vacía"])
         # ponytail 5.7: anti-DoS truncation; ceiling: emoji may span 2+ codepoints in UTF-16.

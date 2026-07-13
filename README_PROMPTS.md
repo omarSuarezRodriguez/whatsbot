@@ -1,4 +1,4 @@
-## v1.86
+## v1.87
 
 
 
@@ -9580,4 +9580,34 @@ Se implementaron mejoras
 
 
 
+##############################################
+1.87
 
+
+## prompt ##
+
+Mira escuchame no te metas en misterios, escucha lo que quiero, quiero que el parser sea capaz :
+Problema:
+Cuando el usuario selecciona un producto desde una lista interactiva de WhatsApp, el sistema recibe un texto como:
+
+Bandeja Paisa
+$20.000
+
+Pero quiero que el motor procese únicamente:
+
+Bandeja Paisa
+
+Eso es todo, no quiero nada más, solo agregar una excepción al parser que cuando haya un producto y luego en el siguiente salto de linea haya un $+un valor, solo agarre el producto, eso es todo, respetando ARCHITECTURE_LAW.md(raiz del proyecto)
+
+Dime el antes y el despues del codigo que debo cambiar, cambios minimos incrementales
+
+
+
+
+
+
+Ya quedó funcional
+
+
+
+####################################

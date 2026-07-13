@@ -168,9 +168,10 @@ def handle_incoming_message(payload: dict) -> dict:
                 reply = ""
             else:
                 user_service.touch(wa_id=wa_id, name=profile_name)
-                if list_payload:
+                _id_candidate = list_payload or body
+                if _id_candidate:
                     try:
-                        producto = flow_engine.productos_service.get_producto_by_id(list_payload)
+                        producto = flow_engine.productos_service.get_producto_by_id(_id_candidate)
                         if producto:
                             user_input = producto["nombre"]
                     except Exception:
