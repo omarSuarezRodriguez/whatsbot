@@ -75,7 +75,7 @@
           "list_category_target": "productos.productos_category_node",
 
           "options": {
-            "🛍️ Hacer pedido": "order.order_start_node",
+            "🍽️ Hacer pedido": "order.order_start_node",
             "pedido": "order.order_start_node",
             "🏠 Volver al inicio": "home.home_node",
             "inicio": "home.home_node",
@@ -150,10 +150,6 @@
             "empty_cart": "order.order_start_node",
             "confirmed": "order.order_delivery_node",
             "rejected": "order.order_modify_node"
-          },
-          "options": {
-            "✅ Confirmar": "order.order_start_node",
-            "✏️ Modificar": "home.home_node"
           }
         },
 

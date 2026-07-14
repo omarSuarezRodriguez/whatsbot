@@ -8,6 +8,8 @@ Salida: bool entrega REST o XML TwiML para el webhook.
 from __future__ import annotations
 
 import logging
+import time
+import uuid
 from typing import Any, List, Union
 
 import requests
@@ -44,6 +46,13 @@ def build_twiml_response(reply: Reply) -> str:
     return str(response)
 
 
+def _whatsapp_address(number: str) -> str:
+    digits = "".join(ch for ch in (number or "") if ch.isdigit())
+    if not digits:
+        return (number or "").strip()
+    return f"whatsapp:+{digits}"
+
+
 def send_whatsapp_message(to_number: str, body: str) -> str | None:
     """
     Send via Twilio REST API.
@@ -64,6 +73,40 @@ def send_whatsapp_message(to_number: str, body: str) -> str | None:
     except Exception:
         logger.exception("send_whatsapp_message failed for %s", to_number)
         return None
+
+
+def _message_delivery_ok(client: Client, message_sid: str) -> bool:
+    """
+    Content/create often returns queued SID that later fails (e.g. 63007).
+    Brief poll so webhook can fall back to plain TwiML text.
+    """
+    # ponytail: ~3s poll budget. ceiling: slower failures need status callback.
+    for _ in range(8):
+        message = client.messages(message_sid).fetch()
+        status = (getattr(message, "status", "") or "").lower()
+        error_code = getattr(message, "error_code", None)
+        from_addr = getattr(message, "from_", None) or ""
+        if error_code or status in {"failed", "undelivered", "canceled"}:
+            logger.warning(
+                "Interactive message %s not delivered (status=%s code=%s from=%s)",
+                message_sid,
+                status,
+                error_code,
+                from_addr,
+            )
+            return False
+        # Twilio sometimes parks Content on a phantom +1555 sender before failing.
+        if "+1555" in str(from_addr):
+            logger.warning(
+                "Interactive message %s using invalid From %s — treating as fail",
+                message_sid,
+                from_addr,
+            )
+            return False
+        if status in {"sent", "delivered", "read"}:
+            return True
+        time.sleep(0.4)
+    return True
 
 
 def _send_content(
@@ -87,7 +130,6 @@ def _send_content(
         return None
 
     try:
-
         response = requests.post(
             "https://content.twilio.com/v1/Content",
             json=content,
@@ -97,22 +139,22 @@ def _send_content(
             ),
             timeout=15,
         )
-
         response.raise_for_status()
-
         content_sid = response.json()["sid"]
 
-        client = Client(
-            TWILIO_ACCOUNT_SID,
-            TWILIO_AUTH_TOKEN,
-        )
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        to_addr = _whatsapp_address(to_number)
+        from_addr = _whatsapp_address(TWILIO_WHATSAPP_FROM)
 
+        # Pin From to the ONLINE WhatsApp Business sender. Do not rely on
+        # Messaging Service alone for Content — it can remap to a dead +1555 channel (63007).
         message = client.messages.create(
-            from_=TWILIO_WHATSAPP_FROM,
-            to=to_number,
+            from_=from_addr,
+            to=to_addr,
             content_sid=content_sid,
         )
-
+        if not message.sid or not _message_delivery_ok(client, message.sid):
+            return None
         return message.sid
 
     except Exception:
@@ -121,7 +163,6 @@ def _send_content(
             to_number,
         )
         return None
-
 
 
 def send_whatsapp_buttons(
@@ -137,13 +178,25 @@ def send_whatsapp_buttons(
     if not buttons:
         return None
 
+    # In-session WhatsApp: max 3 quick replies; title max 20 chars.
+    safe_actions = [
+        {
+            "title": str(b.get("title", ""))[:20],
+            "id": str(b.get("id", "")),
+        }
+        for b in buttons
+        if b.get("id") is not None
+    ][:3]
+    if not safe_actions:
+        return None
+
     content = {
-        "friendly_name": "whatsbot_dynamic_buttons",
+        "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
         "language": "es",
         "types": {
             "twilio/quick-reply": {
-                "body": body,
-                "actions": buttons,
+                "body": (body or "")[:1024],
+                "actions": safe_actions,
             }
         },
     }
@@ -196,9 +249,9 @@ def send_whatsapp_list(
     """
 
     content = build_list_content(
-        friendly_name="whatsbot_dynamic_list",
-        body=body,
-        button="🍽️ Elegir",
+        friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
+        body=(body or "")[:1024],
+        button="Elegir",
         rows=rows,
     )
 
@@ -320,6 +373,20 @@ def deliver_reply(
             )
 
             if message_sid:
+                # WhatsApp: one interactive type per message. JSON may declare both
+                # list + buttons — send buttons as follow-up (do not drop the map).
+                if actions:
+                    btn_body = (parts[-1] if parts else "👇")[:1024]
+                    btn_sid = send_whatsapp_buttons(
+                        to_number=recipient,
+                        body=btn_body,
+                        buttons=actions,
+                    )
+                    if not btn_sid:
+                        logger.warning(
+                            "Interactive buttons follow-up failed for %s",
+                            recipient,
+                        )
                 return build_twiml_response("")
 
             logger.warning(
@@ -371,5 +438,3 @@ def deliver_reply(
         )
 
     return build_twiml_response(reply)
-
-

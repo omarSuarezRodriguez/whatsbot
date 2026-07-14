@@ -119,15 +119,12 @@ class FlowEngine:
 
     def get_current_buttons(self, wa_id: str) -> list[dict]:
         state = self.state_manager.get(wa_id)
-        print("STEP:", state.get("step"))
         current_step = state.get("step")
 
         if not current_step:
             return []
 
         node = self.nodes.get(current_step, {})
-        print("NODE:", node.keys())
-        print("BUTTONS:", node.get("buttons"))
         response_type = state.get("data", {}).get("response_type", "normal")
 
         if response_type == "fallback":
@@ -521,6 +518,37 @@ class FlowEngine:
         self.state_manager.reset(wa_id)
         return self._goto_ref(wa_id, self._start_ref())
 
+    def _lookup_option_ref(
+        self, node: Dict[str, Any], normalized: str
+    ) -> Optional[str]:
+        """Resolve next_ref from JSON options using id / title (normalized)."""
+        options = node.get("options") or {}
+        if not options:
+            return None
+        if normalized in options:
+            return options[normalized]
+        for key, ref in options.items():
+            if normalize_text(str(key)) == normalized:
+                return ref
+        # Button payload is usually `id`; map id/title declared in JSON → options.
+        for btn in list(node.get("buttons") or []) + list(
+            node.get("fallback_buttons") or []
+        ):
+            if not isinstance(btn, dict):
+                continue
+            bid = str(btn.get("id") or "")
+            title = str(btn.get("title") or "")
+            if normalize_text(bid) != normalized and normalize_text(title) != normalized:
+                continue
+            for candidate in (bid, normalize_text(bid), title, normalize_text(title)):
+                if candidate in options:
+                    return options[candidate]
+            for key, ref in options.items():
+                key_n = normalize_text(str(key))
+                if key_n in {normalize_text(bid), normalize_text(title)}:
+                    return ref
+        return None
+
     def _try_node_options(
         self,
         wa_id: str,
@@ -529,10 +557,9 @@ class FlowEngine:
         node: Dict[str, Any],
         state: Dict[str, Any],
     ) -> Optional[str]:
-        options = node.get("options", {})
-        if normalized not in options:
+        next_ref = self._lookup_option_ref(node, normalized)
+        if next_ref is None:
             return None
-        next_ref = options[normalized]
 
         if self._should_self_loop_fallback(next_ref, current_step, node, state):
             self.state_manager.patch_data(

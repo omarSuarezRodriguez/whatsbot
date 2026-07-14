@@ -1,4 +1,4 @@
-## v1.87
+## v1.88 - bot funcional de nuevo correctamente
 
 
 
@@ -9611,3 +9611,6 @@ Ya quedó funcional
 
 
 ####################################
+## v1.88 - bot funcional de nuevo correctamente
+
+
