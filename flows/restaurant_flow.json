@@ -50,12 +50,7 @@
         "productos_node": {
           "message": "📖 *Nuestro menú*\n\nDescubre nuestros platos preparados con el auténtico sabor colombiano. 🔥",
           "action": "show_productos",
-          "buttons": [
-            {
-              "title": "🍽️ Hacer pedido",
-              "id": "pedido"
-            }
-          ],
+          
           "navigation_hint": "\n\n\n👇 Selecciona una categoría de la lista.",
           "fallback": "Disculpa, no logré entenderte 🙏\n\n✅ Por favor escribe una de estas opciones:\n\n1️⃣ *Pedido* (haz tu pedido 🛍️)\n2️⃣ *Inicio* (volver al inicio 🏠)",
           "fallback_buttons": [

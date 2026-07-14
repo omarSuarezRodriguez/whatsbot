@@ -1,4 +1,4 @@
-## v1.88 - bot funcional de nuevo correctamente
+## v1.89 - Bot totalmente funcional de nuevo
 
 
 
@@ -9612,5 +9612,23 @@ Ya quedó funcional
 
 ####################################
 ## v1.88 - bot funcional de nuevo correctamente
+
+
+
+
+
+
+
+
+################################################
+## v1.89 - Bot totalmente funcional de nuevo
+
+
+
+
+
+
+
+
 
 
