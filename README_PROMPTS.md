@@ -9874,3 +9874,37 @@ Escribe OK para implementar la integración.
 
 
 
+
+
+
+
+###########################3
+## 1.91 
+
+
+
+No era el JSON. Eran 2 procesos a la vez.
+
+Cómo evitarlo
+Siempre arrancá con:
+
+.\start.ps1
+No corras python -m api.main a mano en otra terminal sin matar la anterior.
+
+Qué hace start.ps1 ahora
+Antes de abrir el nuevo:
+
+Busca todo lo que usa el puerto + todo python -m api.main / uvicorn
+Los mata con taskkill /T /F (árbol completo: reloader + workers)
+Reintenta hasta 3 veces
+Si el puerto sigue ocupado → aborta (no apila otro encima)
+No mata este PowerShell ($PID)
+Después de eso queda solo la instancia nueva.
+
+
+
+
+
+
+##################################
+
