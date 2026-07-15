@@ -1,4 +1,4 @@
-## v1.90 - Bot totalmente funcional con el nuevo número
+## v1.90. - Bot totalmente funcional con el nuevo número
 
 
 
@@ -9870,7 +9870,7 @@ Escribe OK para implementar la integración.
 
 
 ########################################################
-## v1.90 - Bot totalmente funcional con el nuevo número
+## v1.90. - Bot totalmente funcional con el nuevo número
 
 
 
