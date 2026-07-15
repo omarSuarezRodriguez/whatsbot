@@ -1,4 +1,4 @@
-## v1.89 - Bot totalmente funcional de nuevo
+## v1.90 - Bot totalmente funcional con el nuevo número
 
 
 
@@ -9627,8 +9627,250 @@ Ya quedó funcional
 
 
 
+###########################################
+## v1.90
 
 
+## prompt ##
+
+
+Lee y respeta completamente ARCHITECTURE_LAW.md(raiz del proyecto)
+
+Quiero agregar soporte para abrir un WhatsApp Flow desde un nodo del FlowEngine.
+
+NO quiero reemplazar el chatbot.
+
+NO quiero migrar el sistema a WhatsApp Flows.
+
+NO quiero modificar la arquitectura existente.
+
+Quiero una implementación incremental y con los mínimos cambios posibles.
+
+El FlowEngine seguirá siendo el motor principal.
+
+================================
+
+OBJETIVO
+
+Agregar un nuevo tipo de nodo que permita abrir un WhatsApp Flow.
+
+El nodo se llamará:
+
+productos_whatsapp_flow_button_node
+
+Ese nodo existirá dentro de restaurant_flow.json igual que cualquier otro nodo.
+
+Debe tener una action específica (la que consideres más adecuada) que únicamente indique al motor que debe abrir un WhatsApp Flow.
+
+No quiero lógica de negocio en el JSON.
+
+Solo quiero que el JSON declare la intención y el motor la ejecute.
+
+================================
+
+COMPORTAMIENTO
+
+Cuando el usuario llegue a:
+
+productos_whatsapp_flow_button_node
+
+el sistema debe enviar un WhatsApp Flow.
+
+Ese Flow será independiente del FlowEngine.
+
+El Flow únicamente permitirá:
+
+- navegar por todas las categorías
+- navegar por todos los productos
+- seleccionar UN SOLO producto
+
+Nada más.
+
+Cuando el usuario seleccione un producto:
+
+WhatsApp devolverá ese producto al webhook.
+
+El Flow terminará.
+
+El gateway entregará el nombre del producto al FlowEngine exactamente igual que si el usuario lo hubiera escrito manualmente.
+
+A partir de ese momento NO cambia absolutamente nada.
+
+Debe continuar exactamente el flujo actual:
+
+Parser
+↓
+
+capture_order()
+
+↓
+
+order_review_node
+
+↓
+
+"¿Deseas agregar otro producto?"
+
+Si el usuario responde "Sí", volverá al flujo actual ya existente.
+
+NO quiero seleccionar varios productos dentro del WhatsApp Flow.
+
+Solo uno.
+
+================================
+
+ARQUITECTURA
+
+Respetar completamente ARCHITECTURE_LAW.md.
+
+Mantener:
+
+- restaurant_flow.json
+- FlowEngine
+- Parser
+- OrderService
+- ProductosService
+- StateManager
+
+No romper ninguna funcionalidad existente.
+
+No cambiar el flujo actual de pedidos.
+
+El soporte para WhatsApp Flow debe ser una capacidad adicional del motor.
+
+No una sustitución.
+
+================================
+
+IMPLEMENTACIÓN
+
+Antes de escribir código:
+
+1. Analiza todo el proyecto.
+2. Analiza la documentación oficial vigente de WhatsApp Flows y Twilio.
+3. Diseña la integración con cambios mínimos.
+4. Indica exactamente qué archivos modificarás.
+5. Explica por qué cada cambio es necesario.
+
+NO hagas cambios todavía.
+
+Termina únicamente con:
+
+"Escribe OK para implementar la integración."
+
+Cuando responda únicamente "OK":
+
+- implementa toda la funcionalidad;
+- respeta ARCHITECTURE_LAW.md;
+- modifica únicamente lo indispensable;
+- reutiliza al máximo la arquitectura existente;
+- verifica que todo compile;
+- realiza una comprobación del flujo completo;
+- confirma que el nuevo nodo abre el WhatsApp Flow y que, al seleccionar un producto, el FlowEngine continúa exactamente igual que antes.
+
+
+
+## resp cursor ##
+
+Análisis del proyecto
+Arquitectura actual (confirmada)
+Webhook → whatsapp.py → gateway.py → FlowEngine → StateManager → Services → DB
+                ↓
+         deliver_reply() → TwiML o REST (botones, listas)
+Cómo funcionan los WhatsApp Flows vía Twilio
+Según la documentación oficial vigente (Twilio whatsapp/flows):
+
+Envío: Se crea un Content Template con tipo whatsapp/flows (POST a content.twilio.com/v1/Content) con el flow_id de Meta. Twilio devuelve un content_sid. Luego se envía el mensaje con ese content_sid via REST API (client.messages.create). En sesión activa (dentro de 24h) no requiere aprobación de Meta.
+
+Recepción: Cuando el usuario completa el Flow, Twilio envía un webhook POST al endpoint configurado. El campo InteractiveData contiene los datos enviados, con estructura:
+
+{
+  "interactive": {
+    "type": "nfm_reply",
+    "nfm_reply": {
+      "response_json": "{\"product_name\": \"Bandeja paisa\", \"product_id\": \"5\"}"
+    }
+  }
+}
+Prerrequisito externo: El Flow en sí (JSON de Meta) debe crearse en el WhatsApp Manager o vía Flow API de Meta. El código solo lo dispara y recibe el resultado.
+
+Diseño de la integración
+Mecanismo elegido
+El nodo productos_whatsapp_flow_button_node declara en JSON la intención de abrir un Flow. El motor lo detecta y lo expone a la capa API. La API lo ejecuta. Exactamente igual a como funciona interactive_list hoy (declarado en JSON → get_current_list() → deliver_reply con lista interactiva). Cero nueva acción _action_*.
+
+Flujo completo
+Usuario → "catalogo"
+  → FlowEngine._process_message_body()
+    → global_command "catalogo" → _goto_ref → _process_node("productos_whatsapp_flow_button_node")
+    → _process_node detecta wa_flow, sets StateManager.wa_flow_pending = True
+    → retorna mensaje "👆 Selecciona tu producto..."
+  → gateway obtiene wa_flow via flow_engine.get_current_wa_flow()
+  → whatsapp.py → deliver_reply() (mensaje texto normal)
+  → whatsapp.py → send_whatsapp_flow_message() via REST (el botón del Flow)
+  → Estado queda en: step="productos_whatsapp_flow_button_node", wa_flow_pending=False
+Usuario toca botón → navega en el Flow → selecciona producto → submit
+  → Webhook → InteractiveData con nfm_reply.response_json = {"product_name": "Bandeja paisa"}
+  → gateway.py extrae product_name del nfm_reply
+  → flow_engine.process_message(wa_id, "Bandeja paisa")
+    → _process_message_body → step = "productos_whatsapp_flow_button_node"
+    → _try_free_text_input → action_on_input = "capture_order"
+    → capture_order("Bandeja paisa") → success → cart = [Bandeja paisa]
+    → transition: "success" → "order.order_review_node"
+  → Usuario ve carrito → confirma → flujo normal de pedido
+Archivos a modificar y por qué
+#	Archivo	Qué cambia	Por qué
+1
+config/settings.py
++WA_PRODUCTS_FLOW_CONTENT_SID
+Config de env — no hardcoding. Ley: fuente única por responsabilidad
+2
+infrastructure/twilio_client.py
++send_whatsapp_flow_message()
+Capacidad de infraestructura. Patrón idéntico a send_whatsapp_message
+3
+chatbot/app/core/flow_engine.py
++get_current_wa_flow() + 3 líneas en _process_node
+Motor expone intención declarada en JSON al gateway (igual que get_current_list)
+4
+chatbot/gateway.py
+Parse nfm_reply del Flow submission + exponer wa_flow en result
+Gateway = única puerta (Ley #7). Resuelve submission → product_name
+5
+api/routes/whatsapp.py
+Detectar wa_flow → llamar send_whatsapp_flow_message
+API orquesta el envío out-of-band, igual que ya maneja botones y listas
+6
+flows/restaurant_flow.json
+Nuevo nodo productos_whatsapp_flow_button_node en state order + botón en home_node + "catalogo" en global_commands
+JSON = mapa. La intención vive aquí, no en Python
+Total: 6 archivos, ~60 líneas de código nuevo. Cero eliminaciones. Cero modificaciones de tests.
+
+Por qué ninguna regla de ARCHITECTURE_LAW.md se rompe
+JSON = mapa: el nodo declara wa_flow con la intención. Python solo la ejecuta.
+Python = motor: _process_node lee wa_flow y setea un flag en StateManager. Sin lógica de negocio.
+Acciones delgadas: no se crea ninguna _action_* nueva. El mecanismo es declarativo.
+StateManager controla estado: wa_flow_pending se muta solo vía state_manager.patch_data.
+Multi-tenant: WA_PRODUCTS_FLOW_CONTENT_SID es config global (mismo Flow para todos los tenants). Extensible a per-tenant después.
+Gateway único: toda la lógica de parsing del Flow submission vive en gateway.py.
+Sin rutas paralelas: capture_order_all_unknown, partial, ambiguous ya existen y manejan los casos edge del parser automáticamente.
+Prerrequisito externo (fuera del código)
+El usuario deberá:
+
+Crear el WhatsApp Flow en Meta (WhatsApp Manager) con pantallas de categorías/productos. Cada producto al seleccionarse devuelve product_name y product_id.
+Crear un Content Template whatsapp/flows en Twilio Content API con ese Flow ID.
+Configurar en .env: WA_PRODUCTS_FLOW_CONTENT_SID=HXxxxxxxxxxxxxxxxxxx
+El código funciona correctamente sin esto configurado (fallback graceful: no envía el Flow, el node muestra su mensaje de fallback).
+
+Escribe OK para implementar la integración.
+
+
+
+
+
+
+
+########################################################
+## v1.90 - Bot totalmente funcional con el nuevo número
 
 
 

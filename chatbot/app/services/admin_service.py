@@ -335,7 +335,9 @@ class AdminService:
                 )
                 return None
             logger.info(
-                "WhatsApp entregado a %s (sid=%s, status=%s)",
+                "WhatsApp outbound account=%s from=%s to=%s sid=%s status=%s",
+                (TWILIO_ACCOUNT_SID or "")[:10],
+                from_,
                 to,
                 message.sid,
                 status,

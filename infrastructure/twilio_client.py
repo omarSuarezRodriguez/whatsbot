@@ -153,6 +153,13 @@ def _send_content(
             to=to_addr,
             content_sid=content_sid,
         )
+        logger.info(
+            "Content outbound account=%s from=%s to=%s sid=%s",
+            (TWILIO_ACCOUNT_SID or "")[:10],
+            from_addr,
+            to_addr,
+            message.sid,
+        )
         if not message.sid or not _message_delivery_ok(client, message.sid):
             return None
         return message.sid

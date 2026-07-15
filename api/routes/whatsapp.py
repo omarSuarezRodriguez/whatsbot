@@ -100,6 +100,12 @@ async def twilio_whatsapp_webhook(
     profile_name = form.get("ProfileName", "")
     message_sid = form.get("MessageSid") or form.get("SmsMessageSid")
     to_number = form.get("To", "")
+    logger.info(
+        "Webhook inbound To=%s From=%s wa_id=%s",
+        to_number,
+        from_number,
+        wa_id,
+    )
 
     business_id = resolve_business_id_for_webhook(
         db,
@@ -156,6 +162,9 @@ async def twilio_whatsapp_webhook(
     is_admin = bool(result.get("is_admin"))
     blocked = bool(result.get("blocked"))
     use_rest = bool(result.get("deliver_via_rest", use_rest_webhook_replies()))
+    # Force REST so outbound always uses TWILIO_ACCOUNT_SID + TWILIO_WHATSAPP_FROM
+    # (never silent TwiML reply that Twilio stamps outside our From pin).
+    use_rest = True
 
     # --- Persist bot reply ---
     if reply_wa_id and response_text and not blocked:

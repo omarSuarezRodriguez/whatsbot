@@ -43,7 +43,7 @@ def main() -> int:
         data={
             "WaId": "573009999999",
             "From": "whatsapp:+573009999999",
-            "To": TWILIO_WHATSAPP_FROM or "whatsapp:+573242497352",
+            "To": TWILIO_WHATSAPP_FROM or "whatsapp:+10000000000",
             "Body": "menu",
             "ProfileName": "API Test",
         },

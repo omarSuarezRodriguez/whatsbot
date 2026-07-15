@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = BASE_DIR
-load_dotenv(BASE_DIR / ".env")
+# override=True: .env wins over stale shell env (orphan api.main / old ngrok URL).
+load_dotenv(BASE_DIR / ".env", override=True)
 
 # API / server
 API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", "http://127.0.0.1:5000").rstrip("/")

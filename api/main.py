@@ -42,6 +42,8 @@ from config.settings import (  # noqa: E402
     FCM_ENABLED,
     REALTIME_ENABLED,
     RESTAURANT_NAME,
+    TWILIO_ACCOUNT_SID,
+    TWILIO_WHATSAPP_FROM,
 )
 from infrastructure.database import init_db, session_scope  # noqa: E402
 from services.business_service import ensure_default_business  # noqa: E402
@@ -66,6 +68,11 @@ async def lifespan(app: FastAPI):
             )
     except Exception:
         logger.exception("Default business seed failed (API still starts)")
+    logger.info(
+        "Twilio outbound only: account=%s from=%s",
+        (TWILIO_ACCOUNT_SID or "")[:10] or "(none)",
+        TWILIO_WHATSAPP_FROM or "(none)",
+    )
     logger.info("WhatsBot API started — %s", API_PUBLIC_URL)
     yield
 
