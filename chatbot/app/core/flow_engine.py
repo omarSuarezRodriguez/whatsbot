@@ -64,6 +64,10 @@ class FlowEngine:
         self.flow_path = flow_path or str(FLOWS_PATH)
         self.flow = self._load_flow()
         self._apply_flow(self.flow)
+        try:
+            self._flow_mtime: Optional[float] = os.path.getmtime(self.flow_path)
+        except OSError:
+            self._flow_mtime = None
 
         self._actions: Dict[str, Callable[..., Tuple[str, Optional[str]]]] = {
             "welcome_customer": self._action_welcome_customer,
@@ -116,6 +120,20 @@ class FlowEngine:
 
     def reload_flow(self) -> None:
         self._apply_flow(self._load_flow())
+        try:
+            self._flow_mtime = os.path.getmtime(self.flow_path)
+        except OSError:
+            self._flow_mtime = None
+
+    def _ensure_flow_fresh(self) -> None:
+        """Re-aplicar mapa JSON si mtime cambió (JSON=mapa; motor no cachea mapa viejo)."""
+        try:
+            mtime = os.path.getmtime(self.flow_path)
+        except OSError:
+            return
+        if self._flow_mtime is not None and mtime == self._flow_mtime:
+            return
+        self.reload_flow()
 
     def get_current_buttons(self, wa_id: str) -> list[dict]:
         state = self.state_manager.get(wa_id)
@@ -482,6 +500,7 @@ class FlowEngine:
         return self._join_reply(*parts)
 
     def process_message(self, wa_id: str, body: str) -> str:
+        self._ensure_flow_fresh()
         text = (body or "").strip()
         if not text:
             text = "hola"

@@ -197,6 +197,12 @@ def send_whatsapp_buttons(
     if not safe_actions:
         return None
 
+    logger.info(
+        "send_whatsapp_buttons n=%s ids=%s",
+        len(safe_actions),
+        [a["id"] for a in safe_actions],
+    )
+
     content = {
         "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
         "language": "es",

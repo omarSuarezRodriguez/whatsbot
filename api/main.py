@@ -128,12 +128,30 @@ app = create_app()
 def main() -> None:
     import uvicorn
 
-    uvicorn.run(
-        "api.main:app",
-        host=HOST,
-        port=PORT,
-        reload=DEBUG,
-    )
+    # Dev reload: .py + flows/*.json. Exclude data/logs so chat/db writes
+    # do not bounce the process. DEBUG=false → no watcher (prod).
+    run_kwargs: dict = {
+        "app": "api.main:app",
+        "host": HOST,
+        "port": PORT,
+        "reload": DEBUG,
+    }
+    if DEBUG:
+        run_kwargs["reload_dirs"] = [
+            str(_FS / "api"),
+            str(_FS / "chatbot"),
+            str(_FS / "config"),
+            str(_FS / "flows"),
+            str(_FS / "infrastructure"),
+            str(_FS / "services"),
+        ]
+        run_kwargs["reload_includes"] = ["*.py", "*.json"]
+        run_kwargs["reload_excludes"] = [
+            "*/__pycache__/*",
+            "*.pyc",
+            "*/.pytest_cache/*",
+        ]
+    uvicorn.run(**run_kwargs)
 
 
 if __name__ == "__main__":
