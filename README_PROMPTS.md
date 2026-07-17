@@ -1,4 +1,4 @@
-## v1.93.
+## v1.94 - limpiar canal (HX/chips apilados + taps)
 
 
 
@@ -9914,5 +9914,63 @@ Después de eso queda solo la instancia nueva.
 
 
 
+#####################################
+## v1.94 - limpiar canal (HX/chips apilados + taps)
+
+En una frase: el código v1.90 ya mandaba bien; lo que rompía era canal sucio (HX/chips apilados + taps a mensajes viejos). Limpieza + reuso validado + un welcome fresco + titles simples = otra vez estable.
+
+
+
+Bien. Resumen de lo que sí movió la aguja (para el futuro):
+
+1. Basura de Content en Twilio (grande)
+Se habían creado decenas de templates wb_btn_* / wb_list_* (HX nuevo casi en cada mensaje).
+
+Eso apilaba welcomes/chips en el chat. Tap en burbuja vieja → WhatsApp muestra ✓✓ pero Twilio no crea inbound → log vacío.
+
+Qué hicimos: borrar ~74 Contents viejos.
+Lección: no inundar Content API; reusar HX cuando el body/actions son iguales.
+
+2. Cache de HX + probe (importante post-purga)
+Tras borrar Contents, un cache que apunta a HX borrado manda mensajes con interactive muerto.
+
+Qué hicimos: cache en disco + GET al HX antes de reusar; si 404 → recrear.
+Lección: si limpiás Contents en Twilio, invalidá cache local o validá que el SID siga vivo.
+
+3. Anti-stack de botones
+Varios hola seguidos = varios welcomes = otra vez chips viejos.
+
+Qué hicimos: si el mismo quick-reply se mandó hace <5 min al mismo número, no reenviar.
+Lección: un solo mensaje interactive fresco por usuario/ventana.
+
+4. Quick-reply limpio (como v1.90), sin atajos
+Sin convertir buttons → list-picker (eso cambiaba UX; lo rechazaste).
+Sin twin twilio/text (en su momento dejó chips “muertos”).
+Shape estable: solo twilio/quick-reply + id / title.
+5. Titles sin emoji al enviar
+JSON sigue con 📖 Ver menú; al enviar a Twilio: Ver menú / Hacer pedido (ids iguales: productos / pedido).
+
+En este WABA, titles con emoji correlacionaban con taps fantasma (sobre todo Ver menú).
+Lección: ids estables ASCII; titles simples en Content.
+
+6. Logs claros
+Webhook/gateway loguean Body, ButtonPayload, ButtonText.
+Si no hay Webhook inbound → el tap no llegó a Twilio (capa Meta), no es el flow.
+
+Checklist futuro si “a veces no agarra”
+¿Tap en mensaje más nuevo o en burbuja vieja?
+¿Twilio Messages tiene inbound de ese tap? Si no → Meta/chip muerto.
+¿Muchos HX wb_btn_*? Purgar / reusar.
+¿Cache apunta a HX 404? Probe o borrar data/twilio_content_cache.json.
+¿Twin twilio/text otra vez? No.
+Confirmar payload: solo twilio/quick-reply, ids productos/pedido.
+En una frase: el código v1.90 ya mandaba bien; lo que rompía era canal sucio (HX/chips apilados + taps a mensajes viejos). Limpieza + reuso validado + un welcome fresco + titles simples = otra vez estable.
+
+
+
+
+
+
+########################################
 
 
