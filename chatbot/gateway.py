@@ -180,10 +180,15 @@ def handle_incoming_message(payload: dict) -> dict:
                     wa_id=wa_id,
                     body=user_input,
                 )
-                logger.info("Body: %r", body)
-                logger.info("InteractiveData: %r", interactive_data)
-                logger.info("list_payload: %r", list_payload)
-                logger.info("user_input: %r", user_input)
+                logger.info(
+                    "gateway Body=%r ButtonPayload=%r ButtonText=%r "
+                    "list_payload=%r user_input=%r",
+                    body,
+                    button_payload,
+                    metadata.get("ButtonText", ""),
+                    list_payload,
+                    user_input,
+                )
                 
 
                 buttons = flow_engine.get_current_buttons(wa_id)

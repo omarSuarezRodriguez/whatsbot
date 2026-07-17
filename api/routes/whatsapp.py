@@ -101,10 +101,16 @@ async def twilio_whatsapp_webhook(
     message_sid = form.get("MessageSid") or form.get("SmsMessageSid")
     to_number = form.get("To", "")
     logger.info(
-        "Webhook inbound To=%s From=%s wa_id=%s",
+        "Webhook inbound To=%s From=%s wa_id=%s Body=%r ButtonPayload=%r "
+        "ButtonText=%r InteractiveData=%s sid=%s",
         to_number,
         from_number,
         wa_id,
+        body,
+        form.get("ButtonPayload", ""),
+        form.get("ButtonText", ""),
+        "yes" if form.get("InteractiveData") else "no",
+        message_sid or "",
     )
 
     business_id = resolve_business_id_for_webhook(

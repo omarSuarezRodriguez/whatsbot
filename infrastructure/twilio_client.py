@@ -7,9 +7,13 @@ Salida: bool entrega REST o XML TwiML para el webhook.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+import threading
 import time
 import uuid
+from pathlib import Path
 from typing import Any, List, Union
 
 import requests
@@ -29,6 +33,52 @@ logger = logging.getLogger(__name__)
 
 Reply = Union[str, List[str]]
 
+# Reuse HX templates — creating a new Content SID every send floods Meta and
+# stacks dead quick-reply chips (tap shows locally, no Twilio inbound).
+_CONTENT_SID_CACHE: dict[str, str] = {}
+_CONTENT_CACHE_PATH = Path(__file__).resolve().parents[1] / "data" / "twilio_content_cache.json"
+_LAST_BUTTON_SEND: dict[str, tuple[str, float, str]] = {}
+_BUTTON_ANTISTACK_S = 300.0
+_BUTTON_LOCK = threading.Lock()
+
+
+def _content_fingerprint(kind: str, body: str, actions: list[dict[str, Any]]) -> str:
+    raw = json.dumps(
+        {"k": kind, "b": body, "a": actions},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:40]
+
+
+def _load_content_cache() -> None:
+    if _CONTENT_SID_CACHE:
+        return
+    try:
+        if _CONTENT_CACHE_PATH.is_file():
+            data = json.loads(_CONTENT_CACHE_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                _CONTENT_SID_CACHE.update(
+                    {str(k): str(v) for k, v in data.items() if k and v}
+                )
+    except Exception:
+        logger.exception("content cache load failed")
+
+
+def _save_content_cache() -> None:
+    try:
+        _CONTENT_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _CONTENT_CACHE_PATH.write_text(
+            json.dumps(_CONTENT_SID_CACHE, ensure_ascii=False, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+    except Exception:
+        logger.exception("content cache save failed")
+
+
+def _to_digits(number: str) -> str:
+    return "".join(ch for ch in (number or "") if ch.isdigit())
 
 def reply_parts(reply: Reply) -> List[str]:
     if isinstance(reply, list):
@@ -112,6 +162,8 @@ def _message_delivery_ok(client: Client, message_sid: str) -> bool:
 def _send_content(
     to_number: str,
     content: dict,
+    *,
+    cache_key: str | None = None,
 ) -> str | None:
     """
     Envía cualquier contenido de Twilio Content API
@@ -130,17 +182,51 @@ def _send_content(
         return None
 
     try:
-        response = requests.post(
-            "https://content.twilio.com/v1/Content",
-            json=content,
-            auth=HTTPBasicAuth(
-                TWILIO_ACCOUNT_SID,
-                TWILIO_AUTH_TOKEN,
-            ),
-            timeout=15,
-        )
-        response.raise_for_status()
-        content_sid = response.json()["sid"]
+        _load_content_cache()
+        content_sid = _CONTENT_SID_CACHE.get(cache_key or "") if cache_key else None
+        if content_sid:
+            # After Content purge, cached HX may be deleted → dead chips.
+            probe = requests.get(
+                f"https://content.twilio.com/v1/Content/{content_sid}",
+                auth=HTTPBasicAuth(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+                timeout=10,
+            )
+            if probe.status_code == 404:
+                logger.warning("Cached HX dead sid=%s — recreating", content_sid)
+                _CONTENT_SID_CACHE.pop(cache_key or "", None)
+                _save_content_cache()
+                content_sid = None
+            elif probe.ok:
+                logger.info("Content reuse hx=%s key=%s", content_sid, (cache_key or "")[:12])
+            else:
+                logger.warning(
+                    "Content probe %s status=%s — recreating",
+                    content_sid,
+                    probe.status_code,
+                )
+                content_sid = None
+
+        if not content_sid:
+            logger.info(
+                "Content API CREATE types=%s payload=%s",
+                list((content.get("types") or {}).keys()),
+                json.dumps(content, ensure_ascii=False)[:500],
+            )
+            response = requests.post(
+                "https://content.twilio.com/v1/Content",
+                json=content,
+                auth=HTTPBasicAuth(
+                    TWILIO_ACCOUNT_SID,
+                    TWILIO_AUTH_TOKEN,
+                ),
+                timeout=15,
+            )
+            response.raise_for_status()
+            content_sid = response.json()["sid"]
+            if cache_key:
+                _CONTENT_SID_CACHE[cache_key] = content_sid
+                _save_content_cache()
+            logger.info("Content created hx=%s", content_sid)
 
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         to_addr = _whatsapp_address(to_number)
@@ -154,17 +240,24 @@ def _send_content(
             content_sid=content_sid,
         )
         logger.info(
-            "Content outbound account=%s from=%s to=%s sid=%s",
+            "Content outbound account=%s from=%s to=%s sid=%s hx=%s",
             (TWILIO_ACCOUNT_SID or "")[:10],
             from_addr,
             to_addr,
             message.sid,
+            content_sid,
         )
         if not message.sid or not _message_delivery_ok(client, message.sid):
+            if cache_key:
+                _CONTENT_SID_CACHE.pop(cache_key, None)
+                _save_content_cache()
             return None
         return message.sid
 
     except Exception:
+        if cache_key:
+            _CONTENT_SID_CACHE.pop(cache_key, None)
+            _save_content_cache()
         logger.exception(
             "Interactive content send failed for %s",
             to_number,
@@ -178,17 +271,23 @@ def send_whatsapp_buttons(
     buttons: list[dict[str, Any]],
 ) -> str | None:
     """
-    Envía botones interactivos usando Twilio Content API.
-
-    Returns MessageSid on success, None on failure.
+    Envía botones interactivos usando Twilio Content API (twilio/quick-reply).
+    Mismo shape que v1.90/v1.91.
     """
     if not buttons:
         return None
 
-    # In-session WhatsApp: max 3 quick replies; title max 20 chars.
+    # Titles without leading emoji — same ids. Emoji titles correlate with
+    # intermittent Meta→Twilio postback misses on this WABA (Ver menú fantasma).
+    import re
+
+    def _btn_title(raw: str) -> str:
+        t = re.sub(r"^[\W_]+", "", (raw or ""), flags=re.UNICODE).strip()
+        return (t or (raw or ""))[:20]
+
     safe_actions = [
         {
-            "title": str(b.get("title", ""))[:20],
+            "title": _btn_title(str(b.get("title", ""))),
             "id": str(b.get("id", "")),
         }
         for b in buttons
@@ -197,27 +296,55 @@ def send_whatsapp_buttons(
     if not safe_actions:
         return None
 
+    body_text = (body or "")[:1024]
+    digits = _to_digits(to_number)
+    fp = _content_fingerprint("quick-reply", body_text, safe_actions)
+
+    with _BUTTON_LOCK:
+        now = time.time()
+        prev = _LAST_BUTTON_SEND.get(digits)
+        if (
+            prev
+            and prev[0] == fp
+            and now - prev[1] < _BUTTON_ANTISTACK_S
+            and prev[2]
+        ):
+            logger.info(
+                "skip duplicate quick-reply to=%s ids=%s age=%.0fs sid=%s",
+                digits,
+                [a["id"] for a in safe_actions],
+                now - prev[1],
+                prev[2],
+            )
+            return prev[2]
+
     logger.info(
-        "send_whatsapp_buttons n=%s ids=%s",
+        "send_whatsapp_buttons QUICK-REPLY n=%s ids=%s titles=%s",
         len(safe_actions),
         [a["id"] for a in safe_actions],
+        [a["title"] for a in safe_actions],
     )
 
     content = {
-        "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
+        "friendly_name": f"wb_btn_{fp[:20]}",
         "language": "es",
         "types": {
             "twilio/quick-reply": {
-                "body": (body or "")[:1024],
+                "body": body_text,
                 "actions": safe_actions,
             }
         },
     }
 
-    return _send_content(
+    sid = _send_content(
         to_number=to_number,
         content=content,
+        cache_key=fp,
     )
+    if sid:
+        with _BUTTON_LOCK:
+            _LAST_BUTTON_SEND[digits] = (fp, time.time(), sid)
+    return sid
 
 
 def build_list_content(
@@ -235,7 +362,7 @@ def build_list_content(
         items.append({
             "id": row["id"],
             "item": row["title"],
-            "description": row["description"],
+            "description": row.get("description") or "",
         })
 
     return {
