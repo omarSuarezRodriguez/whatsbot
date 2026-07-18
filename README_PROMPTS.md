@@ -1,4 +1,4 @@
-## v1.100
+## v1.100.
 
 
 
@@ -10319,7 +10319,7 @@ El patrón de la captura (texto largo → luego lista con "👇 Selecciona una o
 
 
 
-Prompt para pegar en la otra versión:
+Prompt para pegar en la otra versión para implementar doble mensaje:
 
 
 ## Objetivo
