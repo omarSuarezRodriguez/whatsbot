@@ -42,8 +42,7 @@ _CONTENT_CACHE_PATH = Path(__file__).resolve().parents[1] / "data" / "twilio_con
 _LAST_BUTTON_SEND: dict[str, tuple[str, float, str]] = {}
 _ANTISTACK_PATH = Path(__file__).resolve().parents[1] / "data" / "twilio_button_antistack.json"
 _ANTISTACK_LOADED = False
-# LAW invariant 11.6: ~5 min anti-stack. Persisted to disk so restart ≠ flood.
-# ceiling: Meta can still drop postback on ancient bubbles outside this window.
+# LAW 11.6: ~5 min anti-stack same quick-reply → same to. Persisted to disk.
 _BUTTON_ANTISTACK_S = 300.0
 _BUTTON_LOCK = threading.Lock()
 
@@ -54,6 +53,13 @@ def _btn_title(raw: str) -> str:
     t = unicodedata.normalize("NFKD", t)
     t = "".join(c for c in t if not unicodedata.combining(c))
     return (t or (raw or ""))[:20]
+
+
+def _list_row_key(raw: str) -> str:
+    """ASCII-safe list item key. Emoji in Twilio list ids → Meta often drops message."""
+    t = _btn_title(raw).lower().strip()
+    t = re.sub(r"\s+", " ", t)
+    return t or "item"
 
 
 def _atomic_write_json(path: Path, payload: dict) -> None:
@@ -348,28 +354,33 @@ def _send_content(
         return None
 
 
+def _wire_btn_title(raw: str) -> str:
+    """Strip leading emoji/punct only; keep accents (match HX that postbacked both)."""
+    t = re.sub(r"^[\W_]+", "", (raw or ""), flags=re.UNICODE).strip()
+    return (t or (raw or ""))[:20]
+
+
 def send_whatsapp_buttons(
     to_number: str,
     body: str,
     buttons: list[dict[str, Any]],
 ) -> str | None:
     """
-    Envía botones interactivos usando Twilio Content API (twilio/quick-reply).
-    Mismo shape que v1.90/v1.91.
+    JSON `buttons` → one twilio/quick-reply (body + chips, never list-picker).
+
+    Wire titles: no leading emoji, accents kept — same as Content that delivered
+    first-chip `Ver menú` on 2026-07-17T21:42 (HX …99f61f06).
     """
     if not buttons:
         return None
 
-    # Titles without leading emoji / accents — same ids. Emoji+accent titles
-    # correlate with intermittent Meta→Twilio postback misses on this WABA
-    # (Ver menú fantasma).
     safe_actions = [
         {
-            "title": _btn_title(str(b.get("title", ""))),
+            "title": _wire_btn_title(str(b.get("title", ""))),
             "id": str(b.get("id", "")),
         }
         for b in buttons
-        if b.get("id") is not None
+        if b.get("id") is not None and str(b.get("id")) != "_pad"
     ][:3]
     if not safe_actions:
         return None
@@ -378,8 +389,9 @@ def send_whatsapp_buttons(
     digits = _to_digits(to_number)
     stack_key = _antistack_key(digits)
     fp = _content_fingerprint("quick-reply", body_text, safe_actions)
-    cache_key = _namespaced_cache_key(fp)
 
+    skip_dup = False
+    prev_sid = ""
     with _BUTTON_LOCK:
         _ensure_antistack_loaded()
         now = time.time()
@@ -391,16 +403,20 @@ def send_whatsapp_buttons(
             and prev[2]
         ):
             logger.info(
-                "skip duplicate quick-reply to=%s ids=%s age=%.0fs sid=%s",
+                "skip duplicate quick-reply to=%s ids=%s age=%.2fs sid=%s",
                 digits,
                 [a["id"] for a in safe_actions],
                 now - prev[1],
                 prev[2],
             )
-            return prev[2]
+            skip_dup = True
+            prev_sid = prev[2]
+
+    if skip_dup:
+        return prev_sid
 
     logger.info(
-        "send_whatsapp_buttons QUICK-REPLY n=%s ids=%s titles=%s",
+        "send_whatsapp_buttons QUICK-REPLY (not list) n=%s ids=%s titles=%s",
         len(safe_actions),
         [a["id"] for a in safe_actions],
         [a["title"] for a in safe_actions],
@@ -411,7 +427,7 @@ def send_whatsapp_buttons(
         "language": "es",
         "types": {
             "twilio/quick-reply": {
-                "body": body_text,
+                "body": body_text or "👇",
                 "actions": safe_actions,
             }
         },
@@ -420,7 +436,7 @@ def send_whatsapp_buttons(
     sid = _send_content(
         to_number=to_number,
         content=content,
-        cache_key=cache_key,
+        cache_key=_namespaced_cache_key(fp),
     )
     if sid:
         with _BUTTON_LOCK:
@@ -521,10 +537,10 @@ def _paginate_rows(
 
     rows: list[dict[str, Any]] = []
     if has_prev:
-        rows.append({"id": "__prev__", "title": "⬅️ Anterior", "description": ""})
+        rows.append({"id": "__prev__", "title": "Anterior", "description": ""})
     rows.extend(chunk)
     if has_next:
-        rows.append({"id": "__next__", "title": "➡️ Siguiente", "description": ""})
+        rows.append({"id": "__next__", "title": "Siguiente", "description": ""})
     return rows
 
 
@@ -537,7 +553,10 @@ def deliver_reply(
     interactive_list: dict | None = None,
 ) -> str:
     """
-    Envía texto, botones o listas interactivas.
+    Deliver by JSON map type (LAW):
+      - list source → twilio/list-picker only
+      - buttons (actions) → twilio/quick-reply only
+      - never treat buttons as a list-picker
     """
 
     parts = reply_parts(reply)
@@ -548,14 +567,15 @@ def deliver_reply(
     actions = actions or []
     interactive_list = interactive_list or {}
 
-    # --------------------------------------------------------
-    # RESPUESTA CON LISTA
-    # --------------------------------------------------------
-
     source = interactive_list.get("source")
     page = int(interactive_list.get("page", 0))
+    has_list = source in ("menu", "categories", "category_products", "static")
+    has_buttons = bool(actions)
 
-    if source in ("menu", "categories", "category_products"):
+    # --------------------------------------------------------
+    # LIST (JSON `list` only) → list-picker
+    # --------------------------------------------------------
+    if has_list:
 
         from chatbot.runtime import get_bot_context
         from app.core.parser import OrderParser
@@ -568,7 +588,7 @@ def deliver_reply(
             all_items = [
                 {
                     "id": str(p["id"]),
-                    "title": p["nombre"][:24],
+                    "title": str(p["nombre"])[:24],
                     "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
                 }
                 for p in productos
@@ -578,7 +598,11 @@ def deliver_reply(
         elif source == "categories":
             categories = svc.get_categories()
             all_items = [
-                {"id": f"__cat__{cat}", "title": cat[:24], "description": ""}
+                {
+                    "id": f"__cat__{_list_row_key(cat)}",
+                    "title": str(cat)[:24],
+                    "description": "",
+                }
                 for cat in categories
             ]
             rows = _paginate_rows(all_items, page)
@@ -589,26 +613,50 @@ def deliver_reply(
             all_items = [
                 {
                     "id": str(p["id"]),
-                    "title": p["nombre"][:24],
+                    "title": str(p["nombre"])[:24],
                     "description": f'${OrderParser._fmt_cop(float(p["precio"]))}',
                 }
                 for p in productos
             ]
             rows = _paginate_rows(all_items, page)
 
-        if rows:
-            body = "\n".join(parts)[:1024]  # Twilio limit: 1024 chars
+        elif source == "static":
+            # JSON-declared rows (home choices). Not a buttons→list conversion:
+            # map says list; transport only delivers.
+            rows = [
+                {
+                    "id": str(r.get("id", "")),
+                    "title": str(r.get("title", ""))[:24],
+                    "description": str(r.get("description") or "")[:72],
+                }
+                for r in (interactive_list.get("rows") or [])
+                if r.get("id") is not None
+            ][:10]
 
+        if rows:
+            text_sent = False
+            if use_rest:
+                for part in parts:
+                    if send_whatsapp_message(recipient, part):
+                        text_sent = True
+                list_body = "👇 Selecciona una opción de la lista."[:1024]
+            else:
+                list_body = "\n".join(parts)[:1024]
+
+            logger.info(
+                "deliver_reply LIST-PICKER source=%s rows=%s (JSON list)",
+                source,
+                len(rows),
+            )
             message_sid = send_whatsapp_list(
                 to_number=recipient,
-                body=body,
+                body=list_body,
                 rows=rows,
             )
 
             if message_sid:
-                # WhatsApp: one interactive type per message. JSON may declare both
-                # list + buttons — send buttons as follow-up (do not drop the map).
-                if actions:
+                # LAW 11.2: list + buttons → second message (quick-reply), not merge.
+                if has_buttons:
                     btn_body = (parts[-1] if parts else "👇")[:1024]
                     btn_sid = send_whatsapp_buttons(
                         to_number=recipient,
@@ -626,45 +674,41 @@ def deliver_reply(
                 "Interactive list delivery failed for %s; falling back to text",
                 recipient,
             )
+            if text_sent:
+                return build_twiml_response("")
 
     # --------------------------------------------------------
-    # RESPUESTA CON BOTONES
+    # BUTTONS (JSON `buttons` only) → quick-reply — never list-picker
     # --------------------------------------------------------
-
-    if actions:
-
-        body = "\n".join(parts)
-
+    if has_buttons and not has_list:
+        logger.info(
+            "deliver_reply QUICK-REPLY buttons=%s (JSON buttons, not list)",
+            [str(a.get("id")) for a in actions],
+        )
+        # Body + chips in ONE Content (one WhatsApp bubble). Not twin types.
+        body = "\n".join(parts)[:1024]
         message_sid = send_whatsapp_buttons(
             to_number=recipient,
             body=body,
             buttons=actions,
         )
-
         if message_sid:
             return build_twiml_response("")
-
         logger.warning(
             "Interactive buttons delivery failed for %s; falling back to text",
             recipient,
         )
 
     # --------------------------------------------------------
-    # RESPUESTA NORMAL
+    # TEXT
     # --------------------------------------------------------
-
     if use_rest:
-
         delivered = False
-
         for part in parts:
-
             if send_whatsapp_message(recipient, part):
                 delivered = True
-
         if delivered:
             return build_twiml_response("")
-
         logger.warning(
             "REST delivery failed for %s; falling back to TwiML",
             recipient,

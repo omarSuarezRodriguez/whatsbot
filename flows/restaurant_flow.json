@@ -5,7 +5,7 @@
       "nodes": {
 
         "home_node": {
-          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n👇 ¿Qué se te antoja hoy? *Selecciona*",
+          "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n👇 ¿Qué se te antoja hoy? *Selecciona*\n\n💡 Si el botón no responde al primer toque, tocá otra vez o escribí *menu* / *pedido*.",
           "buttons": [
             {
               "title": "📖 Ver menú",
@@ -28,9 +28,18 @@
             }
           ],
           "options": {
+            "Platos": "productos.productos_node",
+            "platos": "productos.productos_node",
+            "Ver carta": "productos.productos_node",
+            "ver_carta": "productos.productos_node",
+            "📖 Ver carta": "productos.productos_node",
             "📖 Ver menú": "productos.productos_node",
+            "Ver menu": "productos.productos_node",
+            "Ver menú": "productos.productos_node",
             "productos": "productos.productos_node",
+            "menu": "productos.productos_node",
             "🍽️ Hacer pedido": "order.order_start_node",
+            "Hacer pedido": "order.order_start_node",
             "pedido": "order.order_start_node",
             "🏠 Volver al inicio": "home.home_node",
             "inicio": "home.home_node",
@@ -353,6 +362,9 @@
       "hola": "home.home_node",
       "cancelar": "home.home_node",
       "productos": "productos.productos_node",
+      "ver_carta": "productos.productos_node",
+      "platos": "productos.productos_node",
+      "menu": "productos.productos_node",
       "pedido": "order.order_start_node",
       "ayuda": "ayuda.ayuda_node",
       "reserva": "reserva.reserva_start_node"
@@ -365,6 +377,10 @@
     "abandon_confirm_prompt": "🛍️ *Tu pedido sigue en curso*.\n\n💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.\n\n--\n✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:\n\n👉 *Continuar* (continúa tu pedido 🛍️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
     "abandon_confirm_continue": "Perfecto, continuamos con tu pedido actual.",
     "abandon_confirm_invalid": "🛍️ *Tu pedido sigue en curso*.\n\n💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.\n\n--\n✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:\n\n👉 *Continuar* (continúa tu pedido 🛍️)\n👉 *Cancelar* (cancela y vuelve al inicio 🏠)",
+    "abandon_confirm_buttons": [
+      {"title": "Continuar", "id": "continuar"},
+      {"title": "Cancelar", "id": "cancelar"}
+    ],
     "welcome_with_name": "Hola *{{name}}*, Bienvenido a *{{restaurant_name}}*.",
     "welcome_without_name": "Hola, Bienvenido a *{{restaurant_name}}*.",
     "address_prompt": "📍 Dirección de entrega\n\nEscribe la dirección donde deseas recibir tu pedido.\n\n💡 Incluye barrio, apartamento o cualquier referencia que facilite la entrega.\n\n--\n✅ Escribe tu dirección:",

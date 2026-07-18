@@ -14,6 +14,8 @@ def _strip_accents(value: str) -> str:
 
 def normalize_text(text: str) -> str:
     cleaned = _strip_accents(text.strip().lower())
+    # Strip leading emoji/punct so "✅ Confirmar" / wire "Confirmar" match options.
+    cleaned = re.sub(r"^[^\w]+", "", cleaned, flags=re.UNICODE)
     return " ".join(cleaned.split())
 
 

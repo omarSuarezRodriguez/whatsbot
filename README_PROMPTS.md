@@ -1,4 +1,4 @@
-## v1.98
+## v1.99
 
 
 
@@ -10283,5 +10283,10 @@ El fix ya está en código + disco. start no necesita cambio.
 
 
 ###################################
+## v1.99
+
+
+
+Quedó funcional en telefono
 
 

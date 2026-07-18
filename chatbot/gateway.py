@@ -81,6 +81,11 @@ def handle_incoming_message(payload: dict) -> dict:
         or metadata.get("ButtonPayload")
         or ""
     )
+    button_text = (
+        payload.get("button_text")
+        or metadata.get("ButtonText")
+        or ""
+    )
 
     list_payload = ""
 
@@ -93,17 +98,32 @@ def handle_incoming_message(payload: dict) -> dict:
             if isinstance(interactive_data, str):
                 interactive_data = json.loads(interactive_data)
 
+            interactive = interactive_data.get("interactive", {}) or {}
             list_payload = (
-                interactive_data
-                .get("interactive", {})
+                interactive
                 .get("list_reply", {})
                 .get("id", "")
             )
+            # Some Twilio payloads put quick-reply under InteractiveData.
+            button_reply = interactive.get("button_reply") or {}
+            if not button_payload and isinstance(button_reply, dict):
+                button_payload = str(button_reply.get("id") or "")
+            if not button_text and isinstance(button_reply, dict):
+                button_text = str(button_reply.get("title") or "")
 
         except Exception:
             pass
 
-    user_input = button_payload or list_payload or body
+    # LAW §7 + §11: list → list_reply id; reply buttons → ButtonPayload (id),
+    # then Body/ButtonText. Same path for every JSON `buttons` chip (pedido,
+    # productos, confirmar, domicilio, …). Never treat buttons as list picks.
+    if list_payload:
+        user_input = list_payload
+    else:
+        user_input = (button_payload or body or button_text or "").strip()
+    # Transport pad chip (action[0] sacrificial) — ignore.
+    if user_input in {"_pad", "•"}:
+        user_input = ""
 
     profile_name = (
         payload.get("profile_name")
@@ -195,6 +215,27 @@ def handle_incoming_message(payload: dict) -> dict:
 
                 buttons = flow_engine.get_current_buttons(wa_id)
                 interactive_list = flow_engine.get_current_list(wa_id)
+                try:
+                    st = flow_engine.state_manager.get(wa_id)
+                    logger.info(
+                        "gateway UI from JSON step=%s flow=%s buttons=%s list=%s",
+                        st.get("step"),
+                        st.get("flow"),
+                        [
+                            {"id": b.get("id"), "title": b.get("title")}
+                            for b in (buttons or [])
+                        ],
+                        interactive_list,
+                    )
+                except Exception:
+                    logger.info(
+                        "gateway UI buttons=%s list=%s",
+                        [
+                            {"id": b.get("id"), "title": b.get("title")}
+                            for b in (buttons or [])
+                        ],
+                        interactive_list,
+                    )
             reply = _normalize_reply(reply)
     except Exception:
         logger.exception("Gateway error processing message for wa_id=%s", wa_id)

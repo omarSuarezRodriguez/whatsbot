@@ -136,19 +136,27 @@ class FlowEngine:
         self.reload_flow()
 
     def get_current_buttons(self, wa_id: str) -> list[dict]:
+        """UI chips from JSON map only (node.buttons / meta). Never invent ids."""
         state = self.state_manager.get(wa_id)
         current_step = state.get("step")
 
         if not current_step:
             return []
 
+        # Abandon: only meta.abandon_confirm_buttons from flow JSON (LAW: no invent).
+        if state.get("data", {}).get("awaiting_abandon_confirm"):
+            meta_btns = self.meta.get("abandon_confirm_buttons")
+            if isinstance(meta_btns, list) and meta_btns:
+                return list(meta_btns)
+            return []
+
         node = self.nodes.get(current_step, {})
         response_type = state.get("data", {}).get("response_type", "normal")
 
         if response_type == "fallback":
-            return node.get("fallback_buttons", node.get("buttons", []))
+            return list(node.get("fallback_buttons") or node.get("buttons") or [])
 
-        return node.get("buttons", [])
+        return list(node.get("buttons") or [])
 
     def get_current_list(self, wa_id: str):
 
@@ -370,14 +378,49 @@ class FlowEngine:
             return None
         node = self.nodes.get(state.get("step", ""), {})
         cleaned = normalize_text(text)
-        # Continuar pedido (UI nuevo + compat "no")
-        if cleaned in {"continuar"} or cleaned.startswith("continuar "):
+
+        # Continuar pedido (wire Body + legacy "no")
+        if cleaned in {"continuar", "seguir", "no"} or cleaned.startswith("continuar "):
             self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
             return self._resolve_ux_text("abandon_confirm_continue", node)
-        # Cancelar / volver al inicio (UI nuevo + compat "si")
-        if cleaned in {"cancelar"} or is_confirmation(text):
+
+        # Hacer pedido while abandon-prompted → stay in order (same as active pedido)
+        if cleaned in {"hacer pedido", "pedido"}:
+            self.state_manager.patch_data(wa_id, awaiting_abandon_confirm=False)
+            active_targets = self.meta.get("active_order_command_targets") or {}
+            redirect = active_targets.get("pedido") or "order.order_review_node"
+            return self._goto_ref(
+                wa_id, str(redirect), current_flow=state.get("flow", "idle")
+            )
+
+        # Ver menu / productos / inicio / cancelar → leave order, honor destination
+        leave_to_productos = cleaned in {
+            "ver menu",
+            "ver menú",
+            "ver carta",
+            "ver_carta",
+            "productos",
+            "menu",
+            "menú",
+            "carta",
+            "platos",
+        }
+        leave_home = cleaned in {
+            "cancelar",
+            "inicio",
+            "hola",
+            "si",
+            "sí",
+            "yes",
+            "salir",
+        }
+        if leave_to_productos or leave_home:
             self.state_manager.reset(wa_id)
+            if leave_to_productos:
+                target = self.global_commands.get("productos") or "productos.productos_node"
+                return self._goto_ref(wa_id, str(target))
             return self._goto_ref(wa_id, self._start_ref())
+
         return self._resolve_ux_text("abandon_confirm_invalid", node)
 
 
@@ -701,7 +744,13 @@ class FlowEngine:
             return self._process_node(wa_id, current_step)
 
         if text.startswith("__cat__"):
-            category = text[7:]
+            needle = text[7:]
+            needle_n = normalize_text(needle)
+            category = needle
+            for cat in self.productos_service.get_categories():
+                if normalize_text(cat) == needle_n or cat == needle:
+                    category = cat
+                    break
             self.state_manager.patch_data(
                 wa_id, selected_category=category, list_page=0
             )
@@ -1119,7 +1168,8 @@ class FlowEngine:
         profile = self.user_service.get_profile(wa_id)
         normalized = normalize_text(text)
 
-        if normalized == "confirm_address":
+        # Accept ButtonPayload ids OR visible Body labels (Confirmar / Modificar).
+        if normalized in {"confirm_address", "confirmar"} or is_confirmation(text):
             self.state_manager.patch_data(
                 wa_id,
                 delivery_address=profile.get("address", ""),
@@ -1130,7 +1180,7 @@ class FlowEngine:
 
             return "", "confirmed_no_name"
 
-        if normalized == "edit_address":
+        if normalized in {"edit_address", "modificar"} or is_rejection(text):
             return "", "edit"
 
         return "", None
@@ -1145,14 +1195,17 @@ class FlowEngine:
         profile = self.user_service.get_profile(wa_id)
         normalized = normalize_text(text)
 
-        if normalized == "confirm_new_address":
+        if (
+            normalized in {"confirm_new_address", "confirmar"}
+            or is_confirmation(text)
+        ):
 
             if profile.get("name"):
                 return "", "confirmed_has_name"
 
             return "", "confirmed_no_name"
 
-        if normalized == "edit_new_address":
+        if normalized in {"edit_new_address", "modificar"} or is_rejection(text):
             return "", "edit"
 
         return "", None
