@@ -1,4 +1,4 @@
-## v1.95
+## v1.96 - (architecture law actualizada) Totalmente funcional de nuevo, fix de duplicación de cache en twilio, guía incluida en notas de versión para solucionar cualquier indidencia futura
 
 
 
@@ -10022,5 +10022,202 @@ Todo de una vez, primero auditas y al final me pides un OK , cuando te lo de, ha
 
 
 #################################################
+## v1.96 - (architecture law actualizada) Totalmente funcional de nuevo, fix de duplicación de cache en twilio, guía incluida en notas de versión para solucionar cualquier indidencia futura
+
+
+
+## prompt ##
+
+
+ok ahora dame un resumen de todo los problemas que hubo y cómo se solucionarion y dejame todo lo necesario por si en el futuro llega a ocurrir yo pueda solucionar todo, lo pegaré como una nota de version, dame todo lo que tengas
+
+
+## resp cursor ##
+
+Nota de versión — WhatsApp reply buttons / higiene transport
+Resumen en una frase
+Los botones quick-reply fallaban de forma intermitente no por el flow JSON ni el routing de productos/pedido, sino por un canal Twilio/Meta sucio: flood de Content HX, chips/burbujas viejas, twin text, cache con SID muerto y taps que WhatsApp muestra ✓✓ pero Twilio no crea inbound.
+
+Problemas que hubo
+1. Flood de Content HX
+Cada welcome idéntico creaba un HX nuevo en Twilio Content API.
+Meta/WhatsApp acumulaba templates y chips. Canal se ensuciaba.
+
+2. Chips / burbujas viejas (síntoma principal)
+Usuario tocaba botones de un mensaje anterior.
+WhatsApp: ✓✓ local.
+Twilio: sin inbound → webhook sin ButtonPayload → bot “no responde”.
+Parecía bug del flow; era capa Meta/chip muerto.
+
+3. Twin twilio/text + twilio/quick-reply
+En algún momento el Content llevaba ambos types juntos.
+Dejó chips raros/muertos.
+Correcto: solo twilio/quick-reply (el body va dentro del quick-reply).
+
+4. Cache apuntando a HX borrado
+Tras purgar Contents en Twilio Console, el cache local (data/twilio_content_cache.json) seguía con SID viejos → se enviaba interactive muerto.
+
+5. Stack de welcomes
+Varios hola seguidos = varios quick-reply apilados = más chips muertos encima.
+
+6. Titles con emoji leading (este WABA)
+JSON: 📖 Ver menú.
+Al enviar con emoji leading, en este WABA correlacionaba con taps fantasma (sobre todo menú).
+Fix de presentación: strip emoji al enviar; ids iguales (productos, pedido).
+
+7. From phantom +1555 / Messaging Service
+Content a veces salía por sender inválido → fallo entrega (p. ej. 63007).
+Fix: From pinneado a TWILIO_WHATSAPP_FROM.
+
+8. Confusión de “arreglo”
+Tentación de convertir buttons → list-picker en Python.
+Eso cambia UX/mapa. Prohibido. List del menú ya iba bien; el bug era hygiene de buttons.
+
+Qué NO era el problema
+JSON home: ids productos / pedido correctos.
+Options / global_commands ruteaban bien.
+List-picker de categorías/productos estaba OK.
+Gateway ya prefería ButtonPayload sobre Body.
+Cómo se solucionó (capa correcta)
+Capa: infrastructure/twilio_client.py (+ logs en api/routes/whatsapp.py / chatbot/gateway.py).
+No FlowEngine, no if business_id, no cambiar mapa JSON a list-picker.
+
+Mitigación	Qué hace
+Fingerprint HX
+Reusa Content si kind+body+actions iguales
+Namespace account
+Cache key TWILIO_ACCOUNT_SID:fp (multi-account)
+Probe GET
+Antes de reusar: si 404/error → drop cache + recreate
+Anti-stack ~5 min
+Mismo quick-reply al mismo to (dígitos) → no reenviar
+Solo quick-reply
+Sin twin twilio/text
+Titles limpios al enviar
+Sin emoji leading; ids del JSON intactos
+From pinneado
+No phantom +1555
+Cache disco
+data/twilio_content_cache.json (gitignored vía data/)
+List fingerprint
+List-picker también reusa HX (sigue siendo list)
+Logs
+Body, ButtonPayload, ButtonText, InteractiveData, MessageSid
+Arquitectura: documentado en architecture_law_v3.md (invariante 11: Transport entrega, no es mapa). v1 intacta.
+
+Archivos clave
+Archivo	Rol
+infrastructure/twilio_client.py
+Entrega buttons/list, cache, probe, anti-stack
+api/routes/whatsapp.py
+Webhook + log inbound
+chatbot/gateway.py
+ButtonPayload → user_input → motor
+flows/restaurant_flow.json
+Mapa: buttons home = productos/pedido
+data/twilio_content_cache.json
+Cache local HX (no commitear)
+architecture_law_v3.md
+Ley vigente (v1 + transport)
+scripts/selfcheck_twilio_buttons.py
+Self-check opcional (no está en la ley)
+.\start.ps1
+Arranque; no borra cache por defecto
+Comportamiento correcto (contrato)
+JSON buttons  → twilio/quick-reply
+JSON list     → twilio/list-picker
+1 interactive por mensaje WhatsApp
+list + buttons en nodo → 2 mensajes (list, luego buttons)
+Ids/destinos solo del JSON
+Transport no inventa rutas
+Home:
+
+ids: productos, pedido
+titles en JSON pueden tener emoji; al air: Ver menú, Hacer pedido
+Checklist si “otra vez a veces no agarra”
+¿Tap en el welcome más nuevo? Si no → escribí hola otra vez y usá ese.
+Log webhook: ¿aparece ButtonPayload=productos o pedido?
+No → Meta/chip muerto (no el flow). No metas rutas en FlowEngine.
+Sí → mirá gateway user_input y routing JSON.
+¿Muchos HX wb_btn_* nuevos en Twilio? → reuse/cache roto o create-siempre regresó.
+¿Purgaste Contents en Twilio? → borrá cache local (abajo) y reiniciá.
+¿Alguien metió twilio/text junto a quick-reply? → quitar twin.
+¿Convirtieron buttons → list en Python? → revertir; violaría mapa/UX.
+From: ¿sale +1555? → From pin / env TWILIO_WHATSAPP_FROM.
+Comandos útiles (ops)
+Arranque normal:
+
+.\start.ps1
+Tras purga de Contents en Twilio / cache sospechoso:
+
+Remove-Item .\data\twilio_content_cache.json -ErrorAction SilentlyContinue
+.\start.ps1
+Self-check transport (opcional, sin red real):
+
+python scripts/selfcheck_twilio_buttons.py
+Validadores:
+
+python scripts/validate_flow.py
+python scripts/validate_architecture.py
+pytest
+(validate_architecture.py puede no existir aún — reportar, no inventar bypass.)
+
+Ritual de prueba WhatsApp
+Un solo hola (no flood).
+Tap chips del mensaje más nuevo.
+Confirmar en log: ButtonPayload=productos / pedido.
+Menú categorías/productos: list-picker (InteractiveData), no ButtonPayload.
+Qué NO hacer nunca (regresión)
+CREATE HX en cada send idéntico (quitar fingerprint/cache).
+Twin twilio/text + twilio/quick-reply en el mismo Content.
+Convertir buttons del JSON a list-picker “porque fallan chips”.
+Resolver destinos de flujo en twilio_client.
+if business_id == "..." para comportamiento especial.
+Borrar twilio_content_cache.json en cada .\start (recrea flood).
+Editar ARCHITECTURE_LAW.md / architecture_law_v3.md sin pedido explícito.
+Cambiar tests existentes para esconder regresiones.
+HX huérfanos
+Si cambiás copy/botones en JSON → fingerprint nuevo → 1 HX nuevo.
+Los HX viejos no se auto-borran en Twilio.
+No rompen solos el tap del mensaje fresco.
+Limpieza ocasional en Twilio Console (wb_btn_* viejos) + borrar cache local si hace falta.
+
+Diagnóstico rápido (árbol)
+Tap botón
+  ├─ ¿Webhook con ButtonPayload?
+  │    ├─ NO  → chip/Meta/burbuja vieja o HX muerto
+  │    │         → welcome fresco; probe/cache; no tocar FlowEngine
+  │    └─ SÍ  → gateway user_input ¿= productos|pedido?
+  │              ├─ NO → bug parse metadata
+  │              └─ SÍ → FlowEngine / options JSON
+  └─ ¿Outbound falló?
+       → logs Content create/send; From; delivery status
+Referencia de arquitectura
+Usar architecture_law_v3.md en mejoras incrementales:
+
+JSON = mapa (buttons/list/options)
+Python = motor
+Services = negocio
+StateManager = estado
+business_scope = tenant
+Transport = entrega (no mapa)
+v1 (ARCHITECTURE_LAW.md) sigue siendo la base histórica; v3 = v1 + frontera transport, misma arquitectura.
+
+Estado post-fix
+Reply buttons estables con reuse + probe + anti-stack.
+Conversación igual (mismos ids, mismo JSON, mismos chips quick-reply).
+List menú intacto.
+Confirmado en uso real: “ya sirve”.
+Prevención en código = sí para causas de flood/cache/stack/twin.
+No es magia 100% si se toca chip viejo o se reintroduce create-siempre/twin en código.
+Fin nota de versión — higiene transport WhatsApp / Twilio Content quick-reply.
+
+
+
+
+
+
+##################################################
+
 
 
