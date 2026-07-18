@@ -21486,3 +21486,34 @@ Hemos recibido tu pedido y ya está siendo revisado por nuestro equipo.
 👨‍🍳 En unos minutos *confirmaremos tu pedido* por este mismo chat.
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Selecciona*
+
+#################################################################
+################################################################
+
+Cliente: Hacer pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################

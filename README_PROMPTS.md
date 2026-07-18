@@ -1,4 +1,4 @@
-## v1.97. - System functional and clean
+## v1.98
 
 
 
@@ -10230,6 +10230,58 @@ Fin nota de versión — higiene transport WhatsApp / Twilio Content quick-reply
 
 
 ################################################
+## v1.98
 
+
+## prompt ##
+
+
+y por lo menos ya no volverá a ocurrir? así reinicie o no reinicie? el servidor? quedó bien implementado? respetando architecture_law.md(raiz del proyecto) ?
+Osea la idea es que jamás vuelva a ocurrir ese problema, así se reinicie o no el servidor, como mejora incremental como lo haría un senior, ten certeza de que jamás ocurrirá de nuevo y has comprobaciones y validaciones muchas para veirifcar que jamás ocurrirá, tienes via libre
+
+
+
+## resp cursor ##
+
+
+osea qué debemos hacer para que no vuelva a pasar? modificar el start?
+
+Reviso start.ps1 para decirte exactamente qué hacer (y qué no).
+
+No. No modifiques start.ps1 para borrar cache.
+
+start.ps1 hoy no toca data/twilio_content_cache.json ni data/twilio_button_antistack.json. Así debe quedar. Si le metés un Remove-Item de esos archivos en cada arranque → recreás flood de HX → vuelve el problema.
+
+Qué sí hacer
+Reiniciar una vez el server (Ctrl+C + .\start.ps1) para cargar el código nuevo (anti-stack en disco, títulos ASCII, 300 s).
+Probar ritual: un solo hola → tocar chips del mensaje más nuevo.
+Si falla el chip: escribir productos o menu (texto siempre llega).
+De vez en cuando:
+python scripts/selfcheck_twilio_buttons.py
+python scripts/validate_twilio_transport.py
+Cuándo sí borrar cache (ops manual, no en start)
+Solo si purgaste Contents en Twilio Console o sospechás HX muerto:
+
+Remove-Item .\data\twilio_content_cache.json -ErrorAction SilentlyContinue
+Remove-Item .\data\twilio_button_antistack.json -ErrorAction SilentlyContinue
+.\start.ps1
+Eso es excepción, no rutina.
+
+Resumen
+Acción	¿Hacerlo?
+Borrar cache en cada start.ps1
+No
+Reiniciar para cargar fix
+Sí (una vez)
+Tap solo welcome fresco
+Sí
+Fallback texto productos
+Si chip fantasma Meta
+El fix ya está en código + disco. start no necesita cambio.
+
+
+
+
+###################################
 
 

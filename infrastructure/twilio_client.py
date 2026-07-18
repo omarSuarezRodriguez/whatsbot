@@ -10,8 +10,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import threading
 import time
+import unicodedata
 from pathlib import Path
 from typing import Any, List, Union
 
@@ -36,9 +38,33 @@ Reply = Union[str, List[str]]
 # stacks dead quick-reply chips (tap shows locally, no Twilio inbound).
 _CONTENT_SID_CACHE: dict[str, str] = {}
 _CONTENT_CACHE_PATH = Path(__file__).resolve().parents[1] / "data" / "twilio_content_cache.json"
+# digits|acct → (fingerprint, unix_ts, message_sid); survives process restart via disk.
 _LAST_BUTTON_SEND: dict[str, tuple[str, float, str]] = {}
+_ANTISTACK_PATH = Path(__file__).resolve().parents[1] / "data" / "twilio_button_antistack.json"
+_ANTISTACK_LOADED = False
+# LAW invariant 11.6: ~5 min anti-stack. Persisted to disk so restart ≠ flood.
+# ceiling: Meta can still drop postback on ancient bubbles outside this window.
 _BUTTON_ANTISTACK_S = 300.0
 _BUTTON_LOCK = threading.Lock()
+
+
+def _btn_title(raw: str) -> str:
+    """Wire title: strip leading emoji/punct, fold accents. Ids unchanged."""
+    t = re.sub(r"^[\W_]+", "", (raw or ""), flags=re.UNICODE).strip()
+    t = unicodedata.normalize("NFKD", t)
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    return (t or (raw or ""))[:20]
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    """Crash-safe JSON write (temp + replace)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    tmp.replace(path)
 
 
 def _content_fingerprint(kind: str, body: str, actions: list[dict[str, Any]]) -> str:
@@ -64,22 +90,76 @@ def _load_content_cache() -> None:
         if _CONTENT_CACHE_PATH.is_file():
             data = json.loads(_CONTENT_CACHE_PATH.read_text(encoding="utf-8"))
             if isinstance(data, dict):
-                _CONTENT_SID_CACHE.update(
-                    {str(k): str(v) for k, v in data.items() if k and v}
-                )
+                # Drop pre-namespace orphan keys (fp without AC…: prefix).
+                cleaned = {
+                    str(k): str(v)
+                    for k, v in data.items()
+                    if k and v and ":" in str(k)
+                }
+                _CONTENT_SID_CACHE.update(cleaned)
+                if len(cleaned) != len(data):
+                    _save_content_cache()
     except Exception:
         logger.exception("content cache load failed")
 
 
 def _save_content_cache() -> None:
     try:
-        _CONTENT_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _CONTENT_CACHE_PATH.write_text(
-            json.dumps(_CONTENT_SID_CACHE, ensure_ascii=False, indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
+        _atomic_write_json(_CONTENT_CACHE_PATH, _CONTENT_SID_CACHE)
     except Exception:
         logger.exception("content cache save failed")
+
+
+def _antistack_key(digits: str) -> str:
+    return _namespaced_cache_key(digits)
+
+
+def _ensure_antistack_loaded() -> None:
+    """Load anti-stack from disk once; prune expired / orphan keys."""
+    global _ANTISTACK_LOADED
+    if _ANTISTACK_LOADED:
+        return
+    _ANTISTACK_LOADED = True
+    try:
+        if not _ANTISTACK_PATH.is_file():
+            return
+        data = json.loads(_ANTISTACK_PATH.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return
+        now = time.time()
+        kept = 0
+        for key, row in data.items():
+            # Only account-namespaced keys (AC…:digits). Drop orphans.
+            if not key or ":" not in str(key) or not isinstance(row, dict):
+                continue
+            fp = str(row.get("fp") or "")
+            try:
+                ts = float(row.get("ts") or 0)
+            except (TypeError, ValueError):
+                continue
+            sid = str(row.get("sid") or "")
+            if not fp or not sid or now - ts >= _BUTTON_ANTISTACK_S:
+                continue
+            _LAST_BUTTON_SEND[str(key)] = (fp, ts, sid)
+            kept += 1
+        if kept != len(data):
+            _save_antistack()
+    except Exception:
+        logger.exception("antistack load failed")
+
+
+def _save_antistack() -> None:
+    """Persist in-window anti-stack rows (account-namespaced)."""
+    try:
+        now = time.time()
+        payload = {
+            key: {"fp": fp, "ts": ts, "sid": sid}
+            for key, (fp, ts, sid) in _LAST_BUTTON_SEND.items()
+            if fp and sid and ":" in key and now - ts < _BUTTON_ANTISTACK_S
+        }
+        _atomic_write_json(_ANTISTACK_PATH, payload)
+    except Exception:
+        logger.exception("antistack save failed")
 
 
 def _to_digits(number: str) -> str:
@@ -280,14 +360,9 @@ def send_whatsapp_buttons(
     if not buttons:
         return None
 
-    # Titles without leading emoji — same ids. Emoji titles correlate with
-    # intermittent Meta→Twilio postback misses on this WABA (Ver menú fantasma).
-    import re
-
-    def _btn_title(raw: str) -> str:
-        t = re.sub(r"^[\W_]+", "", (raw or ""), flags=re.UNICODE).strip()
-        return (t or (raw or ""))[:20]
-
+    # Titles without leading emoji / accents — same ids. Emoji+accent titles
+    # correlate with intermittent Meta→Twilio postback misses on this WABA
+    # (Ver menú fantasma).
     safe_actions = [
         {
             "title": _btn_title(str(b.get("title", ""))),
@@ -301,12 +376,14 @@ def send_whatsapp_buttons(
 
     body_text = (body or "")[:1024]
     digits = _to_digits(to_number)
+    stack_key = _antistack_key(digits)
     fp = _content_fingerprint("quick-reply", body_text, safe_actions)
     cache_key = _namespaced_cache_key(fp)
 
     with _BUTTON_LOCK:
+        _ensure_antistack_loaded()
         now = time.time()
-        prev = _LAST_BUTTON_SEND.get(digits)
+        prev = _LAST_BUTTON_SEND.get(stack_key)
         if (
             prev
             and prev[0] == fp
@@ -347,7 +424,8 @@ def send_whatsapp_buttons(
     )
     if sid:
         with _BUTTON_LOCK:
-            _LAST_BUTTON_SEND[digits] = (fp, time.time(), sid)
+            _LAST_BUTTON_SEND[stack_key] = (fp, time.time(), sid)
+            _save_antistack()
     return sid
 
 
