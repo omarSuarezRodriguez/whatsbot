@@ -1,4 +1,4 @@
-## v1.94 - limpiar canal (HX/chips apilados + taps)
+## v1.95
 
 
 
@@ -9972,5 +9972,55 @@ En una frase: el código v1.90 ya mandaba bien; lo que rompía era canal sucio (
 
 
 ########################################
+## v1.95
+
+
+## prompt ##
+
+
+Lee y obedece ARCHITECTURE_LAW.md en la raíz del repo antes de tocar código. No modifiques ARCHITECTURE_LAW.md ni tests existentes salvo que yo lo pida explícitamente.
+
+Contexto: WhatsApp reply buttons (twilio/quick-reply) fallaban de forma intermitente por flood de Content HX, chips/burbujas viejas, twin twilio/text, y taps que WhatsApp muestra con ✓✓ pero Twilio no crea inbound. List-picker de menú está bien. NO conviertas buttons del JSON en list-picker. JSON sigue declarando `buttons` / `list`; transport solo entrega.
+
+Objetivo: implementar higiene de transport para que reply buttons queden estables, multi-tenant safe, y compatibles con más negocios/números después. Comportamiento conversacional igual (mismos ids, mismo flow JSON, mismos chips quick-reply).
+
+Implementa en la capa correcta (infrastructure/twilio_client.py, api/routes/whatsapp.py / gateway logs). No metas rutas en FlowEngine ni `if business_id == ...`.
+
+Mejoras obligatorias:
+1. Reusar Content SID (HX) por fingerprint de kind+body+actions (y namespace por TWILIO_ACCOUNT_SID si aplica). No crear HX nuevo en cada hola idéntico.
+2. Antes de reusar HX: GET probe; si 404 (u error claro) → borrar del cache y recrear. Nunca enviar SID borrado.
+3. Anti-stack: no reenviar el mismo quick-reply al mismo número destino en ~5 min; clave por dígitos del `to` (no mezclar clientes).
+4. Solo `twilio/quick-reply` para `buttons`. Prohibido twin `twilio/text` junto a botones.
+5. Al enviar: titles simples (sin emoji leading); ids ASCII estables desde el JSON (`productos`, `pedido`, etc.). JSON puede seguir con emoji; no inventar botones ni destinos en Python.
+6. Log obligatorio en webhook (y/o gateway): Body, ButtonPayload, ButtonText, InteractiveData (sí/no), MessageSid.
+7. Cache en `data/twilio_content_cache.json` (gitignored vía data/). Si se purgan Contents en Twilio, invalidar cache o confiar en probe.
+8. Listas (`send_whatsapp_list`) siguen list-picker; no romper menú categorías/productos.
+9. From pinneado al sender del negocio (no Messaging Service phantom +1555).
+
+Restricciones LAW:
+- JSON = mapa (buttons/list/options).
+- Python = motor, no mapa.
+- Services = negocio bajo business_scope.
+- Transport no resuelve destinos de flujo.
+- Preparado para varios senders/negocios: anti-stack por destinatario; cache HX por contenido (+ account); no hardcodear un solo tenant.
+
+Al final (obligatorio):
+1. `python scripts/validate_flow.py` y `python scripts/validate_architecture.py` si existen; reporta resultado.
+2. Self-check mínimo (script corto o asserts): buttons → solo quick-reply; sin twilio/text; fingerprint reuse; probe 404 recrea; anti-stack no doble-envía; list sigue list-picker; gateway/webhook loguea ButtonPayload.
+3. Comprueba que home `buttons` ids siguen productos/pedido y que process_message/gateway con ButtonPayload=productos y =pedido rutea bien.
+4. Resume qué archivos cambiaste y cómo probar en WhatsApp (un solo hola, welcome más nuevo).
+5. No hagas commit salvo que yo lo pida.
+
+Empieza leyendo ARCHITECTURE_LAW.md(raiz del proyecto) + infrastructure/twilio_client.py + api/routes/whatsapp.py + chatbot/gateway.py.
+
+Todo de una vez, primero auditas y al final me pides un OK , cuando te lo de, haces todo completo por fases, pero de una todo, y validaciones comprobaciones y todo, hazlo por fases y capas para que se implemente de forma adecuada como senior
+
+
+
+
+
+
+
+#################################################
 
 

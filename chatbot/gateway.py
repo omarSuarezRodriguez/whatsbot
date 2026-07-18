@@ -182,10 +182,12 @@ def handle_incoming_message(payload: dict) -> dict:
                 )
                 logger.info(
                     "gateway Body=%r ButtonPayload=%r ButtonText=%r "
-                    "list_payload=%r user_input=%r",
+                    "InteractiveData=%s MessageSid=%s list_payload=%r user_input=%r",
                     body,
                     button_payload,
                     metadata.get("ButtonText", ""),
+                    "yes" if metadata.get("InteractiveData") else "no",
+                    metadata.get("MessageSid") or metadata.get("SmsMessageSid") or "",
                     list_payload,
                     user_input,
                 )

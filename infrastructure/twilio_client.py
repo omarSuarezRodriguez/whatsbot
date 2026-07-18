@@ -12,7 +12,6 @@ import json
 import logging
 import threading
 import time
-import uuid
 from pathlib import Path
 from typing import Any, List, Union
 
@@ -50,6 +49,12 @@ def _content_fingerprint(kind: str, body: str, actions: list[dict[str, Any]]) ->
         separators=(",", ":"),
     )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:40]
+
+
+def _namespaced_cache_key(fp: str) -> str:
+    """Isolate HX cache per Twilio account (multi-tenant / multi-AC safe)."""
+    acct = (TWILIO_ACCOUNT_SID or "").strip() or "_"
+    return f"{acct}:{fp}"
 
 
 def _load_content_cache() -> None:
@@ -191,19 +196,17 @@ def _send_content(
                 auth=HTTPBasicAuth(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
                 timeout=10,
             )
-            if probe.status_code == 404:
-                logger.warning("Cached HX dead sid=%s — recreating", content_sid)
-                _CONTENT_SID_CACHE.pop(cache_key or "", None)
-                _save_content_cache()
-                content_sid = None
-            elif probe.ok:
-                logger.info("Content reuse hx=%s key=%s", content_sid, (cache_key or "")[:12])
+            if probe.ok:
+                logger.info("Content reuse hx=%s key=%s", content_sid, (cache_key or "")[:24])
             else:
+                # 404 or other clear error: never send a dead SID.
                 logger.warning(
-                    "Content probe %s status=%s — recreating",
+                    "Cached HX invalid sid=%s status=%s — drop cache + recreate",
                     content_sid,
                     probe.status_code,
                 )
+                _CONTENT_SID_CACHE.pop(cache_key or "", None)
+                _save_content_cache()
                 content_sid = None
 
         if not content_sid:
@@ -299,6 +302,7 @@ def send_whatsapp_buttons(
     body_text = (body or "")[:1024]
     digits = _to_digits(to_number)
     fp = _content_fingerprint("quick-reply", body_text, safe_actions)
+    cache_key = _namespaced_cache_key(fp)
 
     with _BUTTON_LOCK:
         now = time.time()
@@ -339,7 +343,7 @@ def send_whatsapp_buttons(
     sid = _send_content(
         to_number=to_number,
         content=content,
-        cache_key=fp,
+        cache_key=cache_key,
     )
     if sid:
         with _BUTTON_LOCK:
@@ -387,10 +391,20 @@ def send_whatsapp_list(
     Envía una lista interactiva (WhatsApp List Picker)
     usando Twilio Content API.
     """
-
+    body_text = (body or "")[:1024]
+    list_actions = [
+        {
+            "id": str(r.get("id", "")),
+            "title": str(r.get("title", "")),
+            "description": str(r.get("description") or ""),
+        }
+        for r in (rows or [])
+        if r.get("id") is not None
+    ]
+    fp = _content_fingerprint("list-picker", body_text, list_actions)
     content = build_list_content(
-        friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
-        body=(body or "")[:1024],
+        friendly_name=f"wb_list_{fp[:20]}",
+        body=body_text,
         button="Elegir",
         rows=rows,
     )
@@ -398,6 +412,7 @@ def send_whatsapp_list(
     return _send_content(
         to_number=to_number,
         content=content,
+        cache_key=_namespaced_cache_key(fp),
     )
 
 

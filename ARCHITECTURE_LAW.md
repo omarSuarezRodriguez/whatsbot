@@ -1,6 +1,14 @@
 # ARCHITECTURE_LAW.md
 
-Este archivo es la ley de arquitectura del proyecto. Su objetivo es impedir que cambios incrementales rompan la separacion central del sistema:
+Ley de arquitectura vigente (incremental).
+
+```text
+v1 = ARCHITECTURE_LAW.md (base; no editar en tareas normales)
+v2 = transport WhatsApp agregado
+v3 = v1+v2 compactados; misma sustancia; sin scripts de selfcheck en la ley
+```
+
+Si hay conflicto entre versiones, prevalece la decision central de capas. Este archivo no reemplaza v1 como historico; es el contrato a obedecer cuando se cite v3.
 
 ```text
 JSON = mapa conversacional
@@ -8,65 +16,38 @@ Python = motor de ejecucion
 Services = negocio
 StateManager = estado conversacional
 business_scope = aislamiento multi-tenant
+Transport = entrega WhatsApp (no mapa, no negocio)
 ```
 
 ## Politica de solo lectura
 
-Este archivo es un contrato de solo lectura para tareas normales de implementacion.
-
-Su funcion principal es ser leido, obedecido y usado como criterio de revision. No debe ser editado para acomodar una feature, bugfix, refactor, ajuste de tests o cambio de flujo.
-
-Regla estricta:
+Contrato de solo lectura para implementacion normal. Se lee y se obedece; no se edita para acomodar feature, bugfix, refactor, tests o flujo.
 
 ```text
-ARCHITECTURE_LAW.md se lee; no se modifica.
+ARCHITECTURE_LAW.md / architecture_law_v2.md / architecture_law_v3.md
+se leen; no se modifican salvo solicitud explicita del usuario.
 ```
 
-Solo puede cambiarse cuando el usuario pida explicitamente una de estas cosas:
+Autorizacion explicita tipica: "modifica/actualiza la ley de arquitectura", "cambia las reglas", "propongo cambiar la arquitectura", "revisa y mejora ARCHITECTURE_LAW…".
 
-- "modifica ARCHITECTURE_LAW.md"
-- "actualiza la ley de arquitectura"
-- "cambia las reglas de arquitectura"
-- "propongo cambiar la arquitectura"
-- "revisa y mejora ARCHITECTURE_LAW.md"
+Misma regla para **tests existentes**: no modificarlos en tareas normales. Solo si el usuario pide explicitamente modificar/actualizar tests, agregar tests, o corregir tests rotos. Si el codigo nuevo rompe tests, se corrige el codigo — no el contrato de tests.
 
-Incluso cuando exista autorizacion explicita, el cambio debe tratarse como una decision de gobernanza, no como parte accidental de una implementacion.
-
-Los tests existentes tampoco deben modificarse como parte de tareas normales para hacer pasar una implementacion.
-
-Solo pueden cambiarse cuando el usuario pida explicitamente una de estas cosas:
-
-- "modifica los tests"
-- "actualiza los tests"
-- "cambia las expectativas de los tests"
-- "agrega tests para este cambio"
-- "corrige tests rotos"
-
-Si un cambio rompe tests existentes, no se deben editar los tests para ocultar el problema. Primero se debe asumir que el codigo nuevo rompio un contrato y corregir la implementacion.
-
-Si una tarea requiere violar este documento, no se debe modificar la ley para hacer pasar el cambio. Se debe detener la implementacion y explicar:
-
-1. Que regla se rompe.
-2. Por que el cambio la rompe.
-3. Que alternativa mantiene la arquitectura.
-4. Si no hay alternativa, que decision arquitectonica se necesita.
+Si una tarea exige violar esta ley: detenerse y explicar (1) regla rota, (2) por que, (3) alternativa que la preserve, (4) decision arquitectonica necesaria si no hay alternativa. No editar la ley para hacer pasar el cambio.
 
 ## Decision central
 
-La arquitectura oficial del bot es:
-
 ```text
-Twilio
-  -> FastAPI webhook
-  -> gateway.py
-  -> business_scope
-  -> FlowEngine
-  -> StateManager
-  -> Services
-  -> DB
+Twilio -> FastAPI webhook -> gateway.py -> business_scope
+  -> FlowEngine -> StateManager -> Services -> DB
 ```
 
-La regla principal es:
+Outbound:
+
+```text
+gateway (respuesta + actions/list del JSON)
+  -> API webhook -> infrastructure/twilio_client (transport)
+  -> Twilio Content / Messages
+```
 
 ```text
 El flujo se configura.
@@ -74,229 +55,120 @@ El motor orquesta.
 El estado lo administra StateManager.
 El negocio vive en Services.
 El tenant siempre viene por business_scope.
+El transport solo entrega; no resuelve destinos de flujo.
 ```
 
 ## Invariantes
 
-Estas reglas no son preferencias. Son invariantes del sistema.
+No son preferencias.
 
-### 1. El JSON es el mapa
+### 1. JSON = mapa
 
-El JSON define:
+Define: estados, nodos, opciones, transiciones, comandos globales, mensajes, fallbacks, outcomes, y UI declarativa (`buttons` / `list` / `options`).
 
-- estados
-- nodos
-- opciones
-- transiciones
-- comandos globales
-- mensajes del flujo
-- fallbacks
-- outcomes esperados
+Python no duplica ese mapa.
 
-Python no debe duplicar ese mapa.
+**Prohibido:** rutas hardcodeadas; `if step == "..."`; transiciones duplicadas fuera del JSON; segundo mapa en config/BD/codigo; `GLOBAL_COMMAND_ROUTES` como routing runtime paralelo; inventar botones/ids/destinos en Python "para arreglar" WhatsApp.
 
-Prohibido:
+**Permitido:** cargar/validar/resolver JSON; ejecutar acciones y templates declarados; adaptar presentacion de transport (p. ej. strip emoji leading en titles al enviar) **sin** cambiar ids ni destinos del JSON.
 
-- hardcodear rutas conversacionales en Python
-- decidir destinos con `if step == "..."`
-- duplicar transiciones fuera del JSON
-- crear un segundo mapa en config, BD o codigo
-- usar `GLOBAL_COMMAND_ROUTES` como routing runtime paralelo
+### 2. Python = motor
 
-Permitido:
+`FlowEngine` orquesta; no es negocio.
 
-- cargar JSON
-- validar JSON
-- resolver referencias del JSON
-- ejecutar acciones declaradas por el JSON
-- renderizar templates declarados por el JSON
+**Debe:** leer estado/nodo; ejecutar accion; recibir `(mensaje, outcome)`; resolver transicion JSON; componer respuesta; exponer `buttons`/`list` del nodo al gateway sin reinterpretar el mapa.
 
-### 2. Python es el motor
+**No debe:** reglas por tenant; negocio profundo; BD directa / modelos/sesiones; copy largo de UX; casos especiales por nodo; logica Twilio Content SID, cache HX, anti-stack o probe.
 
-`FlowEngine` es un motor de ejecucion, no el negocio.
+### 3. Acciones delgadas
 
-Debe:
+`_action_*` solo orquesta: leer StateManager, llamar Service, guardar datos conversacionales, devolver `(mensaje, outcome)`.
 
-- leer el estado actual
-- leer el nodo actual
-- ejecutar la accion registrada
-- recibir `(mensaje, outcome)`
-- resolver la transicion declarada en JSON
-- componer la respuesta final
+**No:** calculos/persistencia/validaciones de dominio complejas (van a Services); rutas nuevas fuera del JSON.
 
-No debe:
+### 4. Services = negocio
 
-- contener reglas especificas por tenant
-- contener decisiones de negocio profundas
-- escribir directamente en BD
-- importar modelos o sesiones de persistencia
-- tener copy largo de experiencia de usuario
-- convertirse en un conjunto de casos especiales por nodo
+Pedidos, menu, reservas, usuarios, clientes, admin, notificaciones, persistencia, validaciones de dominio. Capacidad de negocio nueva → Services (o dominio equivalente), no el motor.
 
-### 3. Las acciones son delgadas
+### 5. StateManager = estado conversacional
 
-Una accion `_action_*` debe ser una capa de orquestacion.
+Solo StateManager muta: `flow`, `step`, `data`, carrito/reserva temporal, flags, confirmaciones pendientes. Datos duraderos → BD via Services.
 
-Puede:
-
-- leer datos del `StateManager`
-- llamar un Service
-- guardar datos conversacionales con `StateManager`
-- devolver `(mensaje, outcome)`
-
-No debe:
-
-- contener calculos complejos de negocio
-- contener persistencia directa
-- validar reglas de dominio complejas si pueden vivir en Services
-- crear rutas nuevas por fuera del JSON
-
-### 4. Services contienen negocio
-
-La logica de negocio vive en Services.
-
-Ejemplos:
-
-- pedidos
-- menu
-- reservas
-- usuarios
-- clientes
-- admin
-- notificaciones
-- persistencia
-- validaciones de dominio
-
-Si una mejora agrega capacidad de negocio, debe agregarse en Services o en una capa de dominio equivalente, no en el motor.
-
-### 5. StateManager controla el estado conversacional
-
-Solo `StateManager` puede mutar:
-
-- `flow`
-- `step`
-- `data`
-- carrito temporal
-- reserva temporal
-- flags conversacionales
-- confirmaciones pendientes
-
-Los datos duraderos pertenecen a BD mediante Services.
-
-Prohibido:
-
-- mutar `state["step"]` fuera de `StateManager`
-- mutar `state["flow"]` fuera de `StateManager`
-- mutar `state["data"]` directamente fuera de `StateManager`
+**Prohibido:** mutar `state["step"|"flow"|"data"]` fuera de StateManager.
 
 ### 6. Multi-tenant siempre
 
-Todo acceso a datos de negocio debe estar bajo `business_scope` o recibir `business_id` de forma explicita y validada.
+Datos de negocio bajo `business_scope` o `business_id` explicito y validado.
 
-Prohibido:
+**Prohibido:** asumir un solo restaurante; `if business_id == "..."`; comportamiento especial por tenant en FlowEngine; config global si existe por tenant; menu/prompts/intents/admin/pedidos sin contexto de negocio; hardcodear un solo sender/tenant en transport.
 
-- asumir un unico restaurante
-- usar `if business_id == "..."`
-- crear comportamiento especial por tenant dentro de `FlowEngine`
-- leer configuracion global si existe configuracion por tenant
-- resolver menu, prompts, intents, admin o pedidos sin contexto de negocio
+Flujo distinto por tenant → configuracion de flujo por tenant, no ifs en el motor.
 
-Si un tenant necesita flujo distinto, la solucion correcta es configuracion de flujo por tenant. No se permite resolverlo con condicionales dentro del motor.
+**Transport multi-tenant:** anti-stack quick-reply por digitos de `to`; cache HX por fingerprint + namespace `TWILIO_ACCOUNT_SID`; From pinneado al sender del negocio / env — no phantom `+1555`.
 
 ### 7. Gateway unico
 
-Todo mensaje de WhatsApp debe pasar por `gateway.py`.
+Todo WhatsApp inbound pasa por `gateway.py`.
 
-La API puede:
+**API puede:** webhook, resolver tenant, auditoria, llamar gateway, responder via transport, loguear campos Twilio de interactive.
 
-- recibir webhook
-- resolver tenant
-- persistir auditoria
-- llamar gateway
-- responder a Twilio
+**API no:** parser/motor propios; mutar estado conversacional; decidir rutas; saltar bloqueos admin/cliente.
 
-La API no debe:
-
-- reimplementar el parser conversacional
-- reimplementar el motor
-- modificar estado conversacional directamente
-- decidir rutas del flujo
-- saltarse bloqueos o reglas de admin/cliente
+Gateway prefiere `ButtonPayload` / list reply sobre `Body` cuando existan; pasa ese input al motor sin inventar rutas.
 
 ### 8. Una fuente de verdad por responsabilidad
 
-La navegacion vive en JSON.
+| Responsabilidad | Fuente |
+|-----------------|--------|
+| Navegacion | JSON |
+| Comandos globales runtime | `meta.global_commands` |
+| Copy de flujo | JSON |
+| Copy configurable gateway | BD |
+| `config/*` | semillas; no runtime si ya hay BD |
+| UI interactive (`buttons`/`list`) | JSON |
+| Higiene entrega WhatsApp (HX, probe, anti-stack, shape) | `infrastructure/twilio_client.py` |
 
-Los comandos globales runtime viven en `meta.global_commands`.
+No duplicar la misma decision en dos sitios.
 
-El copy del flujo vive en JSON.
+### 9. Incrementos solo en la capa correcta
 
-El copy configurable del gateway vive en BD.
+Mejora incremental = comportamiento en la capa correcta. No editar esta ley ni tests existentes salvo autorizacion explicita. Tests = contrato, no material de ajuste.
 
-Los defaults de `config/*` son semillas, no fuente runtime si ya existe configuracion en BD.
+**Validos:** helper Service; parser sin cambiar routing; endpoint con `business_id`; validacion/campo BD en Services; copy/transicion/accion delgada en JSON; higiene transport sin tocar mapa; tests solo si el usuario los pidio.
 
-No se debe crear la misma decision en dos lugares distintos.
+**Invalidos:** ruta por `if current_step`; tenant por `if business_id`; copy largo en FlowEngine; BD desde FlowEngine; estado sin StateManager; convertir `buttons`→list-picker en Python "porque fallan chips"; twin `twilio/text`+`twilio/quick-reply`; CREATE HX en cada send identico; destinos de flujo en `twilio_client`; ablandar/borrar assertions o fixtures para esconder regresion.
 
-### 9. Cambios incrementales son permitidos si respetan capas
+### 10. Deuda aceptada no crece
 
-Una mejora incremental es valida cuando agrega comportamiento dentro de la capa correcta.
+Deuda conocida: flujo JSON global; acciones restaurante-specific en FlowEngine; parser grande en `core`; admin WhatsApp legacy global; estado en archivo JSON local; prompts duplicados JSON/config/BD; nombres legacy (`restaurant`, `sheets`, `RESTAURANT_NAME`).
 
-Una mejora incremental no debe modificar `ARCHITECTURE_LAW.md` ni cambiar tests existentes salvo autorizacion explicita del usuario. Los tests son contrato; no son material de ajuste para que el cambio parezca correcto.
+Al tocar deuda: reducirla, dejarla igual, o documentar por que no se puede reducir aun. Nunca ampliarla en silencio.
 
-Ejemplos validos:
+### 11. Transport WhatsApp entrega; no es mapa
 
-- helper nuevo en un Service
-- mejora del parser sin cambiar routing
-- nuevo endpoint que respeta `business_id`
-- nueva validacion de dominio en Services
-- nuevo campo de BD usado por Services
-- nuevo copy en JSON
-- nueva transicion declarada en JSON
-- nueva accion delgada registrada y validada
-- tests nuevos o modificados solo si el usuario lo pidio explicitamente
+Capa: `infrastructure/twilio_client.py` (+ webhook/gateway: entrega y logs).
 
-Ejemplos invalidos:
+**No reintroducir:** flood HX identicos; chips/burbujas viejas (✓✓ local sin inbound); twin text+quick-reply; cache→HX 404 sin probe; buttons→list-picker como atajo de UX.
 
-- nueva ruta decidida con `if current_step == "..."`
-- nuevo tenant resuelto con `if business_id == "..."`
-- nuevo copy largo hardcodeado en `FlowEngine`
-- persistencia directa desde `FlowEngine`
-- estado mutado sin `StateManager`
-- cambiar tests para que acepten una regresion
-- borrar assertions existentes sin autorizacion explicita
-- modificar snapshots, fixtures o expectativas para esconder un fallo
+**Reglas:**
 
-### 10. Deuda aceptada no debe crecer
+1. JSON declara; transport entrega. `buttons`→`twilio/quick-reply`; `list`→`twilio/list-picker`. Ids/destinos del JSON. No inventar botones/rutas en Python.
+2. Un tipo interactive por mensaje WhatsApp. Nodo con list+buttons → dos mensajes (list, luego buttons). No fusionar types en un Content.
+3. Sin twin text: body dentro de `twilio/quick-reply`; no `twilio/text` en el mismo `types`.
+4. Reuse HX por fingerprint (kind+body+actions + `TWILIO_ACCOUNT_SID`). No CREATE en cada hola identico.
+5. Probe antes de reusar: GET; 404/error claro → drop cache + recreate. Nunca SID muerto.
+6. Anti-stack: mismo quick-reply al mismo `to` (digitos) dentro de ~5 min → no reenviar.
+7. Titles al enviar: se pueden simplificar (sin emoji leading). Ids ASCII del JSON intactos. JSON puede seguir con emoji.
+8. From pinneado (`TWILIO_WHATSAPP_FROM` / sender negocio). No remap phantom `+1555`.
+9. Cache `data/twilio_content_cache.json` (gitignored via `data/`). Tras purga Contents en Twilio: invalidar cache o confiar en probe. No borrar cache en cada `.\start` (recrea flood).
+10. Logs (webhook y/o gateway): `Body`, `ButtonPayload`, `ButtonText`, `InteractiveData` (si/no), `MessageSid`. Sin `ButtonPayload` tras tap → fallo Meta/chip; no se "arregla" con rutas en FlowEngine.
+11. Prueba: welcome fresco; tap mensaje mas nuevo. HX huerfanos al cambiar copy no se auto-borran; no rompen el tap del mensaje nuevo solos. Fallos de chips no justifican violar invariantes 1–8.
 
-Estas limitaciones existen y deben tratarse como deuda conocida:
+## Proceso obligatorio
 
-- flujo JSON global
-- acciones restaurante-specific dentro de `FlowEngine`
-- parser grande de pedidos en `core`
-- admin WhatsApp legacy global
-- estado conversacional en archivo JSON local
-- prompts duplicados entre JSON, config y BD
-- nombres legacy como `restaurant`, `sheets` y `RESTAURANT_NAME`
+**Antes:** (1) leer este archivo; (2) capas tocadas; (3) incremental vs arquitectonico; (4) si arquitectonico → aprobacion; (5) si tests → confirmacion explicita del usuario; (6) si buttons/list → cambio en transport o solo copy/ids en JSON, no rutas en motor.
 
-Cuando se toque una zona con deuda, el cambio debe:
-
-- reducir la deuda, o
-- dejarla igual, o
-- documentar explicitamente por que no puede reducirla todavia
-
-Nunca debe ampliarla silenciosamente.
-
-## Proceso obligatorio para cambios
-
-Antes de implementar:
-
-1. Leer este archivo.
-2. Identificar que capas toca el cambio.
-3. Confirmar si el cambio es incremental o arquitectonico.
-4. Si es arquitectonico, pedir aprobacion antes de implementarlo.
-5. Si requiere cambiar tests, confirmar que el usuario lo pidio explicitamente.
-
-Despues de implementar:
+**Despues:**
 
 ```bash
 python scripts/validate_flow.py
@@ -304,63 +176,47 @@ python scripts/validate_architecture.py
 pytest
 ```
 
-El validador puede bloquear cambios en este archivo o en tests. Las variables de autorizacion del validador solo pueden usarse cuando el usuario pidio explicitamente cambiar la ley o cambiar tests. No deben usarse para saltarse una regla durante una implementacion normal.
+Reportar fallos (comando, resultado, causa, correccion). No esconder. `validate_architecture.py` puede faltar: reportarlo, no inventar bypass.
 
-Si algun comando falla, no se debe esconder el fallo. Se debe reportar:
-
-- comando ejecutado
-- resultado
-- causa probable
-- correccion aplicada o pendiente
+Autorizacion de validador para editar ley/tests solo si el usuario lo pidio explicitamente.
 
 ## Checklist de revision
 
-Antes de aceptar un cambio, responder:
+- Navegacion en JSON? Motor ≠ mapa? Negocio en Services? Estado solo via StateManager?
+- Multi-tenant? Sin `if business_id == ...`? Sin rutas paralelas fuera del JSON?
+- Sin copy largo de flujo en Python? `meta.global_commands`? Acciones delgadas? Outcomes con transiciones?
+- Transport sin destinos de flujo? `buttons` = quick-reply (no list-picker en Python)?
+- Sin twin `twilio/text`? HX reuse + probe? Anti-stack por destinatario si aplica?
+- Tests intactos salvo pedido explicito? Validadores/tests ejecutados?
 
-- La navegacion sigue en JSON?
-- Python sigue siendo motor y no mapa?
-- El negocio sigue en Services?
-- El estado se muta solo por `StateManager`?
-- El cambio respeta multi-tenant?
-- No hay `if business_id == ...`?
-- No hay rutas paralelas fuera del JSON?
-- No hay copy largo de flujo en Python?
-- Los comandos globales vienen de `meta.global_commands`?
-- Las acciones nuevas son delgadas?
-- Los outcomes tienen transiciones declaradas?
-- No se modificaron tests salvo solicitud explicita?
-- Se ejecutaron validadores y tests?
+## Instruccion para asistentes AI / Cursor
 
-## Instruccion para asistentes AI y Cursor
+1. No editar esta ley (ni v1/v2) salvo pedido explicito.
+2. No editar tests existentes salvo pedido explicito.
+3. No contradecir esta ley.
+4. Ambiguo → opcion que preserve arquitectura.
+5. Implementacion que rompe regla → detenerse y alternativa.
+6. Tras cambios relevantes → validadores y tests; si no se pueden ejecutar, decirlo.
+7. Chips/taps fantasma → transport + inbound primero; nunca atajo de mapa en FlowEngine.
 
-Cuando trabajes en este repo:
-
-1. No modifiques este archivo salvo solicitud explicita del usuario.
-2. No modifiques tests existentes salvo solicitud explicita del usuario.
-3. No hagas cambios que contradigan este archivo.
-4. Si el usuario pide algo ambiguo, elige la opcion que preserve esta arquitectura.
-5. Si una implementacion obvia rompe una regla, detente y explica la alternativa.
-6. Al final de cambios relevantes, ejecuta validadores y tests.
-7. Si no puedes ejecutar validadores, dilo claramente.
-
-Prompt recomendado para tareas futuras:
+Prompt recomendado:
 
 ```text
-Antes de implementar, lee ARCHITECTURE_LAW.md.
-No modifiques ARCHITECTURE_LAW.md.
+Antes de implementar, lee architecture_law_v3.md.
+No modifiques ARCHITECTURE_LAW.md ni architecture_law_v3.md.
 No modifiques tests existentes salvo que yo lo pida explicitamente.
-Implementa el cambio respetando:
-JSON = mapa,
+Implementa respetando:
+JSON = mapa (buttons/list/options),
 Python = motor,
 Services = negocio,
 StateManager = estado,
-business_scope = tenant.
+business_scope = tenant,
+Transport = entrega (quick-reply/list-picker, reuse HX, sin twin text).
 
-Al final ejecuta:
+Al final:
 python scripts/validate_flow.py
 python scripts/validate_architecture.py
 pytest
 
-Si alguna regla arquitectonica se rompe, no fuerces el cambio.
-Explica que regla se rompe y propone una alternativa.
+Si una regla se rompe, no fuerces el cambio. Explica y propone alternativa.
 ```
