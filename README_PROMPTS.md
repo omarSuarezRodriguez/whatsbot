@@ -9910,4 +9910,147 @@ Después de eso queda solo la instancia nueva.
 ## v1.92
 
 
+## prompt ##
+
+
+Propuesta incremental — listas por id (+ fallback categoría)
+Respetá ARCHITECTURE_LAW.md. Vos decís OK → se implementa todo de una (Agent mode).
+
+Objetivo
+Menú como tu captura:
+
+categorías → tap (id o título) → listado de productos
+Nunca: Sopas → Changua al carrito.
+
+LAW
+Capa	Qué toca	¿OK?
+JSON mapa
+Sin cambios de rutas
+Sí
+FlowEngine
+Ejecuta list_navigation + list_category_target ya declarados
+Sí
+Services
+get_categories() para match de título
+Sí
+Gateway
+Preferir list_reply.id sobre Body
+Sí (puerta Twilio, no mapa)
+Parser / category-default
+No en este PR
+Sí (YAGNI)
+Prohibido: hardcodear if step == "productos_node" o destino fijo a Sopas.
+
+Cambios (2 archivos + 1 selfcheck)
+1) chatbot/gateway.py
+# Antes
+user_input = button_payload or list_payload or body
+# Después — listas ganan; reply buttons siguen con ButtonPayload si no hay lista
+user_input = list_payload or button_payload or body
+Log ya existente de inbound: dejar claro list_id / Body (si no está, una línea).
+
+2) chatbot/app/core/flow_engine.py
+En _try_list_navigation, tras __cat__ / __next__ / __prev__:
+
+Si nodo tiene list_category_target y texto no es token interno (__…)
+Match contra productos_service.get_categories() (casefold; también cat[:24] por límite WhatsApp)
+Si match → selected_category + _goto_ref(list_category_target) igual que __cat__
+Helper _match_list_category(text) -> Optional[str] en el mismo archivo.
+
+3) Selfcheck runnable (ponytail)
+scripts/selfcheck_list_category_nav.py (sin red Twilio):
+
+#	Caso	Esperado
+1
+input __cat__Sopas en productos_node
+step productos_category_node, selected_category=Sopas, carrito vacío
+2
+input Sopas (solo título)
+igual que (1) — el bug
+3
+input título truncable / case distinto si aplica
+match OK
+4
+input producto real con intercept_products (ej. nombre de plato)
+no se traga como categoría; intercept/pedido sigue
+5
+Gateway unit: con list_payload + body distintos → gana list_payload
+Exit ≠ 0 si algo falla.
+
+Correr también validadores existentes si aplica (validate_flow / transport) sin romper contratos.
+
+Fuera de alcance (este OK)
+Cambiar parser “categoría → 1er producto” en free-text
+Reply buttons / Desktop fantasma
+Migración Meta
+Editar ARCHITECTURE_LAW.md o tests viejos salvo que un test existente falle por contrato real (entonces se corrige impl, no se maquilla el test)
+Plan de prueba manual (vos)
+Reiniciar .\start.ps1
+hola → Ver menú / Productos
+Elegir Sopas (y Platos principales)
+Debe salir lista de productos, no Changua/Bandeja sola en carrito
+Elegir un producto de la lista → pedido normal
+Criterio de done
+ Selfcheck PASS
+ Sopas / Platos → listado productos
+ __cat__… sigue igual
+ LAW checklist OK
+ Sin tocar JSON de destinos
+Escribí OK (y pasá a Agent mode) para implementar exactamente esto de una.
+
+
+
+
+## prompt ##
+
+OK
+
+
+
+## resp cursor ##
+
+
+respsetando ARCHITECTURE_LAW.md (raiz del proyecto)
+
+
+
+OK
+
+    @staticmethod
+    def _category_match_key(text: str) -> str:
+        """Fold category title: drop leading emoji/symbols, casefold."""
+Existe un conflicto de nombres: FlowEngine y el parser comparten el método estático _category_match_key.
+
+No hay conflicto entre clases distintas. Actualizaré el menú selfcheck y los tests.
+
+        "precio": 8000.0,
+        "categoria": "Sopas",
+        "categoria": "🍲 Sopas",
+        "disponible": True,
+    # 1) __cat__ id path
+    # 1) __cat__ id path (Twilio uses full DB category in id)
+    _goto_productos(engine, wa)
+PASS product name is not a category
+PASS InteractiveData list_reply.id wins over Body
+PASS flow_engine helpers
+
+ALL PASS selfcheck_list_category_nav
+Listo. Selfcheck ALL PASS.
+
+Cambio
+_match_list_category ahora ignora emoji/símbolos al inicio. Devuelve el nombre exacto de la BD (con emoji) para que get_products_by_category funcione.
+
+Escribís	Resultado
+Platos principales
+→ 🍲 Platos principales
+🍲 Platos principales
+igual
+__cat__Sopas
+→ 🍲 Sopas
+Reiniciá .\start.ps1 y probá sin emoji.
+
+
+
+
+########################################################
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from app.config import FLOWS_PATH, RESTAURANT_NAME
@@ -682,6 +683,33 @@ class FlowEngine:
             return None
         return self._execute_input_action(wa_id, text, node, current_step, state)
 
+    @staticmethod
+    def _category_match_key(text: str) -> str:
+        """Fold category title: drop leading emoji/symbols, casefold."""
+        t = re.sub(r"^[\W_]+", "", (text or "").strip(), flags=re.UNICODE)
+        return t.casefold()
+
+    def _match_list_category(self, text: str) -> Optional[str]:
+        """Match list title/Body to a menu category (WhatsApp titles max 24 chars).
+
+        Categories in DB often include leading emoji (e.g. '🍲 Platos principales');
+        Body/title replies may omit it — compare on folded keys, return exact DB name.
+        """
+        raw = (text or "").strip()
+        if not raw or raw.startswith("__"):
+            return None
+        key = self._category_match_key(raw)
+        if not key:
+            return None
+        for cat in self.productos_service.get_categories():
+            if not cat:
+                continue
+            cat_key = self._category_match_key(cat)
+            title_key = self._category_match_key(cat[:24])
+            if key == cat_key or key == title_key:
+                return cat
+        return None
+
     def _try_list_navigation(
         self,
         wa_id: str,
@@ -700,16 +728,23 @@ class FlowEngine:
             self.state_manager.patch_data(wa_id, list_page=page)
             return self._process_node(wa_id, current_step)
 
+        target = node.get("list_category_target")
+        category: Optional[str] = None
         if text.startswith("__cat__"):
-            category = text[7:]
+            suffix = text[7:].strip()
+            # Resolve to exact DB category (emoji-tolerant) when possible
+            category = self._match_list_category(suffix) or suffix or None
+        elif target:
+            # Body/title-only list reply (id missing) → still open category list
+            category = self._match_list_category(text)
+
+        if category and target:
             self.state_manager.patch_data(
                 wa_id, selected_category=category, list_page=0
             )
-            target = node.get("list_category_target")
-            if target:
-                return self._goto_ref(
-                    wa_id, target, current_flow=state.get("flow", "idle")
-                )
+            return self._goto_ref(
+                wa_id, target, current_flow=state.get("flow", "idle")
+            )
 
         return None
 

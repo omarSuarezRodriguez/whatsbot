@@ -103,7 +103,8 @@ def handle_incoming_message(payload: dict) -> dict:
         except Exception:
             pass
 
-    user_input = button_payload or list_payload or body
+    # List-picker id wins over quick-reply payload / Body (categories use __cat__*).
+    user_input = list_payload or button_payload or body
 
     profile_name = (
         payload.get("profile_name")
@@ -180,10 +181,13 @@ def handle_incoming_message(payload: dict) -> dict:
                     wa_id=wa_id,
                     body=user_input,
                 )
-                logger.info("Body: %r", body)
-                logger.info("InteractiveData: %r", interactive_data)
-                logger.info("list_payload: %r", list_payload)
-                logger.info("user_input: %r", user_input)
+                logger.info(
+                    "inbound Body=%r ButtonPayload=%r list_id=%r user_input=%r",
+                    body,
+                    button_payload,
+                    list_payload,
+                    user_input,
+                )
                 
 
                 buttons = flow_engine.get_current_buttons(wa_id)
