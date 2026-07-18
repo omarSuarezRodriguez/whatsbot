@@ -1,4 +1,4 @@
-## v1.96 - (architecture law actualizada) Totalmente funcional de nuevo, fix de duplicación de cache en twilio, guía incluida en notas de versión para solucionar cualquier indidencia futura
+## v1.97. - System functional and clean
 
 
 
@@ -10218,6 +10218,18 @@ Fin nota de versión — higiene transport WhatsApp / Twilio Content quick-reply
 
 
 ##################################################
+## v1.97. - System functional and clean
+
+
+
+
+
+
+
+
+
+
+################################################
 
 
 
