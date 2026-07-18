@@ -25,13 +25,45 @@ def git(*args: str) -> None:
         raise SystemExit(result.returncode)
 
 
+def git_capture(*args: str) -> str:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+    return (result.stdout or "").strip()
+
+
+def current_branch() -> str:
+    result = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    branch = (result.stdout or "").strip()
+    if result.returncode != 0 or not branch:
+        print("Error: no se pudo determinar la rama actual de Git.")
+        raise SystemExit(1)
+    return branch
+
+
 def main() -> None:
+    branch = current_branch()
     msg = commit_message()
     print(f"Commit: {msg!r}")
-    git("add", ".")
-    git("commit", "-m", msg)
-    git("push", "-u", "origin", "main")
-    print("Listo: add, commit y push completados.")
+    if git_capture("status", "--porcelain"):
+        git("add", ".")
+        git("commit", "-m", msg)
+    else:
+        print("No hay cambios para hacer commit.")
+    git("push", "-u", "origin", branch)
+    print(f"Listo: add, commit y push completados en rama {branch!r}.")
 
 
 if __name__ == "__main__":
