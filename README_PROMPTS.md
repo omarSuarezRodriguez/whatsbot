@@ -1,4 +1,4 @@
-## v1.99
+## v1.100
 
 
 
@@ -10288,5 +10288,123 @@ El fix ya está en código + disco. start no necesita cambio.
 
 
 Quedó funcional en telefono
+
+
+
+
+
+#####################################
+## v1.100
+
+
+esa funcionalidad está en la v1.91? 
+github.com/omarSuarezRodriguez/whatsbot/commit/0c9722877eef37fa4541dc91fb222733618e745a
+ 
+
+Ese commit solo sube el título a v1.91. Voy a chequear si el split texto+lista ya estaba en ese árbol o es código local.
+
+No. En v1.91 (0c97228) esa funcionalidad no está.
+
+Ese commit solo cambia el encabezado del README (v1.90 → v1.91). Cero lógica de envío.
+
+En el árbol de ese SHA, deliver_reply con lista hacía un solo mensaje:
+
+body = "\n".join(parts)[:1024]
+send_whatsapp_list(..., body=body, rows=rows)
+Menú + botón Elegir en la misma burbuja list-picker (body truncado a 1024). No hay loop send_whatsapp_message + lista corta.
+
+El patrón de la captura (texto largo → luego lista con "👇 Selecciona una opción de la lista.") es posterior: está en tu twilio_client.py actual, no en v1.91. Tu README local ya marca v1.100.
+
+
+
+
+
+Prompt para pegar en la otra versión:
+
+
+## Objetivo
+En `infrastructure/twilio_client.py` → `deliver_reply`, cuando la respuesta lleva lista interactiva (`interactive_list.source` en `menu` | `categories` | `category_products`) y `use_rest=True`, enviar **dos mensajes WhatsApp en secuencia**, no uno solo:
+1. **Mensaje(s) de texto** con el contenido completo del reply (menú / categorías / copy del nodo).
+2. **List-picker** con body corto fijo y las rows (botón "Elegir").
+Exactamente el patrón UX: burbuja larga de texto → burbuja chica "👇 Selecciona una opción de la lista." + botón Elegir.
+## Problema actual (v1.91)
+Hoy, si hay rows, haces:
+```python
+body = "\n".join(parts)[:1024]
+send_whatsapp_list(..., body=body, rows=rows)
+Eso mete todo el menú en el body del list-picker (truncado a 1024) = un solo mensaje. Cambiar eso.
+
+Cambio mínimo (solo transport)
+En el bloque if rows: de deliver_reply, reemplazar el armado de body + send_whatsapp_list por:
+
+if rows:
+    text_sent = False
+    if use_rest:
+        for part in parts:
+            if send_whatsapp_message(recipient, part):
+                text_sent = True
+        list_body = "👇 Selecciona una opción de la lista."[:1024]
+    else:
+        # Sin REST no hay envío previo de texto; body de la lista = reply completo (comportamiento legacy).
+        list_body = "\n".join(parts)[:1024]
+    message_sid = send_whatsapp_list(
+        to_number=recipient,
+        body=list_body,
+        rows=rows,
+    )
+    if message_sid:
+        # Si JSON declara list + buttons: follow-up quick-reply (ya existía en v1.91). Mantener.
+        if actions:
+            btn_body = (parts[-1] if parts else "👇")[:1024]
+            btn_sid = send_whatsapp_buttons(
+                to_number=recipient,
+                body=btn_body,
+                buttons=actions,
+            )
+            if not btn_sid:
+                logger.warning(
+                    "Interactive buttons follow-up failed for %s",
+                    recipient,
+                )
+        return build_twiml_response("")
+    logger.warning(
+        "Interactive list delivery failed for %s; falling back to text",
+        recipient,
+    )
+    # Si el texto ya se envió por REST y la lista falló, NO reenviar el menú otra vez por TwiML/fallback.
+    if text_sent:
+        return build_twiml_response("")
+Usar send_whatsapp_message y send_whatsapp_list que ya existen en el mismo archivo. No inventar helpers nuevos.
+
+Condición crítica: use_rest debe ser True
+El split texto→lista solo ocurre con use_rest=True. Verificar en api/routes/whatsapp.py que la llamada a deliver_reply(..., use_rest=...) efectivamente pase True en webhook (sesión activa). Si en esa versión a veces va False, forzar use_rest = True en el webhook igual que se hace para pinnear el From de Twilio — sin eso el usuario sigue viendo un solo mensaje.
+
+NO tocar
+flows/restaurant_flow.json (el nodo productos con list: {"source": "categories"} ya está bien).
+FlowEngine / gateway / options / buttons→list conversion.
+send_whatsapp_buttons / quick-reply del home.
+No convertir buttons en list-picker.
+No agregar source: static ni otros features posteriores.
+No nuevas dependencias.
+Criterio de aceptación
+Usuario entra a menú/productos → WhatsApp muestra 2 burbujas: (A) texto largo del menú, (B) "👇 Selecciona una opción de la lista." + Elegir.
+Elegir categoría/producto sigue funcionando igual (mismo id de rows / __cat__ / paginación).
+Si falla send_whatsapp_list pero el texto ya salió, no duplicar el menú en el fallback.
+Sin use_rest, comportamiento legacy (lista con body = join de parts) sigue válido.
+Self-check (ponytail)
+Un assert/demo mínimo: simular parts=["MENÚ LARGO"], use_rest=True, mockear send_whatsapp_message + send_whatsapp_list y verificar:
+
+send_whatsapp_message se llama con el texto largo
+send_whatsapp_list se llama con body exacto "👇 Selecciona una opción de la lista." O un script corto en scripts/ que documente ese orden. Sin framework de tests.
+
+
+
+
+
+########################################
+
+
+
+
 
 
