@@ -1,4 +1,4 @@
-## v1.92
+## v1.93
 
 
 
@@ -10053,4 +10053,165 @@ Reiniciá .\start.ps1 y probá sin emoji.
 
 
 ########################################################
+## v1.93 - velossi
+
+
+Orden recomendado (actuar así)
+Fase 0 — Congelar el mensaje (1 día)
+Escribe y no cambies:
+
+Concepto: canal de gestión + número propio intacto
+Definición: plataforma de atención/ventas (gestión) por WhatsApp
+Identidad: p.ej. Velossi. La velocidad de tu negocio.
+Flujo estrella: pedidos restaurante (si ese es tu wedge)
+Fase 1 — Producto demo-ready (prioridad #1)
+Sin esto, web/ads queman plata.
+
+Flujo pedido redondo (WhatsApp → confirmación → app dueño).
+1 negocio demo real (menú de verdad).
+Link tipo velossi.com.co/demo o slug demo → wa.me.
+App: login + ver/aprobar pedido.
+Pack puente en un PDF (saludo, ausencia, QR).
+Listo cuando: en 10 min demuestras pedido completo sin pedir disculpas.
+
+Fase 2 — Web mínima (sí, pero chiquita)
+No “sitio corporativo”. 1 página:
+
+Qué es (2 frases)
+Cómo funciona (número propio vs canal gestión)
+Demo / WhatsApp tuyo
+CTA: “Agenda demo” o wa.me a ti
+Opcional: /slug redirect ya (aunque sea manual al inicio).
+
+No hagas: blog, 10 secciones, funnel con 8 emails.
+
+Fase 3 — Venta manual (antes que ads)
+Tu funnel real eres tú:
+
+Lista 20 restaurantes cerca (Cúcuta / zona).
+5 visitas o WhatsApps serios esta semana.
+Demo presencial (tu ventaja).
+Meta: 1–2 miembros de pago o piloto 14 días con métrica.
+Aprende qué objeciones salen. Eso diseña el funnel después.
+
+Fase 4 — Kit de alta repetible
+Cuando el primero diga que sí:
+
+Checklist onboarding (web CTA + app + puente + QR)
+Precio Starter / Business escrito en una hoja
+Fase 5 — Recién ahí: distribución
+Ads solo cuando: demo estable + 1 caso (“X pedidos en 2 semanas”)
+Funnel = bio IG + landing 1 CTA + Calendly/wa
+Contenido corto: video 60s del pedido
+Qué NO hacer ahora
+Evitar	Por qué
+Campaña Meta/Google
+Tráfico a producto a medias = quemar marca
+Funnel elaborado
+No tienes aún prueba de mensaje
+Mini webs bonitas para 50 locales
+Te conviertes en agencia
+5 flujos a la vez
+Diluye
+Tu semana tipo (acción)
+Día	Hacer
+1
+Congelar copy + elegir flujo estrella
+2–4
+Cerrar huecos demo (pedido + app + link)
+5
+Landing 1 página + wa tuyo
+6–7
+5 contactos/demos restaurantes
+Respuesta directa a “¿web, ads o funnel?”
+Cosa	¿Ahora?
+Producto/demo
+Sí, primero
+Web mínima
+Sí, después del demo
+Kit alta
+Sí, con el primer cliente
+Funnel simple
+Sí, 1 CTA (no máquina)
+Ads
+No aún
+Frase guía:
+Construye algo que un dueño te pague después de una demo.
+Eso es el negocio. Ads solo multiplican lo que ya funciona.
+
+Si quieres el siguiente paso ultra concreto: checklist técnico “demo-ready pedidos” contra lo que ya tienes en el repo (qué falta vs qué ya está). En Agent mode se puede auditar el código; en Ask te puedo listar el checklist a ciegas por lo que ya vimos del proyecto.
+
+
+
+
+
+## segunda respuesta ##
+
+
+
+Listo para vender / primer miembro
+Obligatorio (sin esto no cobres)
+#	Qué	Para qué
+1
+1 flujo completo (pedidos: pedir → confirmar → domicilio/recoger → guardado → aviso dueño)
+El producto
+2
+Dueño por WhatsApp (le llega pedido + CONFIRMAR/RECHAZAR)
+Opera sin app
+3
+Negocio demo con menú real
+Demo en 10 min
+4
+Link velossi…/slug → wa.me del canal
+Entrada de gestión
+5
+Web mínima 1 página (qué es + CTA demo/wa tuyo)
+Que no parezca humo
+6
+Pack puente (textos saludo/ausencia + QR + frases copy-paste)
+Que lo usen
+7
+Precio Starter escrito (qué incluye / qué no; app = después)
+Cierre limpio
+8
+Deploy estable (API + Twilio + webhook prod)
+No se cae en la demo
+Muy recomendable (barato, cara percepción)
+Qué	Nota
+Landing del slug con botón “Gestionar”
+Más premium que redirect ciego
+PDF 1 página “cómo usar tu canal”
+Entrega al activar
+1 hoja alcance
+Evita pelear por la app
+Después (no bloquea primer cobro)
+App Flutter full
+Mini web del restaurante
+Stats / CRM
+Reservas pulidas
+Ads / funnel
+Business plan completo
+Checklist mental “¿ya?”
+ Pedido demo de punta a punta sin fallar
+ Dueño confirma por WhatsApp
+ Link + QR listos
+ Web 1 página al aire
+ Pack puente en un doc
+ Digo el precio sin titubear
+ Servidor en dominio real
+Si eso está → sales a demos.
+Todo lo demás se construye con el primero pagando.
+
+es necesario que el dueño acepte por whatsapp? 
+
+
+
+
+
+
+
+########################################################
+
+
+
 
