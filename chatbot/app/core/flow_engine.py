@@ -91,6 +91,7 @@ class FlowEngine:
             "save_ayuda": self._action_save_ayuda,
             "handle_order_clarification": self._action_handle_order_clarification,
             "handle_order_disambiguation": self._action_handle_order_disambiguation,
+            "handle_order_qty": self._action_handle_order_qty,
         }
 
     def _load_flow(self) -> Dict[str, Any]:
@@ -658,12 +659,54 @@ class FlowEngine:
             and intent.get("has_products")
             and node.get("intercept_products")
         ):
+            # Destino lo declara el JSON (ARCHITECTURE_LAW: no hardcodear rutas).
+            target = node.get("intercept_products_target")
+            if target:
+                product = self._resolve_menu_product(text)
+                if not product:
+                    return None
+                self.state_manager.patch_data(
+                    wa_id,
+                    pending_product={
+                        "product_id": str(product["id"]),
+                        "product": str(product["nombre"]),
+                        "unit_price": float(product.get("precio") or 0),
+                    },
+                    awaiting_qty_other=False,
+                )
+                return self._goto_ref(
+                    wa_id,
+                    str(target),
+                    current_flow=state.get("flow", "idle"),
+                )
             response = self._resolve_global_command(
                 wa_id, "pedido", current_step, state
             )
             if response:
                 return self.process_message(wa_id, text)
         return None
+
+    def _resolve_menu_product(self, text: str) -> Optional[Dict[str, Any]]:
+        """Resolve list id or product name to a catalog row (no routing)."""
+        raw = (text or "").strip()
+        if not raw:
+            return None
+        by_id = self.productos_service.get_producto_by_id(raw)
+        if by_id:
+            return by_id
+        key = raw.casefold()
+        for item in self.productos_service.get_available_productos():
+            nombre = str(item.get("nombre") or "")
+            if nombre.casefold() == key:
+                return item
+        # List titles max 24 chars — match truncated title.
+        for item in self.productos_service.get_available_productos():
+            nombre = str(item.get("nombre") or "")
+            if nombre[:24].casefold() == key:
+                return item
+        return None
+
+
 
     def _try_order_greeting(self, text: str, node: Dict[str, Any]) -> Optional[str]:
         if not (node.get("order_greeting_on_greeting") and is_greeting(text)):
@@ -900,15 +943,21 @@ class FlowEngine:
             {"name": name},
         )
 
-        
         state_data = self.state_manager.get(wa_id).get("data", {})
+        pending = state_data.get("pending_product") or {}
+        from app.core.parser import OrderParser
+
+        unit = float(pending.get("unit_price") or 0)
         return {
             "welcome_line": welcome,
             "saved_address": profile.get("address", ""),
             "order_id": str(state_data.get("order_id", "")),
             "total": str(state_data.get("total", "")),
             "delivery_address": str(state_data.get("delivery_address", "")),
-        }
+            "product_name": str(pending.get("product") or ""),
+            "price": OrderParser._fmt_cop(unit),
+        }        
+        
 
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
         return "", None
@@ -934,6 +983,76 @@ class FlowEngine:
             if key in self.meta
         }
         return self.productos_service.format_category_products(category, templates), None
+
+    def _action_handle_order_qty(
+        self, wa_id: str, text: str
+    ) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
+        data = state.get("data", {})
+        pending = data.get("pending_product") or {}
+        if not pending:
+            return self._node_fallback_message(node), None
+
+        normalized = normalize_text(text)
+        raw = (text or "").strip()
+        awaiting = bool(data.get("awaiting_qty_other"))
+
+        qty: Optional[int] = None
+        if normalized in ("qty_1", "1") or raw == "1":
+            qty = 1
+        elif normalized in ("qty_2", "2") or raw == "2":
+            qty = 2
+        elif normalized in ("qty_other", "otra"):
+            self.state_manager.patch_data(wa_id, awaiting_qty_other=True)
+            msg = self._render(
+                self._resolve_ux_text("qty_other_prompt", node),
+                {
+                    "product_name": str(pending.get("product") or ""),
+                    "price": str(pending.get("unit_price") or ""),
+                },
+            )
+            return msg, "need_other"
+        elif awaiting or raw.isdigit():
+            try:
+                qty = int(raw)
+            except ValueError:
+                qty = None
+            if qty is None or qty < 1 or qty > 20:
+                return self._resolve_ux_text("qty_invalid", node), None
+        else:
+            return "", None
+
+        cart = list(data.get("cart") or [])
+        pid = str(pending.get("product_id") or "")
+        pname = str(pending.get("product") or "")
+        unit = float(pending.get("unit_price") or 0)
+        found = False
+        for item in cart:
+            if str(item.get("product_id") or "") == pid or item.get("product") == pname:
+                item["qty"] = int(item.get("qty") or 0) + qty
+                item["subtotal"] = round(
+                    item["qty"] * float(item["unit_price"]), 2
+                )
+                found = True
+                break
+        if not found:
+            cart.append({
+                "product_id": pid,
+                "product": pname,
+                "qty": qty,
+                "unit_price": unit,
+                "subtotal": round(qty * unit, 2),
+            })
+
+        self.state_manager.patch_data(
+            wa_id,
+            cart=cart,
+            pending_product={},
+            awaiting_qty_other=False,
+        )
+        # Mensaje lo compone order_review_node (show_cart) vía transitions.
+        return "", "success"
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
         state = self.state_manager.get(wa_id)

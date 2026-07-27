@@ -34,6 +34,7 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "save_ayuda": {"success", "incomplete"},
     "handle_order_clarification": {"partial_resolved", "partial_retry", "skip"},
     "handle_order_disambiguation": {"disambiguated", "disambiguate_next", "invalid_choice"},
+    "handle_order_qty": {"success", "need_other"},
 }
 
 # Meta UX estática (Fase 2). Obligatorias si el flujo usa restaurant_flow estándar.

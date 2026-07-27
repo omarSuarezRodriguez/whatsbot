@@ -12,7 +12,7 @@
               "id": "productos"
             },
             {
-              "title": "🍽️ Hacer pedido",
+              "title": "🍽️ Pedir ahora",
               "id": "pedido"
             }
           ],
@@ -85,6 +85,7 @@
           "list": {"source": "category_products"},
           "list_navigation": true,
           "intercept_products": true,
+          "intercept_products_target": "order.order_qty_node",
           "suppress_navigation": true,
           "fallback": "Selecciona un producto de la lista, o escribe *inicio* para volver al menú.",
           "fallback_buttons": [
@@ -123,6 +124,36 @@
           "capture_order_partial": "✅ Guardé estos productos:\n{{recognized}}\n\nNo pude identificar: *{{unknown_list}}*\n\n¿Cómo se llama el primer producto que falta?",
 
           "navigation_hint": ""
+        },
+
+        "order_qty_node": {
+          "message": "🍽️ *{{product_name}}*\n💰 ${{price}}\n\n👇 ¿Cuántas quieres? *Selecciona*",
+          "action_on_input": "handle_order_qty",
+          "input_mode": "free_text",
+          "qty_other_prompt": "¿Cuántas *{{product_name}}* quieres?\n\nEscribe el número (ejemplo: *3* o *5*).",
+          "qty_invalid": "Necesito un número entre 1 y 20.\nEscribe solo el número, o elige 1 o 2.",
+          "buttons": [
+            {
+              "title": "1",
+              "id": "qty_1"
+            },
+            {
+              "title": "2",
+              "id": "qty_2"
+            },
+            {
+              "title": "Otra",
+              "id": "qty_other"
+            }
+          ],
+          "fallback": "Elige *1*, *2* u *Otra*.",
+          "transitions": {
+            "success": "order.order_review_node",
+            "need_other": null
+          },
+          "options": {
+            "inicio": "home.home_node"
+          }
         },
 
         "order_review_node": {

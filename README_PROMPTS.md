@@ -1,4 +1,4 @@
-## v1.94
+## v1.95
 
 
 
@@ -10283,6 +10283,17 @@ Sin match en options/action = fallback (+ fallback_buttons si aplica).
 
 
 #####################################################
+## v1.95
+
+
+Cantidad de productos añadida, permite seleccionar cantidad de producto al agregarlo
+
+
+
+
+
+
+#############################
 
 
 
