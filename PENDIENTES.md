@@ -170,3 +170,77 @@ Y todavía puedes agregar:
 
 
 
+home_node
+    │  [📖 Ver menú]
+    ▼
+productos_node
+    │  [lista: categoría]  ej. Platos
+    ▼
+productos_category_node
+    │  [lista: producto]  ej. Bandeja paisa
+    ▼
+order_qty_node
+    │  [1]  [2]  [3]  [Otra]
+    │   │    │    │      │
+    │   └────┴────┘      └── ✍️ escribe número → vuelve aquí con qty
+    │         │
+    │         ▼  (qty elegida)
+    ▼
+order_review_node
+    │  [➕ Añadir más]   [✅ Confirmar]   [✏️ Modificar]
+    │         │                 │                │
+    │         │                 │                └── order_modify_node
+    │         │                 │                     (luego vuelve a review)
+    │         │                 │
+    │         │                 └── sigue entrega ↓
+    │         │
+    │         └── vuelve a productos_node
+    │              (categoría → producto → qty → review otra vez)
+    ▼
+order_delivery_node
+    │  [🏠 Domicilio]          [🏪 Recoger]
+    │         │                      │
+    │         │                      └── (nombre ya OK) → order_saved_node
+    │         ▼
+order_address_node          ← solo si hay dirección guardada
+    │  [✅ Confirmar dirección]   [✏️ Cambiar]
+    │         │                         │
+    │         │                         └── ✍️ dirección → confirmar otra vez
+    │         ▼
+order_saved_node            ← fin. Pedido registrado.
+
+
+
+
+Pulido:
+
+home_node                         [BOTONES]
+    │  [📖 Ver menú]
+    ▼
+productos_node                    [LISTA]
+    │  filas: categorías…
+    │  + fila "🏠 Inicio"     → home
+    ▼
+productos_category_node           [LISTA]
+    │  filas: productos…
+    │  + "⬅️ Categorías"      → productos_node
+    │  + "🏠 Inicio"          → home
+    │  tap producto           → order_qty_node
+    ▼
+order_qty_node                    [BOTONES]
+    │  [1] [2] [Otra]
+    │  (escape: texto inicio / o tras basura otro msg con Inicio)
+    ▼
+order_review_node                 [BOTONES]
+    │  [➕ Añadir más] [✅ Confirmar] [✏️ Modificar]
+    ▼
+order_delivery_node               [BOTONES]
+    │  [🏠 Domicilio] [🏪 Recoger]
+    ▼
+order_address_*                   [BOTONES] o [TEXTO]
+    ▼
+order_saved_node                  [TEXTO] fin
+
+
+
+

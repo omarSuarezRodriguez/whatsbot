@@ -1,4 +1,4 @@
-## v1.93
+## v1.94
 
 
 
@@ -10,20 +10,15 @@ Primer versión
 
 
 
-
-
 #######################################################
 ## v1.1
-
 
 ## prompt ##
 
 [[[[[- llega el mensaje por notificación push, barra de estado y sonido, pero  dentro de la app, en el listado, no se actualiza que llegó nuevo mensaje, necesito 
 - Cuando estoy dentro de un chat, todo funciona correctamente, lo único que quiero que corrijas es lo siguiente: cuando yo envío un mensaje se envía correctamente, el problema es de visualización, todos los mensajes que envío desde whatsbot al cliente llega, pero siempre se quedan como si se hubieran acabado de enviar, y aunque el cliente le envíe mensajes, los que el cliente envía se ven y loq eu responde el bot también, pero lo que yo escribí como humano, queda ahí, ]]]]]
 
-
 IMPORTANTE: REVISA ESAS DOS INCIDENCIAS, SOLAMENTE QUIERO QUE LAS REVISES, VERIFIQUES, NO TOQUES CODIGO SOLO ME PROPONGAS QUÉ SE DEBE HACER PARA SOLUCIONAR ESO, RESUMIDO, SOLO PROPON NO TOQUE SEL PROYECTO, DAME RESUMIDO Y QUE TENGAS CERTEZA DE QUE SE SOLUCIONARA
-
 
 
 ## resp cursor ##
@@ -10211,6 +10206,83 @@ es necesario que el dueño acepte por whatsapp?
 
 
 ########################################################
+## v1.94
+
+
+
+# Guía rápida — JSON del flujo
+
+**JSON = mapa** (textos, botones, destinos).  
+**Python = lógica** (actions + outcomes).
+
+---
+
+## Campos del nodo
+
+| Campo | Para qué |
+|-------|----------|
+| `buttons` | Botones normales (máx. 3) |
+| `fallback_buttons` | Botones si no entiende |
+| `options` | id/texto → nodo destino |
+| `transitions` | outcome de action → nodo |
+| `list` + `list_navigation` | Lista WhatsApp + paginación/categorías |
+| `list_category_target` | A dónde ir al elegir categoría |
+| `intercept_products` | Si escribe un producto → atajo a pedido |
+| `input_mode: free_text` | El texto dispara la action |
+| `action` | Lógica al entrar / mostrar |
+| `action_on_input` | Lógica al escribir |
+| `message` / `fallback` / `navigation_hint` | Textos |
+| `suppress_navigation` | No añade el hint al final |
+
+## Meta (global)
+
+| Campo | Para qué |
+|-------|----------|
+| `global_commands` | Palabras siempre activas (`inicio`, `pedido`…) |
+| `active_order_command_targets` | Con carrito, `pedido` → review (u otro) |
+
+---
+
+## Orden mental
+
+```text
+input → ¿global? → ¿lista? → ¿options? → ¿intercept?
+      → ¿free_text + action? → outcome → transitions
+      → si no: fallback
+
+
+
+
+Cómo limitar al usuario
+Quieres	Editas
+Menos opciones en pantalla
+buttons + options
+Menos atajos por texto
+global_commands + intercept_products: false
+Cambiar a dónde va un resultado
+transitions / options
+Solo copy
+message, fallback, meta
+No puedes bloquear el teclado: siempre puede escribir; lo controlas con fallback + menos puertas.
+
+Reglas de oro
+Lista o botones — no los dos en el mismo mensaje.
+transitions solo con outcomes que el motor ya devuelve.
+Action nueva = Python; destino nuevo de algo existente = JSON.
+Quitar botón ≠ quitar global: si sigue en global_commands, aún funciona escribiendo.
+Destinos
+Formato: "flow.nombre_nodo"
+Ejemplo: "productos.productos_node"
+
+Outcome null en transitions = fin (nodo terminal).
+Sin match en options/action = fallback (+ fallback_buttons si aplica).
+
+
+
+
+
+
+#####################################################
 
 
 
