@@ -40,6 +40,56 @@ class OrderService:
     def cart_total(self, items: List[Dict[str, Any]]) -> float:
         return OrderParser.cart_total(items)
 
+    def get_cart_item(
+        self,
+        items: List[Dict[str, Any]],
+        product_id: str,
+    ) -> Optional[Dict[str, Any]]:
+        for item in items:
+            if str(item.get("product_id") or "") == str(product_id):
+                return dict(item)
+        return None
+
+    def update_cart_quantity(
+        self,
+        items: List[Dict[str, Any]],
+        product_id: str,
+        quantity: int,
+    ) -> Optional[List[Dict[str, Any]]]:
+        if quantity < 1 or quantity > 20:
+            return None
+
+        updated = [dict(item) for item in items]
+
+        for item in updated:
+            if str(item.get("product_id") or "") != str(product_id):
+                continue
+
+            item["qty"] = quantity
+            item["subtotal"] = round(
+                quantity * float(item.get("unit_price") or 0),
+                2,
+            )
+            return updated
+
+        return None
+
+    def remove_cart_product(
+        self,
+        items: List[Dict[str, Any]],
+        product_id: str,
+    ) -> Optional[List[Dict[str, Any]]]:
+        updated = [
+            dict(item)
+            for item in items
+            if str(item.get("product_id") or "") != str(product_id)
+        ]
+
+        if len(updated) == len(items):
+            return None
+
+        return updated
+
     def save_order(
         self,
         wa_id: str,

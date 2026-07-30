@@ -92,6 +92,8 @@ class FlowEngine:
             "handle_order_clarification": self._action_handle_order_clarification,
             "handle_order_disambiguation": self._action_handle_order_disambiguation,
             "handle_order_qty": self._action_handle_order_qty,
+            "update_cart_quantity": self._action_update_cart_quantity,
+            "remove_cart_product": self._action_remove_cart_product,
         }
 
     def _load_flow(self) -> Dict[str, Any]:
@@ -169,8 +171,43 @@ class FlowEngine:
         result = dict(list_def)
         data = state.get("data", {})
         result["page"] = data.get("list_page", 0)
+
         if result.get("source") == "category_products":
             result["category"] = data.get("selected_category", "")
+
+        if result.get("source") == "cart_items":
+            from app.core.parser import OrderParser
+
+            description_template = str(
+                result.get("row_description") or ""
+            )
+            rows = []
+
+            for item in data.get("cart") or []:
+                product_id = str(item.get("product_id") or "")
+                if not product_id:
+                    continue
+
+                description = self._render(
+                    description_template,
+                    {
+                        "qty": item.get("qty", 0),
+                        "subtotal": OrderParser._fmt_cop(
+                            float(item.get("subtotal") or 0)
+                        ),
+                    },
+                )
+
+                rows.append(
+                    {
+                        "id": f"__cart__{product_id}",
+                        "title": str(item.get("product") or "")[:24],
+                        "description": description[:72],
+                    }
+                )
+
+            result["rows"] = rows
+
         return result
 
     @staticmethod
@@ -771,6 +808,42 @@ class FlowEngine:
             self.state_manager.patch_data(wa_id, list_page=page)
             return self._process_node(wa_id, current_step)
 
+        item_target = node.get("list_item_target")
+        if item_target and (node.get("list") or {}).get("source") == "cart_items":
+            cart = state.get("data", {}).get("cart") or []
+            product_id = ""
+
+            if text.startswith("__cart__"):
+                product_id = text[len("__cart__"):].strip()
+            else:
+                selected_text = text.strip().casefold()
+                for item in cart:
+                    product_name = str(item.get("product") or "")
+                    if selected_text in {
+                        product_name.casefold(),
+                        product_name[:24].casefold(),
+                    }:
+                        product_id = str(item.get("product_id") or "")
+                        break
+
+            selected_item = self.order_service.get_cart_item(
+                cart,
+                product_id,
+            )
+
+            if selected_item:
+                self.state_manager.patch_data(
+                    wa_id,
+                    editing_cart_product_id=product_id,
+                    list_page=0,
+                )
+                return self._goto_ref(
+                    wa_id,
+                    str(item_target),
+                    current_flow=state.get("flow", "idle"),
+                )
+
+
         target = node.get("list_category_target")
         category: Optional[str] = None
         if text.startswith("__cat__"):
@@ -945,18 +1018,34 @@ class FlowEngine:
 
         state_data = self.state_manager.get(wa_id).get("data", {})
         pending = state_data.get("pending_product") or {}
+        cart = state_data.get("cart") or []
+        editing_product_id = str(
+            state_data.get("editing_cart_product_id") or ""
+        )
+        editing_item = self.order_service.get_cart_item(
+            cart,
+            editing_product_id,
+        ) or {}
+
         from app.core.parser import OrderParser
 
         unit = float(pending.get("unit_price") or 0)
+        cart_total = self.order_service.cart_total(cart)
+
+
         return {
             "welcome_line": welcome,
             "saved_address": profile.get("address", ""),
+            "category": str(state_data.get("selected_category", "")),
             "order_id": str(state_data.get("order_id", "")),
             "total": str(state_data.get("total", "")),
             "delivery_address": str(state_data.get("delivery_address", "")),
             "product_name": str(pending.get("product") or ""),
             "price": OrderParser._fmt_cop(unit),
-        }        
+            "cart_total": OrderParser._fmt_cop(cart_total),
+            "cart_product_name": str(editing_item.get("product") or ""),
+            "cart_product_qty": str(editing_item.get("qty") or ""),
+        }      
         
 
     def _action_welcome_customer(self, wa_id: str, text: str = "") -> Tuple[str, Optional[str]]:
@@ -1005,14 +1094,7 @@ class FlowEngine:
             qty = 2
         elif normalized in ("qty_other", "otra"):
             self.state_manager.patch_data(wa_id, awaiting_qty_other=True)
-            msg = self._render(
-                self._resolve_ux_text("qty_other_prompt", node),
-                {
-                    "product_name": str(pending.get("product") or ""),
-                    "price": str(pending.get("unit_price") or ""),
-                },
-            )
-            return msg, "need_other"
+            return "", "need_other"
         elif awaiting or raw.isdigit():
             try:
                 qty = int(raw)
@@ -1052,6 +1134,82 @@ class FlowEngine:
             awaiting_qty_other=False,
         )
         # Mensaje lo compone order_review_node (show_cart) vía transitions.
+        return "", "success"
+
+    def _action_update_cart_quantity(
+        self,
+        wa_id: str,
+        text: str,
+    ) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
+        data = state.get("data", {})
+        raw = (text or "").strip()
+
+        if not raw.isdigit():
+            return self._node_fallback_message(node), None
+
+        quantity = int(raw)
+        if quantity < 1 or quantity > 20:
+            return self._node_fallback_message(node), None
+
+        product_id = str(
+            data.get("editing_cart_product_id") or ""
+        )
+        cart = list(data.get("cart") or [])
+
+        updated_cart = self.order_service.update_cart_quantity(
+            cart,
+            product_id,
+            quantity,
+        )
+        if updated_cart is None:
+            return self._node_fallback_message(node), None
+
+        self.state_manager.patch_data(
+            wa_id,
+            cart=updated_cart,
+            editing_cart_product_id="",
+        )
+        return "", "success"
+
+    def _action_remove_cart_product(
+        self,
+        wa_id: str,
+        text: str,
+    ) -> Tuple[str, Optional[str]]:
+        state = self.state_manager.get(wa_id)
+        node = self.nodes.get(state.get("step", ""), {})
+        data = state.get("data", {})
+        normalized = normalize_text(text)
+
+        if normalized == "cancel_remove" or "no, volver" in normalized:
+            self.state_manager.patch_data(
+                wa_id,
+                editing_cart_product_id="",
+            )
+            return "", "cancelled"
+
+        if normalized != "confirm_remove" and "si, quitar" not in normalized:
+            return self._node_fallback_message(node), None
+
+        product_id = str(
+            data.get("editing_cart_product_id") or ""
+        )
+        cart = list(data.get("cart") or [])
+
+        updated_cart = self.order_service.remove_cart_product(
+            cart,
+            product_id,
+        )
+        if updated_cart is None:
+            return self._node_fallback_message(node), None
+
+        self.state_manager.patch_data(
+            wa_id,
+            cart=updated_cart,
+            editing_cart_product_id="",
+        )
         return "", "success"
 
     def _action_capture_order(self, wa_id: str, text: str) -> Tuple[str, Optional[str]]:
@@ -1245,6 +1403,11 @@ class FlowEngine:
         text: str,
     ) -> Tuple[str, Optional[str]]:
         node = self.nodes.get(self.state_manager.get(wa_id).get("step", ""), {})
+        normalized = normalize_text(text)
+
+        if normalized in {"agregar_producto", "anadir mas"}:
+            return "", "add_more"
+
         if is_confirmation(text):
             return self._resolve_ux_text("order_confirm_yes", node), "confirmed"
         if is_rejection(text):

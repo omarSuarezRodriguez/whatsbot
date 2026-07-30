@@ -1,4 +1,4 @@
-## v1.95
+## v1.96
 
 
 
@@ -10293,7 +10293,13 @@ Cantidad de productos añadida, permite seleccionar cantidad de producto al agre
 
 
 
-#############################
+#########################################
+## v1.96
+
+
+Mejoras implementadas, de modificar, añadir más, eliminar, menús y copy mejorado
+
+
 
 
 

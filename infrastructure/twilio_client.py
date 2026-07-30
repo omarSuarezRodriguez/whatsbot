@@ -255,6 +255,7 @@ def send_whatsapp_list(
     to_number: str,
     body: str,
     rows: list[dict[str, Any]],
+    button: str,
 ) -> str | None:
     """
     Envía una lista interactiva (WhatsApp List Picker)
@@ -264,7 +265,7 @@ def send_whatsapp_list(
     content = build_list_content(
         friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
         body=(body or "")[:1024],
-        button="Elegir",
+        button=button[:20],
         rows=rows,
     )
 
@@ -335,7 +336,7 @@ def deliver_reply(
     source = interactive_list.get("source")
     page = int(interactive_list.get("page", 0))
 
-    if source in ("menu", "categories", "category_products"):
+    if source in ("menu", "categories", "category_products", "cart_items"):
 
         from chatbot.runtime import get_bot_context
         from app.core.parser import OrderParser
@@ -363,6 +364,7 @@ def deliver_reply(
             ]
             rows = _paginate_rows(all_items, page)
 
+
         elif source == "category_products":
             category = interactive_list.get("category", "")
             productos = svc.get_products_by_category(category)
@@ -376,13 +378,25 @@ def deliver_reply(
             ]
             rows = _paginate_rows(all_items, page)
 
+        elif source == "cart_items":
+            all_items = list(interactive_list.get("rows") or [])
+            rows = _paginate_rows(all_items, page)
+
         if rows:
             body = "\n".join(parts)[:1024]  # Twilio limit: 1024 chars
+            button = str(interactive_list.get("button") or "").strip()
+            if not button:
+                logger.error(
+                    "list.button missing in flow for source=%s",
+                    source,
+                )
+                return build_twiml_response(body)
 
             message_sid = send_whatsapp_list(
                 to_number=recipient,
                 body=body,
                 rows=rows,
+                button=button,
             )
 
             if message_sid:

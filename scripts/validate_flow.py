@@ -35,6 +35,8 @@ ACTION_OUTCOMES: Dict[str, Set[str]] = {
     "handle_order_clarification": {"partial_resolved", "partial_retry", "skip"},
     "handle_order_disambiguation": {"disambiguated", "disambiguate_next", "invalid_choice"},
     "handle_order_qty": {"success", "need_other"},
+    "update_cart_quantity": {"success"},
+    "remove_cart_product": {"success", "cancelled"},
 }
 
 # Meta UX estática (Fase 2). Obligatorias si el flujo usa restaurant_flow estándar.
@@ -156,6 +158,17 @@ def validate_flow(flow: Dict[str, Any]) -> Tuple[List[str], List[str]]:
                 errors.append(
                     f"nodes[{step!r}].options[{option!r}] -> {target!r} (nodo inexistente)"
                 )
+
+        list_item_target = node.get("list_item_target")
+        if list_item_target and not _step_exists(
+            nodes,
+            str(list_item_target),
+            node.get("flow", "idle"),
+        ):
+            errors.append(
+                f"nodes[{step!r}].list_item_target -> "
+                f"{list_item_target!r} (nodo inexistente)"
+            )
 
         transitions = node.get("transitions")
         if not transitions:
