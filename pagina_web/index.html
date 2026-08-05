@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>velossi — Tu restaurante. Tu canal. Sin comisiones.</title>
+<meta name="description" content="Velossi convierte tu WhatsApp en el canal oficial de pedidos de tu restaurante. Guarda tus clientes, envía campañas y deja de pagarle comisión a Rappi.">
+
+<meta property="og:title" content="velossi — Tu restaurante. Tu canal. Sin comisiones.">
+<meta property="og:description" content="Convierte tu WhatsApp en el canal oficial de pedidos de tu restaurante. Sin pagarle comisión a nadie.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://velossi.co">
+<meta property="og:image" content="https://velossi.co/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#E94560">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23E94560%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 font-family=%22Arial%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>v</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          coral: '#E94560',
+          ink: '#1A1A2E',
+          card: '#F2F2F2',
+        },
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  .gradient-text {
+    background: linear-gradient(135deg, #E94560 0%, #ff6b81 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glow-coral {
+    box-shadow: 0 20px 60px -15px rgba(233, 69, 96, 0.35);
+  }
+  .btn-primary {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -8px rgba(233, 69, 96, 0.5);
+  }
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(26, 26, 46, 0.12);
+  }
+  .noise-bg {
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,26,46,0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .hero-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    opacity: 0.35;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .float-wa {
+    animation: float-in 0.4s ease 1.2s both, pulse-ring 2.4s ease-in-out 2s infinite;
+  }
+  @keyframes float-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 8px 24px -6px rgba(233,69,96,0.5), 0 0 0 0 rgba(233,69,96,0.4); }
+    50% { box-shadow: 0 8px 24px -6px rgba(233,69,96,0.5), 0 0 0 10px rgba(233,69,96,0); }
+  }
+</style>
+</head>
+<body class="bg-white text-ink antialiased">
+
+<!-- NAV -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-black/5">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <span class="text-2xl font-extrabold tracking-tight text-ink">velossi</span>
+    <a href="https://wa.me/573009812113?text=Hola%2C%20vi%20la%20p%C3%A1gina%20de%20velossi%20y%20quiero%20saber%20m%C3%A1s"
+       target="_blank" rel="noopener"
+       class="btn-primary bg-coral text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#d63852]">
+      Escríbenos
+    </a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative noise-bg pt-40 pb-20 px-6 overflow-hidden">
+  <div class="hero-blob w-[420px] h-[420px] bg-coral -top-32 -left-32"></div>
+  <div class="hero-blob w-[380px] h-[380px] bg-coral top-10 -right-24" style="opacity:0.2"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto text-center" data-aos="fade-up">
+    <div class="inline-flex items-center gap-2 bg-card text-ink/70 text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
+      <span class="w-2 h-2 rounded-full bg-coral"></span>
+      Para restaurantes independientes en Colombia
+    </div>
+    <h1 class="text-4xl md:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6">
+      Tu restaurante. <span class="gradient-text">Tu canal.</span><br>
+      Sin pagarle comisión a nadie.
+    </h1>
+    <p class="text-lg md:text-xl text-ink/60 max-w-2xl mx-auto mb-10 leading-relaxed">
+      Velossi convierte tu WhatsApp en el canal oficial de pedidos de tu restaurante.
+      Guarda cada cliente con nombre e historial, y véndeles directo cuando tú decidas.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+      <a href="https://wa.me/573009812113?text=Hola%2C%20quiero%20saber%20c%C3%B3mo%20funciona%20velossi%20para%20mi%20restaurante"
+         target="_blank" rel="noopener"
+         class="btn-primary glow-coral bg-coral text-white font-semibold px-8 py-4 rounded-full text-base">
+        Quiero mi canal propio →
+      </a>
+      <a href="#calculadora" class="font-semibold px-8 py-4 rounded-full text-base text-ink border border-ink/15 hover:bg-card transition">
+        Calcula lo que pierdes con Rappi
+      </a>
+    </div>
+
+    <div class="grid grid-cols-3 max-w-xl mx-auto gap-4 pt-8 border-t border-ink/10">
+      <div>
+        <p class="text-2xl md:text-3xl font-extrabold text-coral">0%</p>
+        <p class="text-xs text-ink/50 mt-1">Comisión por pedido</p>
+      </div>
+      <div>
+        <p class="text-2xl md:text-3xl font-extrabold text-coral">7 días</p>
+        <p class="text-xs text-ink/50 mt-1">Para activar tu canal</p>
+      </div>
+      <div>
+        <p class="text-2xl md:text-3xl font-extrabold text-coral">24/7</p>
+        <p class="text-xs text-ink/50 mt-1">Tomando pedidos</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section class="py-24 px-6 bg-card">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
+        Esos clientes los conseguiste tú.<br>Ya es hora de que sean tuyos.
+      </h2>
+      <p class="text-ink/60 max-w-xl mx-auto">Estos son los tres problemas que Rappi nunca te va a resolver.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">💸</div>
+        <h3 class="font-bold text-lg mb-2">Pagas 27% de comisión</h3>
+        <p class="text-ink/60 text-sm leading-relaxed">Por cada pedido que llega por Rappi, regalas casi un tercio de la venta. Ese dinero es tuyo — no de la app.</p>
+      </div>
+      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="100">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">👻</div>
+        <h3 class="font-bold text-lg mb-2">No sabes quién te compra</h3>
+        <p class="text-ink/60 text-sm leading-relaxed">Rappi conoce a tus clientes mejor que tú. Nombre, historial, frecuencia — datos que nunca te va a dar.</p>
+      </div>
+      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="200">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">🌙</div>
+        <h3 class="font-bold text-lg mb-2">Contestas WhatsApp hasta las 2 AM</h3>
+        <p class="text-ink/60 text-sm leading-relaxed">Cada pedido manual es tiempo, errores y desgaste. Tu canal debería trabajar por ti, no al revés.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULADORA -->
+<section id="calculadora" class="py-24 px-6">
+  <div class="max-w-3xl mx-auto text-center" data-aos="fade-up">
+    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">¿Cuánto le regalas a Rappi cada mes?</h2>
+    <p class="text-ink/60 mb-10">Mueve el número de pedidos mensuales que te llegan por apps de domicilio.</p>
+
+    <div class="bg-card rounded-3xl p-8 md:p-10">
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-semibold text-ink/70">Pedidos por Rappi al mes</span>
+          <span id="pedidosLabel" class="text-2xl font-extrabold text-coral">200</span>
+        </div>
+        <input id="pedidosSlider" type="range" min="20" max="800" step="10" value="200"
+               class="w-full h-2 rounded-full appearance-none bg-ink/10 accent-[#E94560] cursor-pointer">
+      </div>
+      <div class="mb-10">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-semibold text-ink/70">Valor promedio del pedido</span>
+          <span id="ticketLabel" class="text-2xl font-extrabold text-coral">$35.000</span>
+        </div>
+        <input id="ticketSlider" type="range" min="15000" max="90000" step="1000" value="35000"
+               class="w-full h-2 rounded-full appearance-none bg-ink/10 accent-[#E94560] cursor-pointer">
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-6 text-left">
+          <p class="text-xs font-semibold text-ink/50 uppercase tracking-wide mb-1">Comisión mensual a Rappi (27%)</p>
+          <p id="comisionMes" class="text-3xl font-extrabold text-ink">$1.890.000</p>
+        </div>
+        <div class="bg-ink rounded-2xl p-6 text-left">
+          <p class="text-xs font-semibold text-white/50 uppercase tracking-wide mb-1">Al año</p>
+          <p id="comisionAnio" class="text-3xl font-extrabold text-white">$22.680.000</p>
+        </div>
+      </div>
+
+      <p class="text-sm text-ink/50 mb-6">Velossi vale <strong class="text-ink">$94.900/mes</strong>. Sin comisión por pedido.</p>
+      <a id="ctaCalculadora" href="#" target="_blank" rel="noopener"
+         class="btn-primary inline-block bg-coral text-white font-semibold px-8 py-4 rounded-full">
+        Quiero dejar de pagar esto →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="py-24 px-6 bg-ink text-white">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Cómo funciona</h2>
+      <p class="text-white/50 max-w-xl mx-auto">Tu canal queda activo en 7 días. Sin desarrolladores, sin complicaciones.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div data-aos="fade-up" data-aos-delay="0">
+        <div class="w-10 h-10 rounded-full bg-coral flex items-center justify-center font-bold mb-5">1</div>
+        <h3 class="font-bold text-lg mb-2">El cliente pide por WhatsApp</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Tu número, tu marca. El cliente escribe y el sistema toma el pedido de forma conversacional, sin apps que instalar.</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="100">
+        <div class="w-10 h-10 rounded-full bg-coral flex items-center justify-center font-bold mb-5">2</div>
+        <h3 class="font-bold text-lg mb-2">Tú lo ves en tu panel</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Cada pedido llega a tu panel en tiempo real. Estado, cliente, total — todo organizado, sin caos de chats.</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <div class="w-10 h-10 rounded-full bg-coral flex items-center justify-center font-bold mb-5">3</div>
+        <h3 class="font-bold text-lg mb-2">Le vuelves a vender</h3>
+        <p class="text-white/50 text-sm leading-relaxed">Cada cliente queda guardado con su historial. Envíale una campaña cuando quieras — sin depender de un algoritmo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRECIOS -->
+<section id="precios" class="py-24 px-6">
+  <div class="max-w-4xl mx-auto text-center" data-aos="fade-up">
+    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Precio simple, sin sorpresas</h2>
+    <p class="text-ink/60 mb-14">Cupos limitados en beta — condiciones que no vuelven.</p>
+
+    <div class="grid md:grid-cols-2 gap-6 text-left">
+      <div class="relative rounded-3xl border-2 border-coral p-8 card-hover">
+        <div class="absolute -top-3 left-8 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full">CUPOS BETA</div>
+        <p class="text-sm font-semibold text-ink/50 mb-2">Plan Beta</p>
+        <p class="text-4xl font-extrabold mb-1">$49.900<span class="text-base font-medium text-ink/50">/mes</span></p>
+        <p class="text-sm text-ink/50 mb-6">Sin costo de instalación</p>
+        <ul class="space-y-3 text-sm mb-8">
+          <li class="flex gap-2"><span class="text-coral font-bold">✓</span> Canal de pedidos por WhatsApp</li>
+          <li class="flex gap-2"><span class="text-coral font-bold">✓</span> Panel de gestión en tiempo real</li>
+          <li class="flex gap-2"><span class="text-coral font-bold">✓</span> Base de clientes con historial</li>
+          <li class="flex gap-2"><span class="text-coral font-bold">✓</span> Primera campaña incluida</li>
+          <li class="flex gap-2"><span class="text-coral font-bold">✓</span> Precio congelado mientras dure beta</li>
+        </ul>
+        <a href="https://wa.me/573009812113?text=Hola%2C%20quiero%20uno%20de%20los%20cupos%20beta%20de%20velossi"
+           target="_blank" rel="noopener"
+           class="btn-primary block text-center bg-coral text-white font-semibold px-6 py-3.5 rounded-full">
+          Quiero un cupo beta
+        </a>
+      </div>
+
+      <div class="rounded-3xl border border-ink/10 p-8 card-hover">
+        <p class="text-sm font-semibold text-ink/50 mb-2">Plan Starter</p>
+        <p class="text-4xl font-extrabold mb-1">$94.900<span class="text-base font-medium text-ink/50">/mes</span></p>
+        <p class="text-sm text-ink/50 mb-6">Setup $200.000 (gratis si activas esta semana)</p>
+        <ul class="space-y-3 text-sm mb-8">
+          <li class="flex gap-2"><span class="text-ink/40 font-bold">✓</span> Todo lo del plan beta</li>
+          <li class="flex gap-2"><span class="text-ink/40 font-bold">✓</span> Campañas ilimitadas</li>
+          <li class="flex gap-2"><span class="text-ink/40 font-bold">✓</span> Alertas de clientes inactivos</li>
+          <li class="flex gap-2"><span class="text-ink/40 font-bold">✓</span> Soporte prioritario</li>
+          <li class="flex gap-2"><span class="text-ink/40 font-bold">✓</span> Sin permanencia mínima</li>
+        </ul>
+        <a href="https://wa.me/573009812113?text=Hola%2C%20quiero%20informaci%C3%B3n%20del%20plan%20Starter%20de%20velossi"
+           target="_blank" rel="noopener"
+           class="block text-center border border-ink/20 font-semibold px-6 py-3.5 rounded-full hover:bg-card transition">
+          Hablar con ventas
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="py-24 px-6 bg-card">
+  <div class="max-w-2xl mx-auto text-center" data-aos="fade-up">
+    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
+      ¿Cuándo quieres lanzar tu canal?
+    </h2>
+    <p class="text-ink/60 mb-10">Cinco minutos por WhatsApp bastan para mostrarte cómo funciona con el nombre de tu restaurante.</p>
+    <a href="https://wa.me/573009812113?text=Hola%2C%20quiero%20lanzar%20mi%20canal%20propio%20con%20velossi"
+       target="_blank" rel="noopener"
+       class="btn-primary glow-coral inline-block bg-coral text-white font-semibold px-10 py-4 rounded-full text-base">
+      Escríbenos por WhatsApp →
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-10 px-6 border-t border-black/5">
+  <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-ink/40">
+    <span class="font-extrabold text-ink/70 text-base">velossi</span>
+    <span>Cúcuta, Colombia · velossi.co</span>
+  </div>
+</footer>
+
+<!-- BOTÓN FLOTANTE WHATSAPP -->
+<a href="https://wa.me/573009812113?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20velossi"
+   target="_blank" rel="noopener"
+   aria-label="Escribir por WhatsApp"
+   class="float-wa fixed bottom-6 right-6 z-50 bg-coral text-white w-14 h-14 rounded-full flex items-center justify-center hover:scale-110 transition-transform">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12.001 2C6.478 2 2 6.478 2 12c0 1.898.53 3.674 1.451 5.19L2 22l4.938-1.436A9.958 9.958 0 0 0 12 22c5.523 0 10-4.478 10-10S17.523 2 12.001 2zm0 18a7.94 7.94 0 0 1-4.079-1.115l-.293-.174-3.041.885.9-2.965-.19-.304A7.95 7.95 0 0 1 4 12c0-4.411 3.589-8 8.001-8C16.412 4 20 7.589 20 12s-3.588 8-7.999 8z"/>
+  </svg>
+</a>
+
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 700, once: true, offset: 40 });
+
+  const pedidosSlider = document.getElementById('pedidosSlider');
+  const ticketSlider = document.getElementById('ticketSlider');
+  const pedidosLabel = document.getElementById('pedidosLabel');
+  const ticketLabel = document.getElementById('ticketLabel');
+  const comisionMes = document.getElementById('comisionMes');
+  const comisionAnio = document.getElementById('comisionAnio');
+  const ctaCalculadora = document.getElementById('ctaCalculadora');
+
+  const fmt = (n) => '$' + Math.round(n).toLocaleString('es-CO');
+
+  function recalcular() {
+    const pedidos = parseInt(pedidosSlider.value, 10);
+    const ticket = parseInt(ticketSlider.value, 10);
+    const ventas = pedidos * ticket;
+    const comision = ventas * 0.27;
+
+    pedidosLabel.textContent = pedidos.toLocaleString('es-CO');
+    ticketLabel.textContent = fmt(ticket);
+    comisionMes.textContent = fmt(comision);
+    comisionAnio.textContent = fmt(comision * 12);
+
+    const msg = `Hola, calculé que le pago aprox ${fmt(comision)} al mes a Rappi en comisiones. Quiero saber cómo evitarlo con velossi.`;
+    ctaCalculadora.href = `https://wa.me/573009812113?text=${encodeURIComponent(msg)}`;
+  }
+
+  pedidosSlider.addEventListener('input', recalcular);
+  ticketSlider.addEventListener('input', recalcular);
+  recalcular();
+</script>
+
+</body>
+</html>
