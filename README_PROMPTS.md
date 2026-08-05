@@ -1,4 +1,4 @@
-## v1.105
+## v1.106
 
 
 
@@ -10616,6 +10616,53 @@ Espero seu OK pra Fase 4 — Validação Final Global.
 
 
 ###############################
+## v1.106
+
+
+## prompt ##
+
+
+OK
+
+
+## resp cursor ##
+
+
+Fase 4 — Validación Final Global. Completa.
+
+Hecho:
+
+Test nuevo end-to-end (tests/test_e2e_order_flow_fase4.py), traza 2 pedidos completos reales — categoría → producto → cantidad → revisar → confirmar → entrega → pago → guardado — vía FlowEngine.process_message + deliver_reply, mockeando Twilio (igual patrón que tests de Fase 3). 3 tests, 3 pass:
+
+test_two_full_orders_reuse_content_sids: 16 envíos con botón/lista en toda la jornada, solo 8 Content Templates creados (uno por tipo de contenido distinto: categorías, productos-Pizzas, qty, review, confirm, delivery, pago_metodo, pago_presencial). Repetir pedido 3ra vez: 0 templates nuevos. Confirma punto (a).
+test_429_during_order_recovers_via_retry: inyecta 429 real (TwilioRestException) en 1 envío mid-pedido. Retry recupera, pedido llega a order_saved_node igual. Confirma punto (b).
+test_stale_button_tap_mid_order_falls_back_without_breaking_state: tap corrupto (qty_stale_from_another_render) en order_delivery_node (nodo distinto al ya cubierto en Fase 3, ruta de código distinta — _action_capture_delivery_type vs _lookup_option_ref). Nodo no avanza, carrito intacto, fallback JSON sale, pedido se retoma y completa después. Confirma punto (c).
+Check global (repetido con y sin el test nuevo, comparado con git stash):
+
+pytest completo: 21 failed / 61 passed / 17 errors — idéntico con o sin mi test nuevo. Cero regresión.
+validate_flow.py: 24 errores — igual que antes (pre-existentes, nodo reserva_review_node, no tocado).
+validar_arquitectura.py: 6 errores, cobertura 95% — igual que antes.
+documentos/ARCHITECTURE_LAW.md: sin tocar (confirmado por git status y git log).
+git show --stat del commit v1.105 (auto-commit ya hecho por el hook del repo): solo twilio_client.py, models/, services/, 3 archivos test nuevos, PENDIENTES.md, README_PROMPTS.md — ningún test existente tocado.
+Deuda técnica documentada (PENDIENTES.md, ya en Fase 3): staleness de ids de botón reusados dentro del mismo render de nodo (ej. doble-tap) no está blindado — se aceptó como deuda, prioridad baja según tu decisión.
+
+Qué cambió en total (Fases 1-4):
+
+send_whatsapp_buttons/send_whatsapp_list cachean ContentSid — ya no crean template por mensaje.
+Cache de listas por hash de contenido, por business_id.
+Retry con backoff (0.4s/0.8s) ante 429, tanto REST directo como Client.
+Validación de ButtonText/ListId contra nodo actual — ya existía en flow_engine.py, ahora con test dirigido + self-healing en cache ante 404.
+Próximo paso: ninguno pendiente de tu lado salvo decidir si quieres atacar la deuda de staleness documentada. Fix listo para producción.
+
+
+
+
+
+
+
+
+
+##############################
 
 
 
