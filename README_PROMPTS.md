@@ -1,4 +1,4 @@
-## v1.103
+## v1.104
 
 
 
@@ -10519,6 +10519,57 @@ Recuerda en cada fase, sin excepción: ARCHITECTURE_LAW.md (raíz del proyecto) 
 
 
 ########################
+## v1.104
+
+
+
+archivospy/ só usado por script exportador, ninguém importa em runtime. Descartado do escopo.
+
+ARCHITECTURE_LAW.md relido completo. FASE 1 — só leitura, feito. Informe:
+
+Ponto 1 — cache botões estáticos
+Confirmado: send_whatsapp_buttons (infrastructure/twilio_client.py:208-260) gera friendly_name: f"wb_btn_{uuid4().hex[:12]}" a cada chamada. Zero cache/reuse em todo repo (grep sem match pra "content_sid cache" ou similar persistido).
+
+Call sites únicos: deliver_reply (mesmo arquivo, L442, L467) ← chamado só de api/routes/whatsapp.py:202 (twilio_whatsapp_webhook). Nenhum outro caller.
+
+Botões vêm do JSON único global (flows/restaurant_flow.json, ~10 blocos "buttons") — mesmo flow pra todo tenant (FLOWS_PATH singleton, chatbot/runtime.py::get_bot_context = um FlowEngine só pro processo inteiro; ARCHITECTURE_LAW.md §10 já lista "flujo JSON global" como deuda aceita). Logo hoje sets estáticos (qty 1/2/3, "confirmar", "domicilio"/"recoger") são idênticos pra todo negócio → cache pode ser global, mas chave deve ser por conteúdo (hash de title+id), não hardcoded por tenant, pra não quebrar se essa deuda for resolvida depois.
+
+Ponto 2 — cache listas dinâmicas
+send_whatsapp_list/build_list_content mesmo anti-padrão (friendly_name: f"wb_list_{uuid4().hex[:12]}").
+
+Listas SÃO multi-tenant dinâmicas: fontes menu/categories/category_products/cart_items (deliver_reply L374-418) puxam de productos_service, que já usa get_active_business_id() (contextvar) e já tem precedente de cache TTL-bucket (business_id, bucket) pra get_menu() — bom padrão pra espelhar na chave do content-sid cache: (business_id, categoria, hash(items)).
+
+Risco achado: source "cart_items" é carrinho do cliente naquele momento — conteúdo único por pedido, nunca vai dar cache hit. Cache não acelera esse caso; quem resolve é só o retry (ponto 3). Não é bug, é limite esperado do design — documentar, não "consertar".
+
+Ponto 3 — retry/backoff 429
+Confirmado zero retry em qualquer camada:
+
+_send_content L161-205: um requests.post cru pro Content API, except Exception genérico → None. Sem inspecionar status code, sem diferenciar 429 de outro erro.
+client.messages.create(): testei o SDK instalado (twilio==9.10.9), TwilioHttpClient.request faz um único session.send(), sem loop nem backoff. Client(SID, TOKEN) instanciado bare, sem http_client custom em lugar nenhum do repo.
+Achado extra: _message_delivery_ok (L107-138) já trata sender fantasma "+1555" como falha — sintoma conhecido de ContentSid novo ainda não "sincronizado" no WhatsApp. Reforça que reusar ContentSid já "quente" (pontos 1/2) reduz esse modo de falha também, independente do 429.
+
+Ponto 4 — validar nó atual vs input
+Achado importante, difere um pouco do diagnóstico original: webhook (api/routes/whatsapp.py:106-111) não lê ButtonText/ListId — só form.get("Body"). Grep no repo inteiro: zero uso desses campos em código vivo. Tap de botão chega como texto puro (Body = title do botão), tratado igual a digitação livre.
+
+Mecanismo de validação nó-atual JÁ EXISTE e já é correto: _process_message_body → _try_node_options → _lookup_option_ref (flow_engine.py:595-624) casa input normalizado só contra options do nó do STEP ATUAL (construído a partir de buttons/fallback_buttons daquele nó no JSON). Sem match → cai em global commands / intent / free-text → se nada pega, _node_fallback_message(node) (fallback do JSON, L958-961). Sem if step == "..." hardcoded, sem mapa paralelo — já respeita a lei.
+
+Risco residual real (não é "falta fallback", é mais sutil): validação é "id/title bate com option do nó atual", não "essa mensagem específica foi enviada pra esse render específico". Nós diferentes reusam mesmo vocabulário de id (ex: "confirmar" aparece em 2 nós, qty buttons se repetem por produto). Tap atrasado de nó A que POR COINCIDÊNCIA usa mesmo id que nó B (atual) passa como válido silenciosamente — não é "não reconhecido", é "reconhecido errado". Isso não estava no diagnóstico original tal como veio. Decisão pra Fase 2: vale endereçar (precisa amarrar id ao message_sid/step específico, mais peso arquitetural) ou documentar como deuda aceita e resolver só o caso que o prompt pediu (id que não bate com nó atual → fallback, isso já funciona)?
+
+Tests
+Zero cobertura hoje: grep em tests/ não acha nenhum patch/import de send_whatsapp_buttons, send_whatsapp_list, _send_content, deliver_reply, content_sid, 429 ou retry. Único ponto tocado é send_whatsapp_message (texto plano) em test_message_status.py e test_realtime_ws.py. test_flow_transitions.py não testa _lookup_option_ref/options por nome — risco de regressão em ponto 4 passar despercebido sem teste novo dirigido.
+
+Resumo risco por ponto: 1 e 2 confirmados 100%, causa raiz clara. 3 confirmado 100%, sem ambiguidade. 4 mecanismo-base já existe (bom), mas achei um risco extra (staleness com vocabulário reusado) que o diagnóstico original não cobria — preciso sua decisão nisso antes de desenhar o plano.
+
+Aguardo OK pra Fase 2.
+
+
+
+
+
+
+
+
+#########################
 
 
 
