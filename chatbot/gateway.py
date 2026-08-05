@@ -140,12 +140,14 @@ def handle_incoming_message(payload: dict) -> dict:
             "deliver_via_rest": use_rest_webhook_replies(),
             "media": None,
             "actions": [],
+            "buttons_failure_message": "",
         }
 
     is_admin = False
     blocked = False
     reply: Reply = ""
     buttons = []
+    buttons_failure_message = ""
     interactive_list = None
 
     try:
@@ -191,6 +193,9 @@ def handle_incoming_message(payload: dict) -> dict:
                 
 
                 buttons = flow_engine.get_current_buttons(wa_id)
+                buttons_failure_message = (
+                    flow_engine.get_current_buttons_failure_message(wa_id)
+                )
                 interactive_list = flow_engine.get_current_list(wa_id)
             reply = _normalize_reply(reply)
     except Exception:
@@ -216,5 +221,6 @@ def handle_incoming_message(payload: dict) -> dict:
         "deliver_via_rest": use_rest_webhook_replies(),
         "media": None,
         "actions": buttons,
+        "buttons_failure_message": buttons_failure_message,
         "list": interactive_list,
     }

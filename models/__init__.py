@@ -7,6 +7,7 @@ from models.device_token import DeviceToken
 from models.menu import MenuItem
 from models.message import Message
 from models.order import Order
+from models.pending_button_fallback import PendingButtonFallback
 from models.reservation import Reservation
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "MenuItem",
     "Message",
     "Order",
+    "PendingButtonFallback",
     "Reservation",
 ]

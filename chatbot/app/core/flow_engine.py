@@ -154,6 +154,22 @@ class FlowEngine:
 
         return node.get("buttons", [])
 
+    def get_current_buttons_failure_message(self, wa_id: str) -> str:
+        state = self.state_manager.get(wa_id)
+        current_step = state.get("step")
+
+        if not current_step:
+            return ""
+
+        node = self.nodes.get(current_step, {})
+        template = node.get("buttons_failure_message")
+
+        if not template:
+            return ""
+
+        context = self._build_node_context(wa_id, current_step)
+        return self._render(str(template), context)
+
     def get_current_list(self, wa_id: str):
 
         state = self.state_manager.get(wa_id)

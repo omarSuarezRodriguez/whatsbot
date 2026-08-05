@@ -31,7 +31,16 @@ from config.settings import (
     use_rest_webhook_replies,
 )
 from infrastructure.database import get_db
-from infrastructure.twilio_client import build_twiml_response, deliver_reply
+from infrastructure.twilio_client import (
+    build_twiml_response,
+    deliver_reply,
+    send_whatsapp_message,
+)
+from services.button_fallback_service import (
+    consume_status as consume_button_fallback_status,
+    delete_pending as delete_button_fallback,
+    release_claim as release_button_fallback_claim,
+)
 from services.business_service import resolve_business_id_for_webhook
 from services.conversation_service import (
     apply_twilio_status,
@@ -157,6 +166,7 @@ async def twilio_whatsapp_webhook(
 
     response_text = result.get("response_text", "")
     actions = result.get("actions", [])
+    buttons_failure_message = result.get("buttons_failure_message", "")
     interactive_list = result.get("list")
     reply_wa_id = result.get("wa_id") or incoming_wa
     is_admin = bool(result.get("is_admin"))
@@ -193,7 +203,9 @@ async def twilio_whatsapp_webhook(
             recipient,
             response_text,
             use_rest=use_rest,
+            business_id=business_id,
             actions=actions,
+            buttons_failure_message=buttons_failure_message,
             interactive_list=interactive_list,
         )
 
@@ -228,6 +240,35 @@ async def twilio_status_callback(
     )
 
     try:
+        fallback = consume_button_fallback_status(
+            db,
+            business_id=business_id,
+            message_sid=message_sid,
+            status=twilio_status,
+        )
+        db.commit()
+        if fallback:
+            recipient, fallback_body = fallback
+            fallback_sid = await run_in_threadpool(
+                send_whatsapp_message,
+                recipient,
+                fallback_body,
+            )
+            if fallback_sid:
+                delete_button_fallback(
+                    db,
+                    business_id=business_id,
+                    message_sid=message_sid,
+                )
+                db.commit()
+            else:
+                release_button_fallback_claim(
+                    db,
+                    business_id=business_id,
+                    message_sid=message_sid,
+                )
+                db.commit()
+
         msg = apply_twilio_status(
             db,
             business_id=business_id,

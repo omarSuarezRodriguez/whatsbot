@@ -1,4 +1,4 @@
-## v1.96
+## v1.97
 
 
 
@@ -10303,4 +10303,15 @@ Mejoras implementadas, de modificar, añadir más, eliminar, menús y copy mejor
 
 
 
+###########################################
+## v1.97
 
+
+Se agregaron fallbacks para los botones cuando no son envíados, cuando no se envían, muestran buttons_failure_messagge, un atributo de cada nodo, mostrará opciones para escribir en el caso de que los botones no sean mostrados
+
+
+
+
+
+
+###############################################

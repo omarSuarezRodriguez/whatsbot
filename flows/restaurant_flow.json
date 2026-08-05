@@ -6,6 +6,7 @@
 
         "home_node": {
           "message": "👋 *Bienvenido a El Fogón Colombiano* 🔥\n\nSabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽\n\n👇 ¿Qué se te antoja hoy? *Oprime una opción*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *productos* o *pedido* para continuar.",
           "buttons": [
             {
               "title": "📖 Ver menú",
@@ -137,6 +138,7 @@
           "input_mode": "free_text",
           "qty_other_prompt": "¿Cuántas *{{product_name}}* quieres?\n\nEscribe el número (ejemplo: *3* o *5*).",
           "qty_invalid": "Necesito un número entre 1 y 20.\nEscribe solo el número, o elige 1 o 2.",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *1*, *2* u *otra* para continuar.",
           "buttons": [
             {
               "title": "1",
@@ -178,6 +180,7 @@
           "message": "✅ *Tu pedido está actualizado*\n\n\n🧾 *RESUMEN DEL PEDIDO*\n────────────────\n",
           "action": "show_cart",
           "message_after_action": "\n────────────────\n\n\n👇 *Oprime una opción para continuar.*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *confirmar*, *añadir más* o *modificar* para continuar.",
           "buttons": [
             {
               "title": "✅ Confirmar",
@@ -207,6 +210,7 @@
           "message": "✅ *Confirma tu pedido*\n\n\n🧾 *MI PEDIDO*\n────────────────\n",
           "message_after_action": "\n────────────────\n\n\n👇 *Oprime una opción para continuar.*",
           "action": "show_cart",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *confirmar* o *modificar* para continuar.",
           "buttons": [
             {
               "title": "✅ Confirmar pedido",
@@ -229,6 +233,7 @@
 
         "order_modify_node": {
           "message": "🛠️ *MODIFICA TU PEDIDO*\n\n¿Qué quieres hacer?\n\n• Cambiar la cantidad de un producto\n• Quitar un producto del pedido\n\n👇 Oprime una opción para continuar.",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *cambiar_cantidad*, *quitar_producto* o *volver* para continuar.",
           "buttons": [
             {
               "title": "🔢 Cambiar cantidad",
@@ -250,6 +255,7 @@
             "volver": "order.order_review_node"
           }
         },
+
         "order_change_product_node": {
           "message": "🔢 *Cambiar cantidad de un producto*\n\nSelecciona el producto que quieres modificar.\n\n👇 Oprime *Elegir producto* para continuar.",
           "list": {
@@ -261,6 +267,7 @@
           "list_item_target": "order.order_change_qty_node",
           "fallback": "Abre la lista y selecciona el producto que quieres modificar."
         },
+
         "order_change_qty_node": {
           "message": "🔢 *Nueva cantidad*\n\n🍽️ Producto: *{{cart_product_name}}*\nCantidad actual: *{{cart_product_qty}}*\n\n👇 Escribe la nueva cantidad.",
           "action_on_input": "update_cart_quantity",
@@ -270,6 +277,7 @@
             "success": "order.order_review_node"
           }
         },
+
         "order_remove_product_node": {
           "message": "🗑️ *Quitar un producto*\n\nSelecciona el producto que quieres eliminar del pedido.\n\n👇 Oprime *Elegir producto* para continuar.",
           "list": {
@@ -281,8 +289,10 @@
           "list_item_target": "order.order_remove_confirm_node",
           "fallback": "Abre la lista y selecciona el producto que quieres quitar."
         },
+
         "order_remove_confirm_node": {
           "message": "🗑️ *¿Quieres quitar este producto?*\n\n🍽️ *{{cart_product_name}}*\nCantidad: *{{cart_product_qty}}*\n\n👇 Oprime una opción para continuar.",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *sí, quitar* o *no, volver* para continuar.",
           "buttons": [
             {
               "title": "🗑️ Sí, quitar",
@@ -323,6 +333,7 @@
         "order_delivery_node": {
           "action": "capture_delivery_type",
           "message": "🚚 *Entrega de tu pedido*\n\nElige si lo recibes en casa o lo recoges en el local.\n\n👇 *Oprime una opción para continuar.*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *domicilio* o *recoger* para continuar.",
           "buttons": [
             {
               "title": "🏠 Domicilio",
@@ -345,6 +356,7 @@
         "order_address_node": {
           "action": "handle_address_confirmation",
           "message": "📍 *Dirección de entrega*\n\n{{saved_address}}\n\n👇 *Oprime una opción.*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *confirm_address* o *edit_address* para continuar.",
           "buttons": [
             {
               "title": "✅ Confirmar",
@@ -377,6 +389,7 @@
         "order_address_confirm_node": {
           "action": "handle_new_address_confirmation",
           "message": "📍 *Dirección de entrega*\n\n{{delivery_address}}\n\n👇 *¿Es correcta?*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *confirm_new_address* o *edit_new_address* para continuar.",
           "buttons": [
             {
               "title": "✅ Confirmar",
@@ -422,6 +435,7 @@
 
         "pago_metodo_node": {
           "message": "💳 *Método de pago*\n\n👇 *Oprime una opción.*",
+          "buttons_failure_message": "⚠️ No pude mostrar los botones.\n\nEscribe *presencial* o *transferencia* para continuar.",
           "buttons": [
             {
               "title": "Presencial",
@@ -444,6 +458,7 @@
 
         "pago_presencial_node": {
           "message": "💵 *Pago presencial*\n\n💰 Total a pagar: *${{cart_total}}*\n\n*Puedes pagar presencial con:*\n• Efectivo\n• Nequi\n• Bancolombia\n• Datáfono\n\n👇 *Oprime Entendido para registrar tu pedido.*",
+          "buttons_failure_message": "⚠️ No pude mostrar el botón.\n\nEscribe *entendido* para registrar tu pedido.",
           "buttons": [
             {
               "title": "✅ Entendido",
@@ -460,11 +475,12 @@
         },
 
         "pago_transferencia_node": {
-          "action": "show_cart",
-          "message_after_action": "\n\n💳 *Transferencia / Nequi*\n\nNequi: *3001234567*\nBancolombia: *123-456789-00*\nTitular: El Fogón Colombiano\n\n1️⃣ Envía el *pantallazo* por este chat.\n2️⃣ Luego toca el botón.",
+          "message": "💵 *Pago por transferencia*\n\n💰 *Total a pagar: ${{cart_total}}*\n\n\n📋 *Sigue estos 3 pasos:*\n\n1️⃣ 💳 *Elige un método de pago*\n· Nequi: 300 123 4567\n· Daviplata: 300 123 4567\n· Bancolombia Ahorros: 123-456789-00\nTitular: Camilo Rodriguez\n\n2️⃣ 📲 *Transfiere exactamente ${{cart_total}}*\n\n3️⃣ 📸 *Envía el comprobante por este chat*\n\n✅ *¡Casi listo! Solo toca el botón para confirmar.*\n\n\n👇 *Oprime \"Comprobante enviado\" para registrar tu pedido.*",
+          
+          "buttons_failure_message": "⚠️ No pude mostrar el botón.\n\nEscribe *Ya envié* para registrar tu pedido.",
           "buttons": [
             {
-              "title": "Ya envié",
+              "title": "Comprobante enviado",
               "id": "pago_enviado"
             }
           ],
@@ -585,7 +601,7 @@
     "disambiguate_resolved_all": "¡Perfecto! Todos los productos quedaron definidos. 🛍️",
     "order_confirm_no": "Claro, modifiquemos tu pedido.",
     "save_order_empty": "No encontré productos para guardar.",
-    "order_saved_success": "✅ *¡Pedido recibido!*\n\nTu pedido quedó registrado y está pendiente de confirmación.\n\n🧾 *DETALLES DEL PEDIDO*\n────────────────\n🆔 Pedido: *{{order_id}}*\n💰 Total: *${{total}}*\n🚚 Entrega: *{{delivery_address}}*\n────────────────\n\n👨‍🍳 *Nuestro equipo lo revisará y te confirmará por este chat.*",
+    "order_saved_success": "✅ *¡Pedido recibido!*\n\nTu pedido quedó registrado y está pendiente de confirmación.\n\n🧾 *DETALLES DEL PEDIDO*\n────────────────\n🆔 Pedido: *{{order_id}}*\n💰 Total: *${{total}}*\n🚚 Entrega: *{{delivery_address}}*\n────────────────\n\n👨‍🍳 *Nuestro equipo lo revisará y te confirmaremos en unos minutos.*",
     "order_confirmed_customer": "✅ *¡Pedido confirmado!*\n\n🧾 Pedido: *{{order_id}}*\n\n👨‍🍳 Ya comenzamos a prepararlo.\n🔔 Te avisaremos por este chat cuando esté listo.",
     "capture_persons_success": "Perfecto, solicitud para *{{personas}}* personas.",
     "capture_date_success": "Fecha registrada: *{{date}}*.",

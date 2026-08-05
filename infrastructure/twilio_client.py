@@ -23,6 +23,7 @@ from config.settings import (
     TWILIO_AUTH_TOKEN,
     TWILIO_WHATSAPP_FROM,
     is_twilio_whatsapp_sandbox,
+    twilio_status_callback_url,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,34 @@ def send_whatsapp_message(to_number: str, body: str) -> str | None:
     except Exception:
         logger.exception("send_whatsapp_message failed for %s", to_number)
         return None
+
+
+def register_button_fallback(
+    message_sid: str,
+    business_id: str,
+    recipient: str,
+    fallback_body: str,
+) -> None:
+    if not message_sid or not business_id or not fallback_body:
+        return
+    try:
+        from infrastructure.database import session_scope
+        from services.button_fallback_service import register_pending
+
+        with session_scope() as db:
+            register_pending(
+                db,
+                business_id=business_id,
+                message_sid=message_sid,
+                recipient=recipient,
+                fallback_body=fallback_body,
+            )
+    except Exception:
+        logger.exception(
+            "Could not persist button fallback sid=%s business=%s",
+            message_sid,
+            business_id,
+        )
 
 
 def _message_delivery_ok(client: Client, message_sid: str) -> bool:
@@ -148,11 +177,15 @@ def _send_content(
 
         # Pin From to the ONLINE WhatsApp Business sender. Do not rely on
         # Messaging Service alone for Content — it can remap to a dead +1555 channel (63007).
-        message = client.messages.create(
-            from_=from_addr,
-            to=to_addr,
-            content_sid=content_sid,
-        )
+        create_kwargs = {
+            "from_": from_addr,
+            "to": to_addr,
+            "content_sid": content_sid,
+        }
+        status_url = twilio_status_callback_url()
+        if status_url:
+            create_kwargs["status_callback"] = status_url
+        message = client.messages.create(**create_kwargs)
         logger.info(
             "Content outbound account=%s from=%s to=%s sid=%s",
             (TWILIO_ACCOUNT_SID or "")[:10],
@@ -314,7 +347,9 @@ def deliver_reply(
     reply: Reply,
     *,
     use_rest: bool,
+    business_id: str = "",
     actions: list[dict[str, Any]] | None = None,
+    buttons_failure_message: str = "",
     interactive_list: dict | None = None,
 ) -> str:
     """
@@ -436,12 +471,23 @@ def deliver_reply(
         )
 
         if message_sid:
+            if buttons_failure_message:
+                fallback_body = f"{body}\n\n{buttons_failure_message}".strip()
+                register_button_fallback(
+                    message_sid,
+                    business_id,
+                    recipient,
+                    fallback_body,
+                )
             return build_twiml_response("")
 
         logger.warning(
             "Interactive buttons delivery failed for %s; falling back to text",
             recipient,
         )
+        if buttons_failure_message:
+            reply = f"{body}\n\n{buttons_failure_message}".strip()
+            parts = [reply]
 
     # --------------------------------------------------------
     # RESPUESTA NORMAL

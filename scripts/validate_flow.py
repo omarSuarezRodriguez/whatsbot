@@ -153,6 +153,13 @@ def validate_flow(flow: Dict[str, Any]) -> Tuple[List[str], List[str]]:
                 )
 
     for step, node in nodes.items():
+        if node.get("buttons") and not str(
+            node.get("buttons_failure_message") or ""
+        ).strip():
+            errors.append(
+                f"nodes[{step!r}]: buttons requiere buttons_failure_message"
+            )
+
         for option, target in node.get("options", {}).items():
             if not _step_exists(nodes, str(target), node.get("flow", "idle")):
                 errors.append(
