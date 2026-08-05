@@ -126,6 +126,7 @@
   .bubble-in { background: #fff; border-top-left-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
   .bubble-out { background: #DCF8C6; border-top-right-radius: 3px; margin-left: auto; }
   .browser-mock { box-shadow: 0 40px 80px -25px rgba(26,26,46,0.25); }
+  summary::-webkit-details-marker { display: none; }
 </style>
 </head>
 <body class="bg-white text-ink antialiased">
@@ -135,7 +136,10 @@
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <span class="text-2xl font-extrabold tracking-tight text-ink">velossi</span>
     <div class="flex items-center gap-6">
-    <a href="#demo" class="hidden sm:inline text-sm font-semibold text-ink/60 hover:text-ink transition">Ver demo</a>
+    <a href="#demo" class="hidden md:inline text-sm font-semibold text-ink/60 hover:text-ink transition">Demo</a>
+    <a href="#fidelizacion" class="hidden md:inline text-sm font-semibold text-ink/60 hover:text-ink transition">Fidelización</a>
+    <a href="#precios" class="hidden md:inline text-sm font-semibold text-ink/60 hover:text-ink transition">Precios</a>
+    <a href="#faq" class="hidden md:inline text-sm font-semibold text-ink/60 hover:text-ink transition">Preguntas</a>
     <a href="https://wa.me/573009812113?text=Hola%2C%20vi%20la%20p%C3%A1gina%20de%20velossi%20y%20quiero%20saber%20m%C3%A1s"
        target="_blank" rel="noopener"
        class="btn-primary bg-coral text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#d63852]">
@@ -191,30 +195,47 @@
   </div>
 </section>
 
-<!-- PROBLEMA -->
+<!-- PERFILES — espejo emocional -->
 <section class="py-24 px-6 bg-card">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16" data-aos="fade-up">
       <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
-        Esos clientes los conseguiste tú.<br>Ya es hora de que sean tuyos.
+        ¿Cuál de estos eres tú?
       </h2>
-      <p class="text-ink/60 max-w-xl mx-auto">Estos son los tres problemas que Rappi nunca te va a resolver.</p>
+      <p class="text-ink/60 max-w-xl mx-auto">No importa cuál — todos terminan en el mismo lugar: su propio canal.</p>
     </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="0">
-        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">💸</div>
-        <h3 class="font-bold text-lg mb-2">Pagas 27% de comisión</h3>
-        <p class="text-ink/60 text-sm leading-relaxed">Por cada pedido que llega por Rappi, regalas casi un tercio de la venta. Ese dinero es tuyo — no de la app.</p>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card-hover bg-white rounded-2xl p-7 flex gap-5" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center text-2xl flex-shrink-0">🌙</div>
+        <div>
+          <h3 class="font-bold text-lg mb-1.5">El agotado</h3>
+          <p class="text-ink/60 text-sm leading-relaxed mb-3">Contestas WhatsApp hasta las 2 AM. Cometes errores. Estás quemado de ser el call center de tu propio negocio.</p>
+          <p class="text-coral text-sm font-semibold">→ Velossi trabaja por ti. Tú diriges.</p>
+        </div>
       </div>
-      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="100">
-        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">👻</div>
-        <h3 class="font-bold text-lg mb-2">No sabes quién te compra</h3>
-        <p class="text-ink/60 text-sm leading-relaxed">Rappi conoce a tus clientes mejor que tú. Nombre, historial, frecuencia — datos que nunca te va a dar.</p>
+      <div class="card-hover bg-white rounded-2xl p-7 flex gap-5" data-aos="fade-up" data-aos-delay="100">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center text-2xl flex-shrink-0">💸</div>
+        <div>
+          <h3 class="font-bold text-lg mb-1.5">El costero de Rappi</h3>
+          <p class="text-ink/60 text-sm leading-relaxed mb-3">Cada pedido por Rappi te cuesta 27% de comisión. Esos clientes los conseguiste tú — no el algoritmo.</p>
+          <p class="text-coral text-sm font-semibold">→ Cada pedido propio te ahorra esa comisión. Es tuyo.</p>
+        </div>
       </div>
-      <div class="card-hover bg-white rounded-2xl p-8" data-aos="fade-up" data-aos-delay="200">
-        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mb-5 text-2xl">🌙</div>
-        <h3 class="font-bold text-lg mb-2">Contestas WhatsApp hasta las 2 AM</h3>
-        <p class="text-ink/60 text-sm leading-relaxed">Cada pedido manual es tiempo, errores y desgaste. Tu canal debería trabajar por ti, no al revés.</p>
+      <div class="card-hover bg-white rounded-2xl p-7 flex gap-5" data-aos="fade-up" data-aos-delay="200">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center text-2xl flex-shrink-0">🚀</div>
+        <div>
+          <h3 class="font-bold text-lg mb-1.5">El aspiracional</h3>
+          <p class="text-ink/60 text-sm leading-relaxed mb-3">Quieres crecer. Te comparas con las cadenas grandes. Sientes que te falta algo para dar el salto.</p>
+          <p class="text-coral text-sm font-semibold">→ Las mismas herramientas, sin ser franquicia.</p>
+        </div>
+      </div>
+      <div class="card-hover bg-white rounded-2xl p-7 flex gap-5" data-aos="fade-up" data-aos-delay="300">
+        <div class="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center text-2xl flex-shrink-0">👻</div>
+        <div>
+          <h3 class="font-bold text-lg mb-1.5">El retenedor</h3>
+          <p class="text-ink/60 text-sm leading-relaxed mb-3">Tienes clientes, pero no sabes quiénes son ni cuándo vuelven. Los pierdes sin darte cuenta.</p>
+          <p class="text-coral text-sm font-semibold">→ Convierte compradores en clientes frecuentes.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -341,6 +362,52 @@
   </p>
 </section>
 
+<!-- COMPARACIÓN -->
+<section class="py-24 px-6 bg-ink text-white">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Rappi le da al cliente una transacción.<br>Velossi le da a tu restaurante una relación.</h2>
+    </div>
+    <div class="rounded-3xl overflow-hidden border border-white/10" data-aos="fade-up" data-aos-delay="100">
+      <div class="grid grid-cols-3 bg-white/5 text-xs md:text-sm font-bold uppercase tracking-wide">
+        <div class="p-4 md:p-5"></div>
+        <div class="p-4 md:p-5 text-center text-white/50">Rappi</div>
+        <div class="p-4 md:p-5 text-center text-coral">velossi</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Comisión por pedido</div>
+        <div class="p-4 md:p-5 text-center font-bold">27%</div>
+        <div class="p-4 md:p-5 text-center font-bold text-coral">0%</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Dueño de los datos del cliente</div>
+        <div class="p-4 md:p-5 text-center text-white/50">Rappi</div>
+        <div class="p-4 md:p-5 text-center font-bold text-coral">Tú</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Puedes enviarle campañas a tus clientes</div>
+        <div class="p-4 md:p-5 text-center text-white/30">✕</div>
+        <div class="p-4 md:p-5 text-center text-coral font-bold">✓</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Tu marca visible en el pedido</div>
+        <div class="p-4 md:p-5 text-center text-white/30">✕</div>
+        <div class="p-4 md:p-5 text-center text-coral font-bold">✓</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Costo mensual</div>
+        <div class="p-4 md:p-5 text-center text-white/50">Variable, según ventas</div>
+        <div class="p-4 md:p-5 text-center font-bold text-coral">Fijo y predecible</div>
+      </div>
+      <div class="grid grid-cols-3 text-xs md:text-sm border-t border-white/10">
+        <div class="p-4 md:p-5 font-medium text-white/70">Permanencia mínima</div>
+        <div class="p-4 md:p-5 text-center text-white/50">—</div>
+        <div class="p-4 md:p-5 text-center font-bold text-coral">Ninguna</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- CALCULADORA -->
 <section id="calculadora" class="py-24 px-6">
   <div class="max-w-3xl mx-auto text-center" data-aos="fade-up">
@@ -392,7 +459,7 @@
       <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Cómo funciona</h2>
       <p class="text-white/50 max-w-xl mx-auto">Tu canal queda activo en 7 días. Sin desarrolladores, sin complicaciones.</p>
     </div>
-    <div class="grid md:grid-cols-3 gap-8">
+    <div class="grid md:grid-cols-3 gap-8 mb-20">
       <div data-aos="fade-up" data-aos-delay="0">
         <div class="w-10 h-10 rounded-full bg-coral flex items-center justify-center font-bold mb-5">1</div>
         <h3 class="font-bold text-lg mb-2">El cliente pide por WhatsApp</h3>
@@ -409,6 +476,101 @@
         <p class="text-white/50 text-sm leading-relaxed">Cada cliente queda guardado con su historial. Envíale una campaña cuando quieras — sin depender de un algoritmo.</p>
       </div>
     </div>
+
+    <div class="text-center mb-12" data-aos="fade-up">
+      <h3 class="text-2xl font-extrabold tracking-tight mb-3">Todo lo que incluye tu canal</h3>
+      <p class="text-white/50 max-w-lg mx-auto">Nada de esto lo tenías con Rappi. Todo esto queda en tu propio sistema.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="0">
+        <div class="text-2xl mb-3">📸</div>
+        <h4 class="font-bold mb-1.5 text-sm">Catálogo con fotos reales</h4>
+        <p class="text-white/50 text-xs leading-relaxed">Tu menú con tus fotos, tus precios, tu marca. No plantillas genéricas.</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="80">
+        <div class="text-2xl mb-3">🔔</div>
+        <h4 class="font-bold mb-1.5 text-sm">Notificaciones duales</h4>
+        <p class="text-white/50 text-xs leading-relaxed">El dueño y la cocina reciben cada pedido al instante, sin revisar el chat manualmente.</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="160">
+        <div class="text-2xl mb-3">💳</div>
+        <h4 class="font-bold mb-1.5 text-sm">Pagos flexibles</h4>
+        <p class="text-white/50 text-xs leading-relaxed">Contra entrega, Nequi, Daviplata o transferencia. El cliente elige, tú cobras igual.</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="240">
+        <div class="text-2xl mb-3">🗂️</div>
+        <h4 class="font-bold mb-1.5 text-sm">Historial y CRM de clientes</h4>
+        <p class="text-white/50 text-xs leading-relaxed">Nombre, frecuencia, gasto promedio. Datos tuyos, guardados para siempre.</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="320">
+        <div class="text-2xl mb-3">⚠️</div>
+        <h4 class="font-bold mb-1.5 text-sm">Alertas de inactividad</h4>
+        <p class="text-white/50 text-xs leading-relaxed">El sistema te avisa a los 14 días sin pedido — antes de que el cliente decida no volver.</p>
+      </div>
+      <div class="bg-white/5 rounded-2xl p-6 border border-white/10" data-aos="fade-up" data-aos-delay="400">
+        <div class="text-2xl mb-3">🎯</div>
+        <h4 class="font-bold mb-1.5 text-sm">Campañas segmentadas</h4>
+        <p class="text-white/50 text-xs leading-relaxed">Envíale una promoción solo a tus clientes frecuentes, en un par de clics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FIDELIZACIÓN / RETENCIÓN -->
+<section id="fidelizacion" class="py-24 px-6">
+  <div class="max-w-4xl mx-auto text-center mb-16" data-aos="fade-up">
+    <div class="inline-flex items-center gap-2 bg-coral/10 text-coral text-xs font-bold px-4 py-1.5 rounded-full mb-6">
+      RETENCIÓN AUTOMÁTICA
+    </div>
+    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
+      Conseguir un cliente cuesta 5 veces más que retenerlo.<br>Velossi hace lo segundo automático.
+    </h2>
+    <p class="text-ink/60 max-w-xl mx-auto">No se trata solo de recibir el pedido. Se trata de que ese cliente vuelva la próxima semana — sin que tengas que acordarte de escribirle.</p>
+  </div>
+
+  <div class="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+    <div class="card-hover bg-card rounded-2xl p-6" data-aos="fade-up" data-aos-delay="0">
+      <p class="text-xs font-bold text-ink/40 uppercase tracking-wide mb-4">Campaña segmentada</p>
+      <div class="bubble-in mb-4" style="max-width:100%;">
+        🎉 Hola María, hoy 2×1 en jugos naturales solo para nuestros clientes frecuentes. Responde <b>SI</b> para pedir.
+      </div>
+      <p class="text-ink/60 text-sm leading-relaxed">Le hablas solo a quien ya te compró. Sin pautar, sin depender de un algoritmo que decide quién te ve.</p>
+    </div>
+    <div class="card-hover bg-card rounded-2xl p-6" data-aos="fade-up" data-aos-delay="150">
+      <p class="text-xs font-bold text-ink/40 uppercase tracking-wide mb-4">Alerta de inactividad</p>
+      <div class="bg-white rounded-xl p-4 mb-4 flex items-center gap-3">
+        <span class="text-xl">⚠️</span>
+        <div class="flex-1">
+          <p class="text-sm font-bold">Carlos R.</p>
+          <p class="text-xs text-ink/50">14 días sin pedir</p>
+        </div>
+        <span class="text-coral text-xs font-bold">Reactivar</span>
+      </div>
+      <p class="text-ink/60 text-sm leading-relaxed">El sistema detecta al cliente que se está yendo antes de que tú lo notes — y te dice a quién escribirle.</p>
+    </div>
+    <div class="card-hover bg-card rounded-2xl p-6" data-aos="fade-up" data-aos-delay="300">
+      <p class="text-xs font-bold text-ink/40 uppercase tracking-wide mb-4">Sistema de puntos</p>
+      <div class="bg-white rounded-xl p-4 mb-4">
+        <div class="flex justify-between text-xs mb-2">
+          <span class="font-semibold">Laura P.</span>
+          <span class="text-ink/50">8/10 pedidos</span>
+        </div>
+        <div class="w-full h-2 bg-card rounded-full overflow-hidden">
+          <div class="h-full bg-coral rounded-full" style="width:80%"></div>
+        </div>
+        <p class="text-[11px] text-ink/50 mt-2">🎁 Faltan 2 pedidos para un postre gratis</p>
+      </div>
+      <p class="text-ink/60 text-sm leading-relaxed">Cada pedido acerca al cliente a una recompensa. La razón para volver ya no depende de la memoria.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GARANTÍA -->
+<section class="pb-24 px-6">
+  <div class="max-w-4xl mx-auto bg-ink rounded-3xl p-10 md:p-12 text-center text-white" data-aos="zoom-in">
+    <div class="text-4xl mb-4">🛡️</div>
+    <h3 class="text-xl md:text-2xl font-extrabold mb-3">Sin permanencia. Sin letra pequeña.</h3>
+    <p class="text-white/60 max-w-lg mx-auto">Si en 30 días no ves diferencia en tu restaurante, cancelas y no pagas el mes. Así de simple.</p>
   </div>
 </section>
 
@@ -459,6 +621,74 @@
   </div>
 </section>
 
+<!-- FAQ -->
+<section id="faq" class="py-24 px-6 bg-card">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Preguntas frecuentes</h2>
+      <p class="text-ink/60">Lo que todo dueño de restaurante pregunta antes de decidir.</p>
+    </div>
+    <div class="space-y-3" data-aos="fade-up" data-aos-delay="100">
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Necesito instalar una app o comprar un equipo?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">No. Todo funciona dentro del WhatsApp que ya usas y que tus clientes ya tienen instalado. Nada nuevo que descargar.</p>
+      </details>
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Qué pasa con los clientes que ya tengo?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">Se van sumando a tu base desde el primer pedido que hagan por el canal. No necesitas migrar nada manualmente.</p>
+      </details>
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Cuánto tarda en estar listo mi canal?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">7 días desde que confirmas, incluyendo la carga de tu catálogo y la configuración de tu primera campaña.</p>
+      </details>
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Hay permanencia mínima o contrato?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">No. Cancelas cuando quieras. Si en 30 días no ves diferencia, no pagas ese mes.</p>
+      </details>
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Qué formas de pago acepta el sistema?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">Contra entrega, Nequi, Daviplata o transferencia bancaria — lo que tu restaurante ya maneje.</p>
+      </details>
+      <details class="group bg-white rounded-2xl p-5 open:pb-5">
+        <summary class="font-bold text-sm cursor-pointer list-none flex justify-between items-center">
+          ¿Mis datos y los de mis clientes están seguros?
+          <span class="text-coral text-lg group-open:rotate-45 transition-transform">+</span>
+        </summary>
+        <p class="text-ink/60 text-sm mt-3 leading-relaxed">Sí. Son tuyos — nunca se comparten ni se venden a terceros, a diferencia de lo que pasa con las apps de domicilio.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- POR QUÉ EXISTE VELOSSI -->
+<section class="py-24 px-6">
+  <div class="max-w-2xl mx-auto text-center" data-aos="fade-up">
+    <div class="w-14 h-14 rounded-full bg-ink text-white flex items-center justify-center font-extrabold text-xl mx-auto mb-6">O</div>
+    <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-5">Por qué existe Velossi</h2>
+    <p class="text-ink/60 leading-relaxed mb-4">
+      Velossi nace en Cúcuta con una idea simple: todo restaurante independiente merece las mismas herramientas que las cadenas grandes, sin pagar comisión por cada venta ni depender de un algoritmo que decide quién lo ve.
+    </p>
+    <p class="text-ink/60 leading-relaxed">
+      Estamos construyendo esto junto a los primeros restaurantes que confían en el proyecto — con acompañamiento cercano, ajustes rápidos y condiciones que no se van a repetir cuando el sistema esté en su forma final.
+    </p>
+  </div>
+</section>
+
 <!-- CTA FINAL -->
 <section class="py-24 px-6 bg-card">
   <div class="max-w-2xl mx-auto text-center" data-aos="fade-up">
@@ -476,9 +706,15 @@
 
 <!-- FOOTER -->
 <footer class="py-10 px-6 border-t border-black/5">
-  <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-ink/40">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
     <span class="font-extrabold text-ink/70 text-base">velossi</span>
-    <span>Cúcuta, Colombia · velossi.co</span>
+    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-ink/50">
+      <a href="#demo" class="hover:text-ink transition">Demo</a>
+      <a href="#fidelizacion" class="hover:text-ink transition">Fidelización</a>
+      <a href="#precios" class="hover:text-ink transition">Precios</a>
+      <a href="#faq" class="hover:text-ink transition">Preguntas</a>
+    </div>
+    <span class="text-ink/40">Cúcuta, Colombia · velossi.co</span>
   </div>
 </footer>
 
