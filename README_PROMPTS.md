@@ -1,4 +1,4 @@
-## v1.106
+## v1.106. Se fixeó la duplicación de los mensajes de  botones
 
 
 
