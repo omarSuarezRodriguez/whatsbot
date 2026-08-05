@@ -1,4 +1,4 @@
-## v1.102 - Problema de duplicación de mensajes
+## v1.103
 
 
 
@@ -10435,8 +10435,90 @@ Esto no es un límite de Meta/WhatsApp por "usar muchos botones" — es Twilio d
 
 
 ###########################
+## v1.103
 
 
+
+## prompt ##
+
+
+Dame un prompt maestro solucionando esos 4 puntos de forma magistral, osea el prompt que me diste pero mejoralo incrementalmente, ARCHITECTURE_LAW.md(raiz del proyecto)
+
+
+## resp cursor ##
+
+
+Contexto técnico (ya diagnosticado en este chat, no lo reinvestigues, tu tarea es corregirlo con las 4 soluciones exactas que se describen abajo):
+
+En infrastructure/twilio_client.py, las funciones send_whatsapp_buttons() y send_whatsapp_list() (vía build_list_content()) crean un Content Template NUEVO en Twilio en cada envío, con un friendly_name aleatorio (f"wb_btn_{uuid.uuid4().hex[:12]}" y f"wb_list_{uuid.uuid4().hex[:12]}"), en vez de reutilizar un ContentSid ya creado. Esto duplica las llamadas HTTP a Twilio por cada turno con botones/listas, viola la práctica documentada de Twilio ("crea una vez, guarda el ContentSid, reutilízalo con ContentVariables"), y es la causa más probable de que el bot deje de mandar botones/listas en sesiones con muchas interacciones seguidas: falla la llamada a Twilio (posible 429 por exceso de requests) → _send_content captura la excepción y devuelve None → dispara el fallback de texto ya definido en flows/restaurant_flow.json vía "buttons_failure_message".
+
+Archivos ya identificados como relevantes:
+- infrastructure/twilio_client.py (send_whatsapp_buttons, send_whatsapp_list, build_list_content, _send_content, register_button_fallback)
+- services/button_fallback_service.py (register_pending, consume_status, delete_pending, release_claim)
+- flows/restaurant_flow.json (claves "buttons_failure_message" y "fallback_buttons")
+- chatbot/app/core/flow_engine.py (consumo de outcomes/transiciones tras un tap de botón/lista)
+- api/routes/whatsapp.py (webhook que recibe ButtonText/ListId)
+- models/pending_button_fallback.py
+
+Las 4 soluciones que debes implementar (todas, no solo una):
+
+1. Cachear y reutilizar ContentSid para sets de botones estáticos y repetidos (ej. cantidad 1/2/3/Otra, confirmar/añadir/modificar, domicilio/recoger) en vez de crear un Content Template nuevo cada vez que se envían.
+2. Cachear y reutilizar ContentSid para listas (categorías/productos) por hash del contenido real (negocio + categoría + items), reusando el mismo ContentSid mientras el catálogo no cambie, en vez de un uuid random en cada envío.
+3. Agregar retry con backoff exponencial alrededor de la creación + envío de Content en Twilio, específicamente para errores de tipo 429/rate-limit, ya que son "safe to retry" según la documentación de Twilio. Sin esto, un pico de saturación sigue cayendo directo a fallback de texto en vez de reintentar.
+4. En flow_engine.py, antes de interpretar un ButtonText/ListId entrante, validar que corresponde a una opción esperada del nodo conversacional actual. Si no corresponde (por ejemplo, un tap "atrasado" de un paso anterior que quedó visible en WhatsApp), debe tratarse como entrada no reconocida usando el mecanismo de fallback que YA existe declarado en el JSON para ese nodo (la clave "fallback"/"fallback_buttons"), nunca con un routing nuevo hardcodeado en Python.
+
+Instrucciones obligatorias antes de tocar cualquier cosa:
+
+1. Lee ARCHITECTURE_LAW.md (raíz del proyecto) completo antes de proponer o escribir una sola línea de código. Es la ley absoluta del proyecto: se lee, se obedece, no se modifica salvo que yo lo pida explícitamente con una de las frases que el propio archivo define. Ninguna decisión en ninguna fase de esta tarea puede contradecirlo. Presta especial atención a la Sección de invariantes al implementar el punto 4: la validación de que un ButtonText/ListId corresponde al nodo actual debe resolverse delegando al fallback ya declarado en JSON, nunca con un `if step == "..."` nuevo ni con un segundo mapa de rutas paralelo en Python — eso violaría directamente la regla "El JSON es el mapa". Si en algún punto la solución "obvia" choca con una regla de ARCHITECTURE_LAW.md, detente y explica: qué regla se rompe, por qué el cambio la rompe, qué alternativa mantiene la arquitectura, y si no hay alternativa, qué decisión arquitectónica necesitas de mí. No fuerces el cambio para que "funcione".
+
+2. Todo lo que implementes es mejora incremental, no reescritura. No rompas nada que ya funciona: el flujo conversacional actual, los tests existentes, el mecanismo de fallback a texto (que debe seguir existiendo como red de seguridad, ahora disparándose con mucha menos frecuencia gracias a los puntos 1-3), y la separación JSON=mapa / Python=motor / Services=negocio / StateManager=estado / business_scope=tenant. No modifiques ARCHITECTURE_LAW.md ni tests existentes salvo que yo te lo pida explícitamente con las frases que ese archivo define.
+
+3. Trabaja en 4 fases secuenciales, cubriendo los 4 puntos en cada fase (no los trates como 4 tareas separadas con su propio ciclo de fases; son 4 frentes de una misma mejora). Dentro de cada fase tienes autonomía total para explorar, leer, analizar y ejecutar lo necesario. Entre fases NO tienes autonomía de decisión: al terminar cada fase, preséntame un resumen claro de lo hecho/encontrado, ejecuta la validación de esa fase, y espera mi aprobación explícita antes de pasar a la siguiente. No avances de fase por tu cuenta bajo ninguna circunstancia.
+
+FASE 1 — AUDITORÍA (solo lectura, cero cambios de código)
+- Mapea todos los call sites reales de send_whatsapp_buttons, send_whatsapp_list y _send_content en todo el repo.
+- Identifica cuáles sets de botones/listas son estáticos y repetidos entre negocios/pedidos vs. cuáles son dinámicos por catálogo/tenant (para los puntos 1 y 2).
+- Confirma si existe ya algún mecanismo de cacheo/reuso de ContentSid, de retry/backoff, o de validación de nodo-actual-vs-input (no asumas nada, verifícalo).
+- Revisa cómo maneja hoy el SDK de Twilio los errores de rate-limit/429 en las llamadas usadas (para el punto 3).
+- Revisa en flow_engine.py cómo se procesa hoy un ButtonText/ListId entrante y cómo se resuelve el fallback declarado en JSON cuando el input no matchea ninguna opción (para el punto 4).
+- Revisa cobertura de tests actual sobre todo esto (tests/test_chatbot_gateway.py, tests/test_order_confirmation_flow.py, tests/test_flow_transitions.py, etc.) para saber qué no puedes romper.
+- Entrega un informe de auditoría cubriendo los 4 puntos: qué confirmaste, qué no, y qué riesgos ves en cada uno.
+- Validación de fase: el informe debe permitirme verificar que entendiste los 4 problemas reales antes de proponer nada. Espera mi aprobación explícita antes de pasar a Fase 2.
+
+FASE 2 — PLAN (sin escribir código todavía)
+- Punto 1 y 2: propón el diseño de una capa de cacheo/reuso de ContentSid que respete ARCHITECTURE_LAW.md (vive en infrastructure/, nunca en FlowEngine, nunca como routing paralelo al JSON). Define cómo se identifica un set de botones "igual" (clave de cache), cómo se persiste el mapeo, y su comportamiento en frío y en caliente.
+- Punto 3: propón dónde y cómo se agrega el retry con backoff exponencial (qué errores disparan retry, cuántos intentos, tiempos de espera), sin romper el timeout razonable de un webhook de WhatsApp.
+- Punto 4: propón cómo flow_engine valida el nodo-actual-vs-input entrante usando exclusivamente lo ya declarado en el JSON (fallback/fallback_buttons existentes), sin crear un segundo mapa de decisiones.
+- Define explícitamente qué NO vas a tocar (routing del JSON, StateManager, business_scope, el fallback de texto como red de seguridad, que debe seguir existiendo).
+- Define el plan de tests: qué agregarás o cómo validarás sin modificar tests existentes salvo que yo lo autorice.
+- Define plan de rollback si algo sale mal, para cada uno de los 4 puntos.
+- Validación de fase: reafirma checklist de ARCHITECTURE_LAW.md (navegación en JSON, Python motor, negocio en Services, estado por StateManager, multi-tenant respetado, sin rutas paralelas) aplicado a los 4 puntos de tu plan. Espera mi aprobación explícita antes de pasar a Fase 3.
+
+FASE 3 — IMPLEMENTACIÓN
+- Implementa exactamente lo aprobado en la Fase 2 para los 4 puntos, nada más (sin scope creep). Puedes ordenarlos por riesgo/dependencia (por ejemplo: cacheo primero, retry después, validación de nodo al final), pero los 4 deben quedar implementados antes de cerrar esta fase.
+- Cambios incrementales, commiteables por separado si aplica.
+- No modifiques ARCHITECTURE_LAW.md ni tests existentes salvo autorización explícita mía en este punto.
+- Validación de fase: ejecuta
+  python scripts/validate_flow.py
+  python scripts/validate_architecture.py
+  pytest
+  Reporta comando ejecutado, resultado, causa probable de cualquier fallo, y corrección aplicada o pendiente, para cada uno de los 4 puntos. No escondas fallos. Espera mi aprobación explícita antes de pasar a Fase 4.
+
+FASE 4 — VALIDACIÓN FINAL GLOBAL
+- Vuelve a correr los 3 validadores/tests como chequeo global, no solo de los módulos tocados.
+- Traza manualmente (o con test dirigido) un flujo de pedido completo (categoría → producto → cantidad → revisar → confirmar → entrega) y confirma: (a) los sets de botones/listas repetidos reutilizan el mismo ContentSid en vez de crear uno nuevo cada vez, (b) simula o documenta cómo se comportaría un 429 con el retry/backoff implementado, (c) confirma que un ButtonText/ListId "atrasado" o inválido cae correctamente en el fallback declarado en JSON sin romper el estado conversacional.
+- Confirma que el fallback a texto (buttons_failure_message) sigue funcionando como red de seguridad si Twilio falla después de agotar los reintentos.
+- Confirma que no se tocó ARCHITECTURE_LAW.md ni tests existentes sin mi autorización.
+- Entrega un resumen final: qué cambió para cada uno de los 4 puntos, qué se validó, qué deuda técnica queda documentada (si alguna), y qué recomendarías como siguiente paso.
+
+Recuerda en cada fase, sin excepción: ARCHITECTURE_LAW.md (raíz del proyecto) es ley absoluta. Si algo de lo que te pido en este prompt llegara a contradecirlo, prevalece ARCHITECTURE_LAW.md — detente y avísame en vez de ejecutar.
+
+
+
+
+
+
+########################
 
 
 
