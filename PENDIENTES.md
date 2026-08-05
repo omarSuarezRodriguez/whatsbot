@@ -125,6 +125,23 @@ Todo es configurable mediante datos.
 
 - TECH-DEBT: Migrar show_productos de menú textual dinámico a lista interactiva nativa de WhatsApp, manteniendo fallback textual.
 
+- TECH-DEBT (Fase 4 fix, ContentSid cache — auditoría punto 4): la validación
+  de input contra el nodo actual (JSON options / acciones como
+  `handle_order_qty`) valida "¿este id/title es válido en el nodo actual?",
+  no "¿este tap pertenece al render actual de este nodo?". Nodos reusados
+  para contextos distintos (ej. `order_qty_node`, mismos ids
+  `qty_1/qty_2/qty_other` para cualquier producto, contexto real en
+  `pending_product` de StateManager) son vulnerables a un tap atrasado de un
+  render anterior del MISMO nodo (mismo id, contexto ya cambiado) —
+  se aceptaría silenciosamente en vez de caer en el fallback.
+  No es el bug reportado originalmente (ese ya está resuelto: id no
+  reconocido en el nodo actual → fallback JSON, cubierto por
+  `tests/test_button_id_validation.py`). Alternativa completa si se prioriza
+  algún día: amarrar cada set de botones enviado a un nonce/message_sid por
+  render, guardado en StateManager, e invalidar taps de renders anteriores
+  aunque el id coincida. No se implementa ahora por decisión explícita del
+  usuario (menor superficie de cambio, no es la causa del bloqueo real).
+
 
 
 🟢 Prioridad baja (P3)

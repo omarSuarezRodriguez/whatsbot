@@ -9,6 +9,7 @@ from models.message import Message
 from models.order import Order
 from models.pending_button_fallback import PendingButtonFallback
 from models.reservation import Reservation
+from models.twilio_content_cache import TwilioContentSid
 
 __all__ = [
     "Business",
@@ -22,4 +23,5 @@ __all__ = [
     "Order",
     "PendingButtonFallback",
     "Reservation",
+    "TwilioContentSid",
 ]

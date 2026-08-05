@@ -7,13 +7,16 @@ Salida: bool entrega REST o XML TwiML para el webhook.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import time
 import uuid
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 
 import requests
 from requests.auth import HTTPBasicAuth
+from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
 from twilio.twiml.messaging_response import MessagingResponse
@@ -138,71 +141,220 @@ def _message_delivery_ok(client: Client, message_sid: str) -> bool:
     return True
 
 
-def _send_content(
+# ---------------------------------------------------------------------------
+# Rate-limit retry (Fase 4 fix, punto 3)
+# ---------------------------------------------------------------------------
+
+_RETRYABLE_STATUS = 429
+_MAX_RETRIES = 2
+_RETRY_BASE_DELAY = 0.4
+
+
+def _retry_after_seconds(headers: Any) -> float | None:
+    value = (headers or {}).get("Retry-After")
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _call_with_rate_limit_retry(fn: Callable[[], Any], *, what: str) -> Any:
+    """
+    Runs fn() with bounded retry on 429/rate-limit only — every other error
+    keeps failing immediately, same as before this fix (falls to the existing
+    text fallback).
+    ponytail: fixed 2 retries, short backoff. ceiling: webhook latency budget
+    is small; a sustained rate-limit outage still ends in fallback, by design.
+    """
+    delay = _RETRY_BASE_DELAY
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            return fn()
+        except requests.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            if status != _RETRYABLE_STATUS or attempt == _MAX_RETRIES:
+                raise
+            wait = _retry_after_seconds(exc.response.headers) or delay
+            logger.warning(
+                "%s got 429; retry %d/%d in %.1fs", what, attempt + 1, _MAX_RETRIES, wait
+            )
+            time.sleep(wait)
+            delay *= 2
+        except TwilioRestException as exc:
+            if getattr(exc, "status", None) != _RETRYABLE_STATUS or attempt == _MAX_RETRIES:
+                raise
+            logger.warning(
+                "%s got 429 (Twilio); retry %d/%d in %.1fs",
+                what, attempt + 1, _MAX_RETRIES, delay,
+            )
+            time.sleep(delay)
+            delay *= 2
+
+
+# ---------------------------------------------------------------------------
+# ContentSid cache (Fase 4 fix, puntos 1 y 2)
+# ---------------------------------------------------------------------------
+
+
+def _stable_cache_key(content_type: str, payload: Any) -> str:
+    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    digest = hashlib.sha256(f"{content_type}:{canonical}".encode("utf-8")).hexdigest()
+    return digest[:48]
+
+
+def _create_content_template(content: dict) -> str:
+    """POST a new Content Template to Twilio. Raises on failure (caller decides fallback)."""
+
+    def _do() -> str:
+        response = requests.post(
+            "https://content.twilio.com/v1/Content",
+            json=content,
+            auth=HTTPBasicAuth(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+            timeout=15,
+        )
+        response.raise_for_status()
+        return response.json()["sid"]
+
+    return _call_with_rate_limit_retry(_do, what="Content template create")
+
+
+def _get_or_create_content_sid(
+    cache_key: str,
+    content_type: str,
+    build_content: Callable[[], dict],
+) -> str | None:
+    """Reuse a cached ContentSid for this key, or create+cache one (Twilio's
+    documented pattern: crear una vez, guardar el ContentSid, reutilizarlo)."""
+    from infrastructure.database import session_scope
+    from services.twilio_content_cache_service import get_cached_sid, upsert_cached_sid
+
+    try:
+        with session_scope() as db:
+            cached = get_cached_sid(db, cache_key)
+        if cached:
+            return cached
+    except Exception:
+        logger.exception("ContentSid cache lookup failed for key=%s", cache_key)
+
+    try:
+        content_sid = _create_content_template(build_content())
+    except Exception:
+        logger.exception("Content template create failed for key=%s", cache_key)
+        return None
+
+    try:
+        with session_scope() as db:
+            upsert_cached_sid(
+                db,
+                cache_key=cache_key,
+                content_type=content_type,
+                content_sid=content_sid,
+            )
+    except Exception:
+        logger.exception("ContentSid cache store failed for key=%s", cache_key)
+
+    return content_sid
+
+
+def _invalidate_cache_entry(cache_key: str) -> None:
+    try:
+        from infrastructure.database import session_scope
+        from services.twilio_content_cache_service import invalidate_cached_sid
+
+        with session_scope() as db:
+            invalidate_cached_sid(db, cache_key)
+    except Exception:
+        logger.exception("ContentSid cache invalidate failed for key=%s", cache_key)
+
+
+def _send_with_content_sid(
     to_number: str,
-    content: dict,
+    content_sid: str,
+    content_variables: dict[str, str] | None = None,
+) -> tuple[str, str | None]:
+    """Returns (status, message_sid). status is 'ok', 'invalid_sid' or 'error'."""
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    to_addr = _whatsapp_address(to_number)
+    from_addr = _whatsapp_address(TWILIO_WHATSAPP_FROM)
+
+    # Pin From to the ONLINE WhatsApp Business sender. Do not rely on
+    # Messaging Service alone for Content — it can remap to a dead +1555 channel (63007).
+    create_kwargs: dict[str, Any] = {
+        "from_": from_addr,
+        "to": to_addr,
+        "content_sid": content_sid,
+    }
+    if content_variables:
+        create_kwargs["content_variables"] = json.dumps(content_variables)
+    status_url = twilio_status_callback_url()
+    if status_url:
+        create_kwargs["status_callback"] = status_url
+
+    def _do():
+        return client.messages.create(**create_kwargs)
+
+    try:
+        message = _call_with_rate_limit_retry(_do, what="Content message send")
+    except TwilioRestException as exc:
+        # ponytail: 404 = best-effort heuristic for "stale/deleted ContentSid".
+        # ceiling: not every Twilio error code for invalid content is enumerated
+        # here — add specific codes if they show up in logs.
+        if getattr(exc, "status", None) == 404:
+            logger.warning(
+                "ContentSid %s not found on send — treating as stale", content_sid
+            )
+            return "invalid_sid", None
+        logger.exception("Content message send failed sid=%s", content_sid)
+        return "error", None
+    except Exception:
+        logger.exception("Content message send failed sid=%s", content_sid)
+        return "error", None
+
+    logger.info(
+        "Content outbound account=%s from=%s to=%s sid=%s",
+        (TWILIO_ACCOUNT_SID or "")[:10],
+        from_addr,
+        to_addr,
+        message.sid,
+    )
+    if not message.sid or not _message_delivery_ok(client, message.sid):
+        return "error", None
+    return "ok", message.sid
+
+
+def _send_content_via_cache(
+    *,
+    to_number: str,
+    cache_key: str,
+    content_type: str,
+    build_content: Callable[[], dict],
+    content_variables: dict[str, str] | None = None,
 ) -> str | None:
     """
-    Envía cualquier contenido de Twilio Content API
-    (botones, listas, etc.)
+    Envía contenido interactivo de Twilio Content API (botones/listas)
+    reutilizando el ContentSid cacheado para esta clave; crea uno nuevo solo
+    si no existe o si Twilio lo reporta como inválido (self-heal, un reintento).
     """
-
-    if not (
-        TWILIO_ACCOUNT_SID
-        and TWILIO_AUTH_TOKEN
-        and TWILIO_WHATSAPP_FROM
-    ):
+    if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_FROM):
         logger.info(
             "Twilio outbound not configured; skip interactive send to %s",
             to_number[:20],
         )
         return None
 
-    try:
-        response = requests.post(
-            "https://content.twilio.com/v1/Content",
-            json=content,
-            auth=HTTPBasicAuth(
-                TWILIO_ACCOUNT_SID,
-                TWILIO_AUTH_TOKEN,
-            ),
-            timeout=15,
-        )
-        response.raise_for_status()
-        content_sid = response.json()["sid"]
-
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        to_addr = _whatsapp_address(to_number)
-        from_addr = _whatsapp_address(TWILIO_WHATSAPP_FROM)
-
-        # Pin From to the ONLINE WhatsApp Business sender. Do not rely on
-        # Messaging Service alone for Content — it can remap to a dead +1555 channel (63007).
-        create_kwargs = {
-            "from_": from_addr,
-            "to": to_addr,
-            "content_sid": content_sid,
-        }
-        status_url = twilio_status_callback_url()
-        if status_url:
-            create_kwargs["status_callback"] = status_url
-        message = client.messages.create(**create_kwargs)
-        logger.info(
-            "Content outbound account=%s from=%s to=%s sid=%s",
-            (TWILIO_ACCOUNT_SID or "")[:10],
-            from_addr,
-            to_addr,
-            message.sid,
-        )
-        if not message.sid or not _message_delivery_ok(client, message.sid):
-            return None
-        return message.sid
-
-    except Exception:
-        logger.exception(
-            "Interactive content send failed for %s",
-            to_number,
-        )
+    content_sid = _get_or_create_content_sid(cache_key, content_type, build_content)
+    if not content_sid:
         return None
+
+    status, sid = _send_with_content_sid(to_number, content_sid, content_variables)
+    if status == "invalid_sid":
+        _invalidate_cache_entry(cache_key)
+        fresh_sid = _get_or_create_content_sid(cache_key, content_type, build_content)
+        if not fresh_sid:
+            return None
+        status, sid = _send_with_content_sid(to_number, fresh_sid, content_variables)
+
+    return sid if status == "ok" else None
 
 
 def send_whatsapp_buttons(
@@ -236,20 +388,29 @@ def send_whatsapp_buttons(
         [a["id"] for a in safe_actions],
     )
 
-    content = {
-        "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
-        "language": "es",
-        "types": {
-            "twilio/quick-reply": {
-                "body": (body or "")[:1024],
-                "actions": safe_actions,
-            }
-        },
-    }
+    # Cache key = button set only (id+title+order). El body va como
+    # ContentVariable: el mismo set de botones (ej. qty_1/qty_2/qty_other) se
+    # reusa aunque el texto cambie por producto/carrito en cada envío.
+    cache_key = _stable_cache_key("quick_reply", safe_actions)
 
-    return _send_content(
+    def _build() -> dict:
+        return {
+            "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
+            "language": "es",
+            "types": {
+                "twilio/quick-reply": {
+                    "body": "{{1}}",
+                    "actions": safe_actions,
+                }
+            },
+        }
+
+    return _send_content_via_cache(
         to_number=to_number,
-        content=content,
+        cache_key=cache_key,
+        content_type="quick_reply",
+        build_content=_build,
+        content_variables={"1": (body or "")[:1024]},
     )
 
 
@@ -289,22 +450,41 @@ def send_whatsapp_list(
     body: str,
     rows: list[dict[str, Any]],
     button: str,
+    business_id: str = "",
 ) -> str | None:
     """
-    Envía una lista interactiva (WhatsApp List Picker)
-    usando Twilio Content API.
-    """
+    Envía una lista interactiva (WhatsApp List Picker) usando Twilio Content API.
 
-    content = build_list_content(
-        friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
-        body=(body or "")[:1024],
-        button=button[:20],
-        rows=rows,
+    Reutiliza el mismo ContentSid mientras el contenido realizado (negocio +
+    body + botón + items) no cambie; un catálogo distinto produce un hash
+    distinto y crea un ContentSid nuevo automáticamente.
+    """
+    safe_body = (body or "")[:1024]
+    safe_button = button[:20]
+
+    cache_key = _stable_cache_key(
+        "list_picker",
+        {
+            "business_id": business_id or "",
+            "body": safe_body,
+            "button": safe_button,
+            "rows": rows,
+        },
     )
 
-    return _send_content(
+    def _build() -> dict:
+        return build_list_content(
+            friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
+            body=safe_body,
+            button=safe_button,
+            rows=rows,
+        )
+
+    return _send_content_via_cache(
         to_number=to_number,
-        content=content,
+        cache_key=cache_key,
+        content_type="list_picker",
+        build_content=_build,
     )
 
 
@@ -432,6 +612,7 @@ def deliver_reply(
                 body=body,
                 rows=rows,
                 button=button,
+                business_id=business_id,
             )
 
             if message_sid:

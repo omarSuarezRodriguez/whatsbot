@@ -1,4 +1,4 @@
-## v1.104
+## v1.105
 
 
 
@@ -10570,6 +10570,54 @@ Aguardo OK pra Fase 2.
 
 
 #########################
+## v1.105
+
+
+
+## prompt ##
+
+OK
+
+
+## resp cursor ##
+
+
+FASE 3 — IMPLEMENTAÇÃO (resultado)
+O que mudou, por ponto
+Ponto 1 (cache botões) — infrastructure/twilio_client.py: send_whatsapp_buttons agora cacheia por (id,title) do set de botões só; body vira ContentVariable {{1}}. Mesmo set (ex. qty_1/qty_2/qty_other) reusa ContentSid mesmo com body diferente por produto/carrinho.
+
+Ponto 2 (cache listas) — send_whatsapp_list cacheia por hash de (business_id, body, button, rows) realizado. Catálogo igual → mesmo sid. Catálogo ou negócio diferente → sid novo automático.
+
+Persistência dos dois: models/twilio_content_cache.py (tabela twilio_content_sids, mesmo padrão de PendingButtonFallback) + services/twilio_content_cache_service.py (get/upsert/invalidate).
+
+Ponto 3 (retry 429) — _call_with_rate_limit_retry em twilio_client.py: 2 retries, backoff 0.4s→0.8s, respeita Retry-After se Twilio manda. Só 429 retry; qualquer outro erro falha igual que antes.
+
+Self-healing extra (dentro do plano aprovado) — 404 num ContentSid cacheado invalida cache e recria uma vez.
+
+Ponto 4 — nenhuma mudança de código (decisão sua: basic_only). Adicionei teste dirigido que trava o contrato + documentei risco residual em PENDIENTES.md.
+
+Validadores — comando, resultado, causa, correção
+python scripts/validate_flow.py → 24 erros. Confirmado via git stash que são idênticos antes e depois da minha mudança — não toquei flows/restaurant_flow.json. Pré-existente, fora do escopo dos 4 pontos.
+
+python validar_arquitectura.py (script real é esse, não scripts/validate_architecture.py — esse path não existe no repo) → falhou por 2 motivos:
+
+Mesmos erros de transições do JSON acima (pré-existentes).
+"Gobernanza — tests" bloqueou por eu ter criado arquivos novos em tests/ — correto, é o validador fazendo seu trabalho. Reexecutei com ARCHITECTURE_ALLOW_TEST_CHANGES=1, autorizado pela sua aprovação explícita do plano de Fase 2 ("tests nuevos... sin tocar los existentes"). Com isso: só sobram os 6 erros pré-existentes do JSON. Tudo relacionado a Python/camadas/multi-tenant/ARCHITECTURE_LAW.md = PASS.
+pytest (suíte completa) → 21 failed + 17 errors pré-existentes, nenhum dos meus 3 arquivos novos entre eles (test_button_id_validation.py, test_twilio_content_cache.py, test_twilio_retry.py = 12/12 passando). Confirmei pré-existência com git stash (mesmíssima lista de falhas com código antigo) e rodando os arquivos suspeitos isolados — todos falham por uma fragilidade de infraestrutura de teste já existente no repo (DATABASE_URL via os.environ.setdefault colide entre arquivos quando corridos juntos + data/user_states.json é arquivo fixo compartilhado entre corridas, sem limpeza). Não é código meu, não toquei nenhum desses arquivos.
+
+Achado incidental (não corrigido, fora de escopo): infrastructure/database.py::_resolve_database_url só faz mkdir da pasta data/ no caminho default — se DATABASE_URL vier explícito (como todo teste faz) e a pasta não existir, quebra com OperationalError. Achei isso testando em clean-room; não é dos 4 pontos, não mexi.
+
+Nos meus 3 arquivos novos achei e corrigi 2 bugs de higiene (não do código de produção, dos meus próprios testes): test_button_id_validation.py não resetava StateManager entre execuções (arrastava estado de corrida anterior); test_twilio_content_cache.py não limpava a tabela de cache antes de cada teste. Corrigido, agora os 12 passam de forma estável e repetível.
+
+Espero seu OK pra Fase 4 — Validação Final Global.
+
+
+
+
+
+###############################
+
+
 
 
 
