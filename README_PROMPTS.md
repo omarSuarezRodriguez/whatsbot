@@ -1,4 +1,4 @@
-## v1.98
+## v1.99
 
 
 
@@ -10318,5 +10318,16 @@ Se agregaron fallbacks para los botones cuando no son envíados, cuando no se en
 ## v1.98
 
 Página web de velossi desarrollada
+
+
+
+
+
+#####################################
+## v1.99
+
+
+Segunda versión web
+
 
 
