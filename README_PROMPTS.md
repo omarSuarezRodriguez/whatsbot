@@ -10353,3 +10353,17 @@ tercera versión
 
 
 
+se hizo una mejora de una imagen de la dashboard
+
+
+######################################
+## v1.101
+
+
+
+
+Se hicieron versiones finales del sistema (la app, en documentos), mockup
+
+
+
+
