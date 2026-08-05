@@ -1,4 +1,4 @@
-## v1.101
+## v1.102 - Problema de duplicación de mensajes
 
 
 
@@ -10363,6 +10363,79 @@ se hizo una mejora de una imagen de la dashboard
 
 
 Se hicieron versiones finales del sistema (la app, en documentos), mockup
+
+
+
+
+######################################
+## v1.102 - Problema de duplicación de mensajes
+
+
+Encontré la causa real, y está en tu propio código, no en un límite oculto de Meta.
+
+El bug: crean una plantilla de Twilio nueva en cada mensaje, en vez de reutilizar una
+
+En infrastructure/twilio_client.py:
+
+
+twilio_client.py
+Lines 239-248
+content = {
+    "friendly_name": f"wb_btn_{uuid.uuid4().hex[:12]}",
+    "language": "es",
+    "types": {
+        "twilio/quick-reply": {
+            "body": (body or "")[:1024],
+            "actions": safe_actions,
+        }
+    },
+}
+
+twilio_client.py
+Lines 298-303
+content = build_list_content(
+    friendly_name=f"wb_list_{uuid.uuid4().hex[:12]}",
+    body=(body or "")[:1024],
+    button=button[:20],
+    rows=rows,
+)
+Cada vez que el bot manda botones o una lista, primero crea un Content Template nuevo en Twilio (friendly_name con uuid random) y después lo envía. Eso son 2 llamadas a la API de Twilio por cada turno con botones, no 1.
+
+Esto va justo en contra de lo que dice la documentación oficial de Twilio: "Save the ContentSid returned in the API response. You will reference this SID whenever you send a message" — o sea: creas UNA vez, guardas el SID, reutilizas con ContentVariables. Ustedes crean uno nuevo siempre, para siempre botón/lista, incluso cuando el set de botones es idéntico al del turno anterior (ej. "1, 2, Otra" para cantidad se repite igual en cada producto).
+
+Por qué esto explica exactamente lo que viste
+
+Un pedido normal pasa por 5-8 pasos con botones/listas (categoría → producto → cantidad → revisar → confirmar/modificar → domicilio/recoger → dirección). Cada paso = 2 llamadas HTTP a Twilio en vez de 1. Si haces varios pedidos seguidos probando, en poco tiempo duplicaste tu volumen real de requests a Twilio.
+Twilio tiene un límite de concurrencia/rate en su REST API general (error 20429 "Too many requests") — si lo tocas, la llamada de creación del Content o la de envío falla.
+Cuando esa llamada falla, tu propio código captura la excepción y devuelve None:
+
+twilio_client.py
+Lines 200-205
+except Exception:
+    logger.exception(
+        "Interactive content send failed for %s",
+        to_number,
+    )
+    return None
+Y cuando send_whatsapp_buttons/send_whatsapp_list devuelve None, dispara justo el fallback que tú mismo programaste (buttons_failure_message, líneas 9, 141, 183, 213 de flows/restaurant_flow.json): "⚠️ No pude mostrar los botones...". Es decir: tu fallback no es un parche cosmético, es la evidencia directa de que el envío del Content Template está fallando — el síntoma que describes ("deja de mandar botones") es literalmente ese except Exception: return None disparándose.
+Sobre "no recibe mi clic"
+
+Ese es un síntoma distinto y más sutil: si el paso N falló silenciosamente y cayó a fallback de texto, pero tú alcanzas a tocar el botón del mensaje interactivo del paso N-1 (que sigue visible en tu WhatsApp) después de que el bot ya avanzó de estado esperando otra cosa, el flow_engine recibe un ButtonText/ListId que no calza con el nodo actual y lo descarta como "no reconocido" — no es que Twilio no entregue el clic, es que el estado del bot y lo que ves en pantalla se desincronizaron por el fallo del paso anterior.
+
+Qué hacer (para cuando pases a modo agente)
+
+Cachear y reutilizar ContentSid en vez de crear un Content nuevo cada vez. Los sets de botones son casi todos estáticos y repetidos (qty: 1/2/3/Otra; revisión: Confirmar/Añadir/Modificar; entrega: Domicilio/Recoger) — créalos UNA vez (por ejemplo, en un script de setup), guarda el SID, y en runtime solo llama messages.create(contentSid=..., contentVariables=...). Esto corta a la mitad las llamadas HTTP por turno.
+Para las listas (categorías/productos, que sí varían por catálogo), cachear por hash del contenido (negocio + categoría) en vez de un uuid random siempre — si el catálogo no cambió, reusa el mismo ContentSid.
+Agregar retry con backoff específicamente alrededor de la creación+envío de Content, ya que 429 es explícitamente "safe to retry" según Twilio.
+Opcional pero recomendable: que flow_engine valide explícitamente si un ButtonText/ListId entrante corresponde al nodo actual antes de intentar interpretarlo, así un clic "atrasado" de un paso previo no se confunde con basura del parser.
+Esto no es un límite de Meta/WhatsApp por "usar muchos botones" — es Twilio devolviendo error de concurrencia porque el código dobla las llamadas necesarias por diseño.
+
+
+
+
+
+###########################
+
 
 
 
