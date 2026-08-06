@@ -32,15 +32,9 @@ from config.settings import (
     use_rest_webhook_replies,
 )
 from infrastructure.database import get_db
-from infrastructure.twilio_client import (
-    build_twiml_response,
-    deliver_reply,
-    send_whatsapp_message,
-)
+from infrastructure.twilio_client import build_twiml_response, deliver_reply
 from services.button_fallback_service import (
     consume_status as consume_button_fallback_status,
-    delete_pending as delete_button_fallback,
-    release_claim as release_button_fallback_claim,
 )
 from services.business_service import resolve_business_id_for_webhook
 from services.conversation_service import (
@@ -302,34 +296,16 @@ async def twilio_status_callback(
     )
 
     try:
-        fallback = consume_button_fallback_status(
+        # Schedules the first retry on failure (services/button_fallback_service
+        # .start_retry_scheduler owns actual delivery from here on — never
+        # blocks this webhook response waiting on a Twilio round-trip).
+        consume_button_fallback_status(
             db,
             business_id=business_id,
             message_sid=message_sid,
             status=twilio_status,
         )
         db.commit()
-        if fallback:
-            recipient, fallback_body = fallback
-            fallback_sid = await run_in_threadpool(
-                send_whatsapp_message,
-                recipient,
-                fallback_body,
-            )
-            if fallback_sid:
-                delete_button_fallback(
-                    db,
-                    business_id=business_id,
-                    message_sid=message_sid,
-                )
-                db.commit()
-            else:
-                release_button_fallback_claim(
-                    db,
-                    business_id=business_id,
-                    message_sid=message_sid,
-                )
-                db.commit()
 
         msg = apply_twilio_status(
             db,

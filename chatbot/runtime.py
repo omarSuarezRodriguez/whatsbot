@@ -59,6 +59,9 @@ def get_bot_context(*, start_background: bool = True) -> BotContext:
     if start_background:
         blocked_cache.start()
         admin_service.start_reminder_scheduler()
+        from services.button_fallback_service import start_retry_scheduler
+
+        start_retry_scheduler()
 
     flow_engine = FlowEngine(
         state_manager=state_manager,

@@ -74,6 +74,16 @@ TWILIO_MIN_SECONDS_PER_RECIPIENT = float(
     os.getenv("TWILIO_MIN_SECONDS_PER_RECIPIENT", "6.5")
 )
 
+# Delivery-failure retry for interactive (buttons/list) fallback messages —
+# see services/button_fallback_service.py. Exactly 2 attempts, delay per try
+# configurable independently (user-defined schedule, not auto-backoff).
+TWILIO_FIRST_RETRY_SECONDS_PER_TRY = float(
+    os.getenv("TWILIO_FIRST_RETRY_SECONDS_PER_TRY", "10")
+)
+TWILIO_SECOND_RETRY_SECONDS_PER_TRY = float(
+    os.getenv("TWILIO_SECOND_RETRY_SECONDS_PER_TRY", "5")
+)
+
 # Admin legacy
 ADMIN_WHATSAPP_NUMBER = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
 ADMIN_REMINDER_INTERVAL_SECONDS = int(

@@ -1,4 +1,4 @@
-## v1.107
+## v1.108
 
 
 
@@ -10778,12 +10778,82 @@ ejecutá todo de una vez (Fases 2 a 4).
 
 
 
+
+
+
+
+
+
+
+###########################
+## v1.108
+
+
+
+## prompt ##
+
+osea lo que quiero actualmente es que, el sistema es capaz de detectar cuando la persona envía un botón, pero si excedió el limite muestra el error 63018, eso sería lo sincrónico, quiero según todo lo que tú me dijiste y lo que yo pude analizar, que, el sistema detecte cuando ocurre ese error, y, me ponga en .env una variable llamada 
+
+TWILIO_FIRST_RETRY_SECONDS_PER_TRY=10
+TWILIO_SECOND_RETRY_SECONDS_PER_TRY=5
+
+Así, de forma que yo la pueda editar y calcular cada cuando el sistema va a intentar reenviar eso que no pudo recibir, osea intentará con esas dos, ya así yo podré calcular cuándo el sistema me recibe el mensaje
+
+
+respetando architecture_law.md (raiz del proyecto), audita, por fases la solución, proponme lo mejor, al final validación y comprobación de que todo quedó bien implementado y todo funciona correctamente, pideme solo un OK para hacer todo de una
+
+
+
+
 ## resp cursor ##
 
 
+Antes de nada: sigo en modo Ask (el sistema me lo fuerza), no puedo tocar código ni con tu OK. Te dejo la auditoría y el plan completos; para ejecutar necesito que cambies a modo Agente.
+
+FASE 1 — Auditoría
+Ya existe casi toda la plomería, solo falta la parte de "reintentar con el tiempo":
+
+Tabla outbox ya existe: pending_button_fallbacks (models/pending_button_fallback.py) — una fila por cada envío interactivo que tenía buttons_failure_message configurado, creada por register_button_fallback() (infrastructure/twilio_client.py).
+Disparo ya existe: /webhook/status (api/routes/whatsapp.py:304-332) reclama la fila cuando Twilio marca failed/undelivered/canceled, e intenta el fallback de texto una sola vez, ahí mismo, sincrónico dentro del handler del callback.
+El hueco: si ese único intento también choca el límite, se libera el "claim" (release_button_fallback_claim) pero nadie la vuelve a mirar. Ahí se pierde — exactamente lo que viviste.
+Patrón de scheduler ya probado en este proyecto: admin_service._reminder_loop (chatbot/app/services/admin_service.py:534-543) — un hilo daemon con time.sleep() en loop, arrancado una vez desde chatbot/gateway.py:118 (get_bot_context(), default start_background=True). Mismo molde, sin librerías nuevas.
+Migraciones: el proyecto usa scripts idempotentes de ALTER TABLE (scripts/migrate_message_status.py como referencia), no Alembic.
+Capas que toca (chequeo ARCHITECTURE_LAW.md): todo vive en Services (negocio + persistencia del fallback, ya es su dueño actual) más un scheduler igual al que ya existe. No toca FlowEngine, StateManager ni el JSON — cero riesgo de romper "JSON=mapa" o "motor=ejecución". No hay if business_id == ... (la tabla se consulta cruzando tenants por fecha de vencimiento, no por lógica de negocio especial). Cambio incremental válido, no arquitectónico.
+
+FASE 2 — Plan propuesto
+config/settings.py: agrego tus dos variables tal cual las pediste:
+
+TWILIO_FIRST_RETRY_SECONDS_PER_TRY=10
+TWILIO_SECOND_RETRY_SECONDS_PER_TRY=5
+Ojo honesto (no lo cambio sin que me digas, solo lo marco): en backoff normal el segundo intento espera MÁS que el primero, no menos — vos pediste 10 luego 5. Lo implemento igual como lo pediste (es tu decisión), documentado con comentario ponytail explicando que la ventana total (15s) no alcanza a cubrir los castigos largos de Meta (5min/30min) — sirve para fallas cortas/transitorias, no para una penalización ya activa.
+
+models/pending_button_fallback.py: 2 columnas nuevas, attempts (int, default 0) y next_retry_at (datetime nullable). Migración nueva scripts/migrate_button_fallback_retry.py, mismo patrón que migrate_message_status.py (ALTER idempotente, no rompe filas existentes).
+
+services/button_fallback_service.py:
+
+Al fallar el envío original, en vez de mandar el fallback ahí mismo, se programa: next_retry_at = ahora + TWILIO_FIRST_RETRY_SECONDS_PER_TRY.
+Función nueva due_for_retry(db): filas pendientes con next_retry_at ya vencido.
+Función nueva record_attempt_result(...): éxito → borra la fila. Falla intento 1 → programa el segundo con TWILIO_SECOND_RETRY_SECONDS_PER_TRY. Falla intento 2 → se da por perdido, log claro (y aviso al admin, reusando el canal que ya existe), borra la fila para no reintentar infinito.
+Loop nuevo start_retry_scheduler() / _retry_loop() — mismo molde que admin_service._reminder_loop, poll cada ~5s, manda vía send_whatsapp_message (que ya respeta el pacing que hicimos antes).
+api/routes/whatsapp.py: el handler de /webhook/status deja de mandar el fallback inline — solo programa el primer reintento. Todo el ciclo de vida (reintento 1, reintento 2, abandono) lo maneja el loop nuevo, un solo camino de código en vez de dos.
+
+chatbot/runtime.py: arrancar el nuevo scheduler junto al de admin_service, mismo if start_background.
+
+FASE 3 — Validación
+Test nuevo tests/test_button_fallback_retry.py (mocks, sin red real): falla 1 → programa a +10s; falla 2 → programa a +5s; falla 3 → se abandona y borra; éxito en cualquier punto → borra y no reintenta más.
+Migración probada contra copia descartable de la DB, nunca la real directo sin probar antes.
+python scripts/validate_flow.py, python validar_arquitectura.py, pytest tests/ — comparado contra el mismo baseline de fallas preexistentes (21 fallos ya confirmados sin relación a esto), cero regresión nueva.
+Limpieza de temporales.
+FASE 4 — Reporte final
+Qué cubre: envíos interactivos (botones/listas) que fallan async — exactamente tu caso de prueba.
+Qué NO cubre (ya lo marqué antes, sigue igual): send_whatsapp_message plano que falla directo no tiene fila de fallback registrada — solo se registra para envíos interactivos con buttons_failure_message. Y admin_service._send_whatsapp (confirmaciones de pedido) sigue fuera del outbox por completo.
+Recordatorio de correr la migración + reiniciar server.
+¿Cambio a modo Agente y ejecuto Fases 2-4 con tu OK?
 
 
 
 
+## good
 
 
+#############################

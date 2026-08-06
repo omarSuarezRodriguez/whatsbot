@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from infrastructure.database import Base
@@ -35,4 +35,14 @@ class PendingButtonFallback(Base):
     consumed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+    # Retry scheduling (services/button_fallback_service.py). attempts counts
+    # completed tries (0, 1, 2 — capped at 2 by config); next_retry_at is when
+    # the background loop should try again. NULL next_retry_at = not scheduled
+    # (either never failed yet, or retries exhausted and row is about to be dropped).
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    next_retry_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
     )
