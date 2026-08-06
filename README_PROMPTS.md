@@ -1,4 +1,4 @@
-## v1.109
+## v1.110 - Totalmente funcional y error de sobrecarga y bloqueo de sistema solucionado, unico detalle es probar con diferente número porque meta sanciona números que escriben mucho a los sistemas (por pruebas)
 
 
 
@@ -10995,7 +10995,7 @@ El pacing y los reintentos son en memoria del proceso — se resetean si el bot 
 
 
 #############################################
-
+## v1.110 - Totalmente funcional y error de sobrecarga y bloqueo de sistema solucionado, unico detalle es probar con diferente número porque meta sanciona números que escriben mucho a los sistemas (por pruebas)
 
 
 
