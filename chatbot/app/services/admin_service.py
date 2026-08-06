@@ -301,11 +301,14 @@ class AdminService:
             )
             return None
         try:
+            from twilio.http.http_client import TwilioHttpClient
             from twilio.rest import Client
 
             from config.settings import twilio_status_callback_url
 
-            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            # ponytail: bounded timeout — bare Client() has none and can hang a
+            # worker forever on a Twilio network blip (see infrastructure/twilio_client.py).
+            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, http_client=TwilioHttpClient(timeout=10))
             to = f"whatsapp:+{to_digits}"
             from_ = self._format_whatsapp_address(TWILIO_WHATSAPP_FROM)
             create_kwargs: dict[str, str] = {

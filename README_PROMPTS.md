@@ -1,4 +1,4 @@
-## v1.106. Se fixeó la duplicación de los mensajes de  botones
+## v1.107
 
 
 
@@ -10663,6 +10663,125 @@ Próximo paso: ninguno pendiente de tu lado salvo decidir si quieres atacar la d
 
 
 ##############################
+## v1.107
+
+
+Anotación importante:
+
+Sí, es un problema documentado y bien conocido — no es solo tu caso. Encontré esto:
+
+Confirmación exacta del mecanismo — es el código Meta 131056 ("pair rate limit hit"):
+
+Texto textual de Meta: "Too many messages sent from the sender phone number to the same recipient phone number in a short period of time." — HTTP 429. Guía de Meta: "Wait and retry... you can still send messages to a different phone number without waiting."
+
+Número real del límite (más estricto de lo que yo estimé antes): un número de negocio puede mandar aproximadamente 1 mensaje cada 6 segundos al MISMO usuario de WhatsApp. Ráfagas cortas son posibles, pero "piden prestado" contra cupo futuro — o sea, probar rápido "funciona una vez" pero no es sostenible. Mi estimación anterior (unos cientos de ms) era demasiado optimista — el piso real parece ser segundos, no milisegundos.
+
+Soluciones que implementan proyectos reales (de un adaptador de WhatsApp en producción, código abierto):
+
+Token bucket POR PAR (emisor+receptor), no solo por cuenta — exactamente lo que hablamos.
+Reintentos "pair-aware": el backoff debe ir atado al MISMO destinatario, si no, "workers en paralelo recrean el problema".
+Tabla de delays según el código de error específico de Meta (esto es nuevo, no lo tenía):
+Código Meta	Significado	Delay recomendado
+131056
+Límite por par
+60s — se libera rápido
+130429
+Límite general de mensajería
+5min
+131048
+Detección de spam
+30min — señal de confianza, tarda en recuperar
+Esto último es importante y cambia mi diagnóstico: un patrón de silencio de 1+ hora (lo que vimos en tus incidentes) se parece mucho MÁS al código 131048 (detección de spam/abuso) que al 131056 (límite simple por par, que se libera en ~60s). Un número de WhatsApp Business recién activado (como probablemente es el tuyo, en pruebas) que recibe ráfagas repetidas de mensajes al mismo número en poco tiempo es justo el patrón que "atrae enforcement" de detección de spam — confirmado en una guía de producción real: "sudden volume spikes on recently activated numbers attract enforcement."
+
+Consecuencia honesta: si es 131048 (spam), el pacing/throttle en código ayuda a que no vuelva a pasar, pero no revierte un bloqueo que ya se disparó — eso solo se libera con tiempo (~30min) o mejorando el "trust score" del número (uso normal, sin ráfagas, con el tiempo).
+
+Conclusión: sí, el pacing por par soluciona la causa (evita disparar el límite), pero el tipo de bloqueo que estamos viendo probablemente sea el más severo de los tres (spam), no el más leve. La prueba definitiva sigue siendo la consola de Twilio — buscá específicamente 131056 y 131048 en los logs de error alrededor de esos momentos, para saber cuál de los dos te está pasando.
+
+
+
+
+## prompt ##
+
+Contexto: bot de WhatsApp (Twilio + FastAPI, proyecto whatsbot). Problema confirmado: 
+al mandar mensajes muy rápido al MISMO número de WhatsApp (pruebas con clics 
+rápidos de botones), el sistema deja de responder por completo durante mucho 
+tiempo (llegué a ver ~1h de silencio total, sin ningún log de error, sin ningún 
+webhook nuevo llegando a mi túnel ngrok). 
+
+Diagnóstico ya hecho (no lo repitas, ya está confirmado): es el límite "por par" 
+de Meta/WhatsApp Business Platform — mandar demasiados mensajes al mismo 
+destinatario en poco tiempo. Meta documenta 3 códigos de error relacionados:
+- 131056: límite por par (emisor+receptor), se libera en ~60s
+- 130429: límite general de mensajería, ~5min
+- 131048: detección de spam/abuso (señal de confianza), tarda ~30min en recuperar
+
+El límite real aproximado de Meta es ~1 mensaje cada 6 segundos al MISMO 
+destinatario (ráfagas cortas posibles pero "piden prestado" contra cupo futuro).
+
+Arquitectura del proyecto: sigue estrictamente ARCHITECTURE_LAW.md (raíz del 
+proyecto) — LÉELO PRIMERO, NO LO MODIFIQUES. Resumen: JSON = mapa conversacional, 
+Python = motor de ejecución, Services = lógica de negocio, StateManager = estado 
+conversacional, business_scope = aislamiento multi-tenant. El envío real a 
+Twilio vive en infrastructure/twilio_client.py (capa infra pura, no motor ni 
+negocio). Ya existe ahí:
+- _call_with_rate_limit_retry (retry acotado solo para HTTP 429 genérico, 
+  infrastructure/twilio_client.py)
+- register_button_fallback / services/button_fallback_service.py (fallback 
+  async vía status callback de Twilio)
+- Un lock por (business_id, wa_id) en api/routes/whatsapp.py que serializa 
+  mensajes de la MISMA conversación (no toca esto, ya funciona bien)
+
+Es un sistema webhook síncrono (request → proceso → respuesta), SIN cola de 
+background/workers. Cualquier solución debe respetar ese presupuesto de tiempo 
+de respuesta — nada de esperas largas (60s/5min/30min) DENTRO del ciclo de 
+request del webhook.
+
+Tarea, en fases, con auditoría y comprobación en cada una, pidiendo mi OK antes 
+de ejecutar todo:
+
+FASE 1 — Auditoría: confirmá dónde exactamente se debe interceptar el envío 
+saliente en infrastructure/twilio_client.py (send_whatsapp_message, 
+send_whatsapp_buttons, send_whatsapp_list / _send_with_content_sid) para 
+implementar pacing por destinatario.
+
+FASE 2 — Plan e implementación:
+1. Pacing/token-bucket por número destinatario: antes de cada envío real a 
+   Twilio, garantizar un intervalo mínimo (configurable, arrancar ~6-7 segundos) 
+   desde el último mensaje enviado a ESE MISMO número. Si no pasó suficiente 
+   tiempo, esperar la diferencia (time.sleep está bien, esto corre en threadpool, 
+   no en el event loop async — mismo patrón que ya usa _call_with_rate_limit_retry).
+2. Detección explícita de los códigos Meta 131056 / 130429 / 131048 (vía 
+   TwilioRestException.code, no solo status HTTP) en el punto de envío — 
+   loguear claro cuál de los 3 ocurrió, SIN reintentos largos síncronos. Para 
+   131048 particularmente: solo loguear + caer al fallback existente, nunca 
+   bloquear esperando.
+3. Comentarios ponytail: documentando el trade-off (pacing agrega latencia 
+   mínima si hay ráfaga real, pero evita el bloqueo; 131048 no tiene arreglo de 
+   código, solo prevención + tiempo).
+
+FASE 3 — Validación (ejecutar y comparar antes/después, cero regresión nueva):
+- python scripts/validate_flow.py
+- python validar_arquitectura.py
+- pytest tests/ completo
+- Self-check funcional con mocks: confirmar que 2 envíos rápidos al MISMO número 
+  se espacian correctamente (medir tiempo real transcurrido), y que 2 envíos a 
+  números DISTINTOS no se bloquean entre sí (van en paralelo, sin espera).
+- Limpiar cualquier archivo/DB temporal usado en el self-check.
+
+FASE 4 — Reporte final con resultados de validación, recordatorio de reiniciar 
+el servidor, y aclaración honesta de qué queda cubierto (pacing preventivo) vs 
+qué NO se puede arreglar por código (si el número YA está marcado por spam-
+detection, eso solo se resuelve con tiempo, no con este fix).
+
+Dame la auditoría de Fase 1 y el plan de Fase 2 primero, pedime el OK, y luego 
+ejecutá todo de una vez (Fases 2 a 4).
+
+
+
+## resp cursor ##
+
+
+
 
 
 

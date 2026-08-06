@@ -261,3 +261,7 @@ order_saved_node                  [TEXTO] fin
 
 
 
+##
+Vi algo aparte en el log (no relacionado al límite de ngrok) — hay un SyntaxError: 'return' with value in async generator en infrastructure/cache.py:74, en el subscriber de Redis. Bug real, separado. Te lo dejo anotado, no me desvío — sigo con tu pregunta.
+##
+

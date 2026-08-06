@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Iterator
@@ -19,20 +20,43 @@ Base = declarative_base()
 _engine = None
 _SessionLocal: sessionmaker[Session] | None = None
 
+_PRODUCTION_DB_PATH = (DATA_DIR / "whatsbot.db").resolve()
+
 
 def _resolve_database_url() -> str:
     url = (DATABASE_URL or "").strip()
     if url:
         return url
-    path = (DATA_DIR / "whatsbot.db").resolve()
+    path = _PRODUCTION_DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     return f"sqlite:///{path.as_posix()}"
+
+
+def _assert_not_real_db_in_test_mode(url: str) -> None:
+    """Cinturon de seguridad (incidente 2026-08-05): si algun test alguna vez
+    vuelve a resolver contra la BD real de produccion, aborta ruidoso en vez
+    de escribir basura de prueba encima de datos reales."""
+    if os.environ.get("WHATSBOT_TEST_MODE") != "1":
+        return
+    if not url.startswith("sqlite:///"):
+        return
+    from pathlib import Path as _Path
+
+    resolved = _Path(url[len("sqlite:///") :]).resolve()
+    if resolved == _PRODUCTION_DB_PATH:
+        raise RuntimeError(
+            "BLOQUEADO: un test intento usar la base de datos REAL de "
+            f"produccion ({_PRODUCTION_DB_PATH}). Cada test debe fijar su "
+            "propio DATABASE_URL con os.environ.setdefault(...) ANTES de "
+            "importar infrastructure.database / config.settings."
+        )
 
 
 def get_engine():
     global _engine, _SessionLocal
     if _engine is None:
         url = _resolve_database_url()
+        _assert_not_real_db_in_test_mode(url)
         connect_args = {}
         if url.startswith("sqlite"):
             connect_args["check_same_thread"] = False
@@ -45,6 +69,12 @@ def get_engine():
             def _set_sqlite_pragma(dbapi_conn, _connection_record):
                 cursor = dbapi_conn.cursor()
                 cursor.execute("PRAGMA foreign_keys=ON")
+                # Incident 2026-08-05: concurrent webhook requests writing to
+                # the same SQLite file can hit "database is locked". Without
+                # busy_timeout, SQLite raises immediately instead of waiting
+                # for the other writer to finish — busy_timeout makes it
+                # retry internally for up to 5s before giving up.
+                cursor.execute("PRAGMA busy_timeout=5000")
                 cursor.close()
 
         _SessionLocal = sessionmaker(bind=_engine, autocommit=False, autoflush=False)

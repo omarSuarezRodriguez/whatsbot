@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import threading
 import time
 import uuid
 from typing import Any, Callable, List, Union
@@ -17,6 +18,7 @@ from typing import Any, Callable, List, Union
 import requests
 from requests.auth import HTTPBasicAuth
 from twilio.base.exceptions import TwilioRestException
+from twilio.http.http_client import TwilioHttpClient
 from twilio.rest import Client
 
 from twilio.twiml.messaging_response import MessagingResponse
@@ -24,6 +26,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from config.settings import (
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
+    TWILIO_MIN_SECONDS_PER_RECIPIENT,
     TWILIO_WHATSAPP_FROM,
     is_twilio_whatsapp_sandbox,
     twilio_status_callback_url,
@@ -32,6 +35,15 @@ from config.settings import (
 logger = logging.getLogger(__name__)
 
 Reply = Union[str, List[str]]
+
+# Incident 2026-08-05: Client(sid, token) with no http_client uses twilio's
+# default requests session with NO timeout. A single stalled TCP connection
+# to Twilio (network blip) then hangs the webhook's threadpool worker
+# forever — the bot goes silent for that chat with no error/log line ever
+# printed (nothing to catch, nothing times out). Every Twilio SDK call in
+# this module must go through this bounded-timeout client instead of a bare
+# Client(...).
+_TWILIO_HTTP_CLIENT = TwilioHttpClient(timeout=10)
 
 
 def reply_parts(reply: Reply) -> List[str]:
@@ -57,6 +69,51 @@ def _whatsapp_address(number: str) -> str:
     return f"whatsapp:+{digits}"
 
 
+# ---------------------------------------------------------------------------
+# Per-recipient pacing (Meta pair rate limit fix)
+# ---------------------------------------------------------------------------
+# Meta enforces ~1 msg/6s to the SAME sender+recipient pair; bursts "borrow"
+# against future quota. Blowing through it triggers 131056/130429/131048,
+# which can silence the bot for that chat for up to ~30min with zero error
+# logged locally. This waits the remaining gap (sync sleep — runs in the
+# webhook's threadpool, not the event loop, same pattern as
+# _call_with_rate_limit_retry) right before every real send to a recipient.
+# ponytail: process-local dict/lock, resets on restart, doesn't share state
+# across worker processes. ceiling: multi-process/multi-instance deploys need
+# a shared store (Redis) to pace correctly across processes.
+
+_recipient_last_sent: dict[str, float] = {}
+_recipient_locks: dict[str, threading.Lock] = {}
+_recipient_locks_guard = threading.Lock()
+
+
+def _get_recipient_lock(key: str) -> threading.Lock:
+    with _recipient_locks_guard:
+        lock = _recipient_locks.get(key)
+        if lock is None:
+            lock = threading.Lock()
+            _recipient_locks[key] = lock
+        return lock
+
+
+def _pace_recipient(to_number: str) -> None:
+    """Blocks until at least TWILIO_MIN_SECONDS_PER_RECIPIENT elapsed since
+    the last send to this WhatsApp recipient. Different recipients never
+    block each other (separate lock per number)."""
+    key = _whatsapp_address(to_number)
+    if not key:
+        return
+    lock = _get_recipient_lock(key)
+    with lock:
+        now = time.monotonic()
+        last = _recipient_last_sent.get(key)
+        if last is not None:
+            wait = TWILIO_MIN_SECONDS_PER_RECIPIENT - (now - last)
+            if wait > 0:
+                time.sleep(wait)
+        _recipient_last_sent[key] = time.monotonic()
+
+
 def send_whatsapp_message(to_number: str, body: str) -> str | None:
     """
     Send via Twilio REST API.
@@ -70,6 +127,7 @@ def send_whatsapp_message(to_number: str, body: str) -> str | None:
             "TWILIO_WHATSAPP_FROM looks like sandbox; production should use Business number."
         )
     try:
+        _pace_recipient(to_number)
         from chatbot.runtime import get_bot_context
 
         admin = get_bot_context(start_background=False).admin_service
@@ -107,40 +165,6 @@ def register_button_fallback(
         )
 
 
-def _message_delivery_ok(client: Client, message_sid: str) -> bool:
-    """
-    Content/create often returns queued SID that later fails (e.g. 63007).
-    Brief poll so webhook can fall back to plain TwiML text.
-    """
-    # ponytail: ~3s poll budget. ceiling: slower failures need status callback.
-    for _ in range(8):
-        message = client.messages(message_sid).fetch()
-        status = (getattr(message, "status", "") or "").lower()
-        error_code = getattr(message, "error_code", None)
-        from_addr = getattr(message, "from_", None) or ""
-        if error_code or status in {"failed", "undelivered", "canceled"}:
-            logger.warning(
-                "Interactive message %s not delivered (status=%s code=%s from=%s)",
-                message_sid,
-                status,
-                error_code,
-                from_addr,
-            )
-            return False
-        # Twilio sometimes parks Content on a phantom +1555 sender before failing.
-        if "+1555" in str(from_addr):
-            logger.warning(
-                "Interactive message %s using invalid From %s — treating as fail",
-                message_sid,
-                from_addr,
-            )
-            return False
-        if status in {"sent", "delivered", "read"}:
-            return True
-        time.sleep(0.4)
-    return True
-
-
 # ---------------------------------------------------------------------------
 # Rate-limit retry (Fase 4 fix, punto 3)
 # ---------------------------------------------------------------------------
@@ -156,6 +180,34 @@ def _retry_after_seconds(headers: Any) -> float | None:
         return float(value) if value is not None else None
     except (TypeError, ValueError):
         return None
+
+
+# Meta's documented per-pair / messaging rate-limit codes (not generic 429s).
+# None of these clear within a webhook's response budget — logging + falling
+# to the existing fallback is the only sane move, no synchronous retry-wait.
+_META_RATE_LIMIT_CODES = {
+    131056: ("límite por par emisor+receptor", "~60s"),
+    130429: ("límite general de mensajería", "~5min"),
+    131048: ("detección de spam/abuso (señal de confianza)", "~30min"),
+}
+
+
+def _log_meta_rate_limit_code(exc: TwilioRestException, what: str) -> bool:
+    """Logs clearly if exc.code is one of Meta's known rate-limit codes.
+    Returns True when matched — caller should raise immediately, no retry.
+    ponytail: 131048 has no code fix, only prevention (pacing) + time; this
+    only makes the cause visible in logs instead of silent hour-long gaps."""
+    code = getattr(exc, "code", None)
+    info = _META_RATE_LIMIT_CODES.get(int(code)) if code else None
+    if not info:
+        return False
+    reason, recovers_in = info
+    logger.warning(
+        "%s golpeó límite Meta code=%s (%s, recupera en %s) — sin reintento "
+        "síncrono, cae al fallback existente.",
+        what, code, reason, recovers_in,
+    )
+    return True
 
 
 def _call_with_rate_limit_retry(fn: Callable[[], Any], *, what: str) -> Any:
@@ -181,6 +233,8 @@ def _call_with_rate_limit_retry(fn: Callable[[], Any], *, what: str) -> Any:
             time.sleep(wait)
             delay *= 2
         except TwilioRestException as exc:
+            if _log_meta_rate_limit_code(exc, what):
+                raise
             if getattr(exc, "status", None) != _RETRYABLE_STATUS or attempt == _MAX_RETRIES:
                 raise
             logger.warning(
@@ -273,7 +327,7 @@ def _send_with_content_sid(
     content_variables: dict[str, str] | None = None,
 ) -> tuple[str, str | None]:
     """Returns (status, message_sid). status is 'ok', 'invalid_sid' or 'error'."""
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, http_client=_TWILIO_HTTP_CLIENT)
     to_addr = _whatsapp_address(to_number)
     from_addr = _whatsapp_address(TWILIO_WHATSAPP_FROM)
 
@@ -294,6 +348,7 @@ def _send_with_content_sid(
         return client.messages.create(**create_kwargs)
 
     try:
+        _pace_recipient(to_number)
         message = _call_with_rate_limit_retry(_do, what="Content message send")
     except TwilioRestException as exc:
         # ponytail: 404 = best-effort heuristic for "stale/deleted ContentSid".
@@ -304,6 +359,10 @@ def _send_with_content_sid(
                 "ContentSid %s not found on send — treating as stale", content_sid
             )
             return "invalid_sid", None
+        if getattr(exc, "code", None) in _META_RATE_LIMIT_CODES:
+            # Already logged clearly by _log_meta_rate_limit_code above;
+            # skip the redundant full-stack exception log for this known case.
+            return "error", None
         logger.exception("Content message send failed sid=%s", content_sid)
         return "error", None
     except Exception:
@@ -317,8 +376,24 @@ def _send_with_content_sid(
         to_addr,
         message.sid,
     )
-    if not message.sid or not _message_delivery_ok(client, message.sid):
+    if not message.sid:
         return "error", None
+    # Incident 2026-08-05: this used to poll .fetch() up to 8x (~3.2s) right
+    # here to catch async failures (e.g. phantom +1555 sender, 63007) before
+    # answering Twilio's webhook. Under the per-wa_id lock in
+    # api/routes/whatsapp.py that serializes taps from one chat, that extra
+    # latency stacked across a fast tap burst until a later tap's webhook
+    # response missed Twilio's ~15s timeout — Twilio then stopped delivering
+    # webhooks to this endpoint for an extended period (observed via ngrok's
+    # inspector: 1h+ with zero inbound requests). Answering fast beats
+    # catching this class of failure synchronously.
+    # ponytail: delivery failure is now detected only via the async status
+    # callback (register_button_fallback + /webhook/status), which requires
+    # twilio_status_callback_url() to resolve (i.e. a real public URL, not
+    # http://127.0.0.1). Local dev without a public URL loses delivery-failure
+    # detection entirely for interactive sends. Same ceiling applies to the
+    # phantom +1555 sender case this poll used to catch explicitly — already
+    # mitigated by pinning `from_` above, so residual risk is low.
     return "ok", message.sid
 
 
@@ -616,6 +691,17 @@ def deliver_reply(
             )
 
             if message_sid:
+                # Same async safety net as the buttons branch below — lists
+                # never had this before (their only net used to be the sync
+                # poll removed from _send_with_content_sid; see comment there).
+                if buttons_failure_message:
+                    fallback_body = f"{body}\n\n{buttons_failure_message}".strip()
+                    register_button_fallback(
+                        message_sid,
+                        business_id,
+                        recipient,
+                        fallback_body,
+                    )
                 # WhatsApp: one interactive type per message. JSON may declare both
                 # list + buttons — send buttons as follow-up (do not drop the map).
                 if actions:

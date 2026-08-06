@@ -60,9 +60,12 @@ def sync_messages_from_twilio(
     if biz is None:
         return {"imported": 0, "skipped": 0, "errors": 0, "reason": "business_not_found"}
 
+    from twilio.http.http_client import TwilioHttpClient
     from twilio.rest import Client
 
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    # ponytail: bounded timeout — bare Client() has none and can hang a
+    # worker forever on a Twilio network blip (see infrastructure/twilio_client.py).
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, http_client=TwilioHttpClient(timeout=10))
     since = datetime.now(timezone.utc) - timedelta(hours=max(1, lookback_hours))
     from_number = TWILIO_WHATSAPP_FROM
     if not from_number.startswith("whatsapp:"):

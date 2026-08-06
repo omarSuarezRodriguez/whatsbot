@@ -28973,3 +28973,2772 @@ Tu pedido quedó registrado y está pendiente de confirmación.
 👨‍🍳 *Nuestro equipo lo revisará y te confirmaremos en unos minutos.*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥Por el momento no tenemos productos disponibles. Intenta más tarde.
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: pedido
+
+
+-------------------------------
+
+Chatbot: 🍽️ *Haz tu pedido*
+
+¿Qué te provoca hoy?
+
+💡 *Por ejemplo:*
+• 1 Bandeja paisa y 2 jugos naturales
+
+👇 *Escribe tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: * 1 Bandeja paisa y 2 jugos naturales
+
+
+-------------------------------
+
+Chatbot: No pude identificar ninguno de estos productos:
+*1 bandeja paisa, 2 jugos naturales*
+
+Intenta escribirlos de otra forma o consulta nuestra lista con *Productos*.
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥Por el momento no tenemos productos disponibles. Intenta más tarde.
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x2 - $30
+
+💰 Valor total: *$30*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x3 - $45
+
+💰 Valor total: *$45*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x5 - $75
+
+💰 Valor total: *$75*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x6 - $90
+
+💰 Valor total: *$90*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x7 - $105
+
+💰 Valor total: *$105*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x9 - $135
+
+💰 Valor total: *$135*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x10 - $150
+
+💰 Valor total: *$150*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido sigue en curso*.
+
+💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.
+
+--
+✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:
+
+👉 *Continuar* (continúa tu pedido 🛍️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: Cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x2 - $30
+
+💰 Valor total: *$30*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x4 - $60
+
+💰 Valor total: *$60*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x6 - $90
+
+💰 Valor total: *$90*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x8 - $120
+
+💰 Valor total: *$120*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x9 - $135
+
+💰 Valor total: *$135*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x11 - $165
+
+💰 Valor total: *$165*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x13 - $195
+
+💰 Valor total: *$195*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x15 - $225
+
+💰 Valor total: *$225*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: ✅ *Confirma tu pedido*
+
+
+🧾 *MI PEDIDO*
+────────────────
+- Bandeja Paisa x15 - $225
+
+💰 Valor total: *$225*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar pedido
+
+
+-------------------------------
+
+Chatbot: 🚚 *Entrega de tu pedido*
+
+Elige si lo recibes en casa o lo recoges en el local.
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 B. Guaimaral
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 B. Guaimaral
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 💳 *Método de pago*
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: Transferencia
+
+
+-------------------------------
+
+Chatbot: 💵 *Pago por transferencia*
+
+💰 *Total a pagar: $225*
+
+
+📋 *Sigue estos 3 pasos:*
+
+1️⃣ 💳 *Elige un método de pago*
+· Nequi: 300 123 4567
+· Daviplata: 300 123 4567
+· Bancolombia Ahorros: 123-456789-00
+Titular: Camilo Rodriguez
+
+2️⃣ 📲 *Transfiere exactamente $225*
+
+3️⃣ 📸 *Envía el comprobante por este chat*
+
+✅ *¡Casi listo! Solo toca el botón para confirmar.*
+
+
+👇 *Oprime "Comprobante enviado" para registrar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Comprobante enviado
+
+
+-------------------------------
+
+Chatbot: ✅ *¡Pedido recibido!*
+
+Tu pedido quedó registrado y está pendiente de confirmación.
+
+🧾 *DETALLES DEL PEDIDO*
+────────────────
+🆔 Pedido: *ORD-EF84F6B6*
+💰 Total: *$225*
+🚚 Entrega: *Calle 9N #11E-53 B. Guaimaral*
+────────────────
+
+👨‍🍳 *Nuestro equipo lo revisará y te confirmaremos en unos minutos.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x1 - $15
+
+💰 Valor total: *$15*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x2 - $30
+
+💰 Valor total: *$30*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x3 - $45
+
+💰 Valor total: *$45*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x4 - $60
+
+💰 Valor total: *$60*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x5 - $75
+
+💰 Valor total: *$75*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x6 - $90
+
+💰 Valor total: *$90*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x7 - $105
+
+💰 Valor total: *$105*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 🛍️ *Tu pedido sigue en curso*.
+
+💡 Si vuelves al inicio, tendrás que elegir los productos de nuevo.
+
+--
+✅ ¿Quieres continuar con tu pedido? *Escribe una opción*:
+
+👉 *Continuar* (continúa tu pedido 🛍️)
+👉 *Cancelar* (cancela y vuelve al inicio 🏠)
+
+#################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x2 - $30
+
+💰 Valor total: *$30*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x4 - $60
+
+💰 Valor total: *$60*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x6 - $90
+
+💰 Valor total: *$90*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: confirmar
+
+
+-------------------------------
+
+Chatbot: ✅ *Confirma tu pedido*
+
+
+🧾 *MI PEDIDO*
+────────────────
+- Bandeja Paisa x6 - $90
+
+💰 Valor total: *$90*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar pedido
+
+
+-------------------------------
+
+Chatbot: 🚚 *Entrega de tu pedido*
+
+Elige si lo recibes en casa o lo recoges en el local.
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 B. Guaimaral
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 💳 *Método de pago*
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: .
+
+
+-------------------------------
+
+Chatbot: Elige *Presencial* o *Transferencia*.
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 2
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x8 - $120
+
+💰 Valor total: *$120*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x9 - $135
+
+💰 Valor total: *$135*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x10 - $150
+
+💰 Valor total: *$150*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: cancelar
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x1 - $15
+
+💰 Valor total: *$15*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x2 - $30
+
+💰 Valor total: *$30*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x3 - $45
+
+💰 Valor total: *$45*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################

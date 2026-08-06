@@ -13,6 +13,7 @@ Rutas: POST /webhook (nueva API), POST /bot (alias legacy).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import Any
@@ -56,6 +57,27 @@ router = APIRouter(tags=["whatsapp"])
 
 def _form_dict(form: Any) -> dict[str, str]:
     return {k: v for k, v in form.items()}
+
+
+# Incident 2026-08-05: rapid button taps from one chat fired N webhook requests
+# in parallel — each held a DB pool connection through the whole Twilio call,
+# and each ran its own delivery flow against Twilio at once. Under enough taps
+# this starved the DB pool / Twilio concurrency and the chat went silent with
+# no error logged. One lock per (business, wa_id) makes taps from the SAME
+# conversation queue and run one at a time; different conversations still run
+# fully in parallel.
+# ponytail: dict never evicts entries. ceiling: unbounded memory over very
+# long uptime with many distinct senders; upgrade path is a bounded LRU/TTL
+# if that ever shows up as a real memory issue.
+_wa_id_locks: dict[str, asyncio.Lock] = {}
+
+
+def _get_wa_lock(key: str) -> asyncio.Lock:
+    lock = _wa_id_locks.get(key)
+    if lock is None:
+        lock = asyncio.Lock()
+        _wa_id_locks[key] = lock
+    return lock
 
 
 async def _validate_twilio_signature(request: Request) -> None:
@@ -121,9 +143,41 @@ async def twilio_whatsapp_webhook(
         to_number=to_number,
         from_number=from_number,
     )
-
-    # --- Persist incoming message ---
     incoming_wa = wa_id or from_number.replace("whatsapp:", "").strip()
+    lock_key = f"{business_id}:{incoming_wa}" if incoming_wa else f"__anon:{id(form)}"
+
+    # Serialize processing per-conversation — see _get_wa_lock docstring.
+    async with _get_wa_lock(lock_key):
+        return await _process_whatsapp_message(
+            db=db,
+            started=started,
+            wa_id=wa_id,
+            from_number=from_number,
+            body=body,
+            profile_name=profile_name,
+            message_sid=message_sid,
+            to_number=to_number,
+            business_id=business_id,
+            incoming_wa=incoming_wa,
+            form=form,
+        )
+
+
+async def _process_whatsapp_message(
+    *,
+    db: Session,
+    started: float,
+    wa_id: str,
+    from_number: str,
+    body: str,
+    profile_name: str,
+    message_sid: str | None,
+    to_number: str,
+    business_id: str,
+    incoming_wa: str,
+    form: dict[str, str],
+) -> Response:
+    # --- Persist incoming message ---
     saved_incoming = None
     if incoming_wa:
         try:
@@ -193,6 +247,14 @@ async def twilio_whatsapp_webhook(
         except Exception:
             db.rollback()
             logger.exception("Failed to save outgoing message to DB")
+
+    # Release the pooled DB connection before the Twilio network call below —
+    # nothing past this point touches `db`. Otherwise the connection sits
+    # checked out of the pool for the whole Twilio round-trip, and enough
+    # concurrent taps exhaust the pool. get_db()'s finally still calls
+    # close() again on request teardown; Session.close() is a no-op if
+    # already closed.
+    db.close()
 
     # --- Deliver to Twilio ---
     twiml = build_twiml_response("")

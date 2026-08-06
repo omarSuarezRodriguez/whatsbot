@@ -10,7 +10,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = BASE_DIR
 # override=True: .env wins over stale shell env (orphan api.main / old ngrok URL).
-load_dotenv(BASE_DIR / ".env", override=True)
+# EXCEPTO en tests: WHATSBOT_TEST_MODE=1 (seteado por tests/conftest.py antes de
+# cualquier import) evita que .env pise el DATABASE_URL/aislamiento que cada
+# test ya puso en os.environ — si no, .env siempre gana y CUALQUIER pytest
+# termina escribiendo sobre la BD real de produccion (incidente confirmado).
+_override_dotenv = os.environ.get("WHATSBOT_TEST_MODE") != "1"
+load_dotenv(BASE_DIR / ".env", override=_override_dotenv)
 
 # API / server
 API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", "http://127.0.0.1:5000").rstrip("/")
@@ -63,6 +68,11 @@ TWILIO_WHATSAPP_SANDBOX_NUMBER = "+14155238886"
 TWILIO_VALIDATE_SIGNATURE = os.getenv(
     "TWILIO_VALIDATE_SIGNATURE", "false"
 ).strip().lower() in {"1", "true", "yes", "on"}
+# Meta/WhatsApp per-pair rate limit is ~1 msg/6s to the SAME recipient.
+# Minimum spacing enforced in infrastructure/twilio_client.py before each send.
+TWILIO_MIN_SECONDS_PER_RECIPIENT = float(
+    os.getenv("TWILIO_MIN_SECONDS_PER_RECIPIENT", "6.5")
+)
 
 # Admin legacy
 ADMIN_WHATSAPP_NUMBER = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
