@@ -1,5 +1,4 @@
-## v1.110 - Totalmente funcional y error de sobrecarga y bloqueo de sistema solucionado, unico detalle es probar con diferente número porque meta sanciona números que escriben mucho a los sistemas (por pruebas)
-
+## v1.111
 
 
 
@@ -10996,6 +10995,55 @@ El pacing y los reintentos son en memoria del proceso — se resetean si el bot 
 
 #############################################
 ## v1.110 - Totalmente funcional y error de sobrecarga y bloqueo de sistema solucionado, unico detalle es probar con diferente número porque meta sanciona números que escriben mucho a los sistemas (por pruebas)
+
+
+
+
+
+
+
+
+
+
+
+##########################################
+## v1.111 - Pasos para finiquitar el sistema
+
+
+
+Ya tienes bastante más avanzado de lo que parece. Con lo que veo en el repo (README_PROMPTS.md, PENDIENTES.md, pagina_web/index.html), esto es lo que procede, en orden:
+
+Estado real de las 3 piezas
+Chatbot: casi listo (copy pendiente, no bloquea).
+App: hecha, con bugs por pulir.
+Página web: ya existe un borrador bastante completo (pagina_web/index.html) — secciones Demo/Fidelización/Precios/FAQ, botones wa.me, calculadora, CTA final. No está en cero.
+Así que tu pregunta "¿app y luego página?" en realidad ya no aplica tan literal — la página ya tiene un avance grande. Lo que falta no es "construirla" sino conectarla a algo real.
+
+Orden recomendado (según lo que ya definiste como Fase 1 → Fase 2 → Fase 3)
+1. Cierra los bugs de la app primero. Es lo único de las 3 piezas que bloquea el flujo completo (WhatsApp → confirmación → app dueño). Sin esto no puedes hacer una demo de punta a punta sin "pedir disculpas" — que es literalmente el criterio de "listo" que se definió: "en 10 min demuestras pedido completo sin pedir disculpas."
+
+2. Arma UN negocio demo real (menú de verdad, no de prueba) y corre el flujo completo end-to-end: pedido → confirmación → dueño aprueba desde la app. Esto es el checklist "Obligatorio (sin esto no cobres)" que ya tienes documentado (README_PROMPTS.md ~línea 10146).
+
+3. Recién ahí conecta la página web al demo real: el link tipo velossi.co/demo o el botón de WhatsApp debe apuntar al canal del negocio demo, no a un mockup. La página ya está escrita — esto es enchufarla, no construirla desde cero.
+
+4. Copy del chatbot: hazlo en paralelo o justo después del punto 2 — es barato y no bloquea nada, pero conviene que esté pulido antes de mostrar la demo a un dueño real (punto 5).
+
+5. Venta manual (Fase 3), antes que ads: lista de 20 restaurantes cerca, 5 demos presenciales esta semana, meta 1-2 clientes de pago o piloto de 14 días. Esto es después de tener el demo estable, no antes.
+
+6. Kit de alta repetible (checklist onboarding + precios escritos) recién con el primer cliente que diga que sí.
+
+Lo que NO toca todavía
+Ads, funnel elaborado, más flujos (reservas pulidas, pagos, etc.) — todo eso es "Fase 5+", solo cuando ya tengas un caso real ("X pedidos en 2 semanas") que justifique invertir en distribución.
+
+Resumen de una línea: bugs de la app → demo end-to-end con negocio real → conectar la web ya escrita a ese demo → copy → salir a tocar puertas (no ads todavía).
+
+
+
+
+
+
+######################################
+
 
 
 

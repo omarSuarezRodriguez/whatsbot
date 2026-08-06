@@ -265,3 +265,18 @@ order_saved_node                  [TEXTO] fin
 Vi algo aparte en el log (no relacionado al límite de ngrok) — hay un SyntaxError: 'return' with value in async generator en infrastructure/cache.py:74, en el subscriber de Redis. Bug real, separado. Te lo dejo anotado, no me desvío — sigo con tu pregunta.
 ##
 
+
+
+
+
+
+##
+Limitación conocida (documentada como ponytail en el código)
+El pacing y los reintentos son en memoria del proceso — se resetean si el bot se reinicia, y no se comparten entre múltiples instancias/procesos. Si algún día se despliega en más de un worker/proceso, hace falta un store compartido (ej. Redis) para que el pacing sea correcto entre procesos.
+##
+
+
+
+
+
+
