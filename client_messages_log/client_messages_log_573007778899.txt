@@ -182,3 +182,63 @@ Chatbot: Disculpa, no logré entenderte 🙏
 ✅ Por favor selecciona una de estas opciones:
 
 #################################################################
+################################################################
+
+Cliente: Mensaje cliente WS test
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################
+################################################################
+
+Cliente: Mensaje cliente WS test
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################
+################################################################
+
+Cliente: Mensaje cliente WS test
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################
+################################################################
+
+Cliente: Mensaje cliente WS test
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################
+################################################################
+
+Cliente: Mensaje cliente WS test
+
+
+-------------------------------
+
+Chatbot: Disculpa, no logré entenderte 🙏
+
+✅ Por favor selecciona una de estas opciones:
+
+#################################################################

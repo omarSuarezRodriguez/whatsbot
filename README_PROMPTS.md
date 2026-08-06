@@ -1,4 +1,4 @@
-## v1.108
+## v1.109
 
 
 
@@ -10857,3 +10857,149 @@ Recordatorio de correr la migración + reiniciar server.
 
 
 #############################
+## v1.109
+
+
+## prompt ##
+ahora quiero que respetando architecture_law.md(raiz del proyecto) y basado en lo que acabas de hacer, quiero que me audites y me propongas una solución ahora para lo siguiente:
+
+Entonces cerrar el hueco = mismo patrón, no uno nuevo: cuando send_whatsapp_message/admin._send_whatsapp mandan algo importante (confirmación de pedido, alerta admin), registrar igual una fila outbox con el message_sid — el resto (callback async + retry loop) ya está construido y se reutiliza tal cual.
+
+Ya sabes, pides mi ok, haces todo por fases, comprobaciones y validaciones al final de que todo funciona y quedó implementado correctamente, porque ahorita se envió un mensaje y no recibí respuesta, entonces necesito que me propongas
+
+
+## resp cursor ##
+
+FASE 1 — Auditoría
+Buena noticia: hay un solo punto de intercepción para las 3 rutas "importantes" que mencionás, porque las 3 pasan por la misma función.
+
+Todos los envíos de confirmación/alerta caen en AdminService._send_whatsapp (chatbot/app/services/admin_service.py:283):
+
+Alerta admin de pedido nuevo → notify_new_order línea 430.
+Confirmación al cliente vía comando de WhatsApp del admin (CONFIRMAR ORD-X) → handle_admin_message línea 479.
+Confirmar/rechazar pedido desde la app Flutter → services/notification_service.py: approve_order_from_app línea 171 y reject_order_from_app línea 221 — ambas llaman admin._send_whatsapp(...) directo.
+Esa función YA devuelve message.sid (línea 348) — es el mismo dato que register_button_fallback() necesita. No hay que crear tabla nueva ni función nueva — register_button_fallback(message_sid, business_id, recipient, fallback_body) (infrastructure/twilio_client.py:92) ya es genérica, no tiene nada de "botones" en su lógica, y consume_status/el retry loop que armamos recién ya procesan CUALQUIER fila de pending_button_fallbacks sin importar quién la registró.
+
+El único dato que falta en _send_whatsapp es business_id. Y no hay que inventarlo:
+
+Para el camino admin/WhatsApp (notify_new_order, handle_admin_message): estas corren SIEMPRE dentro de with business_scope(business_id): (chatbot/gateway.py:154, activado por cada webhook entrante) — el proyecto YA tiene un contextvar ambiental para esto: chatbot/business_context.py: get_active_business_id(). Mismo mecanismo que ya usa chatbot/app/services/order_service.py:24. Reusarlo ahí adentro, sin tocar las firmas de notify_new_order/handle_admin_message.
+Para el camino app Flutter (approve_order_from_app/reject_order_from_app): ahí bid YA es una variable local explícita (línea 139/203) — se pasa directo como parámetro nuevo business_id=bid a _send_whatsapp.
+Chequeo de no-recursión (importante): el retry loop (services/button_fallback_service.py: _process_due_retries) reenvía llamando a send_whatsapp_message() (que delega a _send_whatsapp sin business_id explícito) desde un hilo de fondo, SIN business_scope() activo → get_active_business_id() devuelve None ahí → no se re-registra a sí mismo. Cero riesgo de loop infinito de auto-registro.
+
+Chequeo ARCHITECTURE_LAW.md: el punto de cambio (_send_whatsapp) ya es parte de la deuda documentada ("admin WhatsApp legacy global"). Agregar el registro del outbox ahí no la agranda estructuralmente — es una capacidad de resiliencia añadida, no una ruta paralela ni un if business_id == "...". notification_service.py (Services) ya tiene business_id explícito en sus 3 funciones, sin tocar el motor ni el JSON.
+
+FASE 2 — Plan
+chatbot/app/services/admin_service.py: _send_whatsapp: agrego parámetro business_id: str = "". Al final, si hay sid Y logro resolver un business_id (explícito o vía get_active_business_id()), llamo register_button_fallback(sid, business_id, to_number, body) (import local, evita ciclos).
+notify_new_order y handle_admin_message: sin cambios de firma — el business_id ambiental ya alcanza.
+services/notification_service.py: approve_order_from_app / reject_order_from_app: paso business_id=bid explícito en sus llamadas a admin._send_whatsapp(...).
+Ponytail: documentar que el "fallback" acá es literal — reintenta el MISMO texto de confirmación, no uno distinto (a diferencia de botones, donde el fallback es "versión texto" de la interactiva).
+Bonus opcional (no lo pediste ahora, lo marco porque ya lo señalé como hueco varias veces): _send_whatsapp sigue sin pasar por el pacing por destinatario (_pace_recipient) que armamos para infrastructure/twilio_client.py. Ya que estamos tocando esta función, podría sumarlo también (una línea, mismo import). ¿Lo incluyo o lo dejamos para otra vuelta?
+
+Fuera de este alcance, explícito: recordatorios al admin (_process_reminders, línea 572) — no los agrego al outbox porque ya se repiten solos cada ADMIN_REMINDER_INTERVAL_SECONDS; agregar retry ahí sería redundante y complica sin necesidad (YAGNI).
+
+FASE 3 — Validación (al ejecutar)
+Extiendo tests/test_button_fallback_retry.py (o agrego test nuevo) mockeando _send_whatsapp para confirmar: éxito con business_id → registra fila; falla → la fila entra al mismo retry loop ya probado.
+validate_flow.py, validar_arquitectura.py, pytest tests/ — comparar contra el mismo baseline de siempre.
+Sigo en modo Ask — no ejecuto nada de esto hasta que cambies a modo Agente y me confirmes el OK (con o sin el bonus del pacing).
+
+
+
+
+## resp cursor ##
+
+
+
+Bonus pacing implementado. Reporte final.
+
+Cambios:
+
+chatbot/app/services/admin_service.py — _send_whatsapp(to_number, body, *, business_id=""):
+
+Pacing por destinatario (_pace_recipient) antes de cada envío, igual que en infrastructure/twilio_client.py.
+Al obtener sid, registra outbox (register_button_fallback) si hay business_id (explícito o ambiental vía chatbot.business_context.get_active_business_id()). Sin ninguno, omite el registro — no adivina tenant.
+Fallback aquí es literal: reintenta el MISMO texto (a diferencia de botones, donde el fallback es "versión texto").
+infrastructure/twilio_client.py — send_whatsapp_message ya delegaba en admin._send_whatsapp; quité su pacing duplicado (si no, cada envío esperaba doble: 13s en vez de 6.5s).
+
+services/notification_service.py — approve_order_from_app/reject_order_from_app pasan business_id=bid explícito (corren fuera de business_scope, vienen de la app Flutter).
+
+Cobertura resultante del outbox: notify_new_order (alerta admin) y handle_admin_message (confirmación cliente) — corren dentro de business_scope en gateway.py, quedan cubiertos vía contexto ambiental. approve/reject_order_from_app — cubiertos vía business_id explícito. Recordatorios (_process_reminders) y envíos genéricos vía send_whatsapp_message desde hilos de fondo (retry loop, deliver_reply) quedan sin outbox nuevo — no hay business_id disponible ahí, y así se evita registrar reintentos de todo mensaje normal o recursión del propio retry loop.
+
+Test nuevo: tests/test_outbox_admin_service.py (3 casos: pacing invocado, registro con business_id explícito, registro con ambiental, skip sin ninguno). Tuve que corregir dos mocks en tests/test_order_confirmation_flow.py que reemplazaban _send_whatsapp entero y no aceptaban el nuevo kwarg (**_kwargs agregado).
+
+Bug de aislamiento que encontré y corregí: mi test inicial importaba admin_service a nivel de módulo (tiempo de collection), lo cual — antes que otros test_*.py fijaran sus propias env vars — congelaba constantes como FCM_ENABLED/DATABASE_URL desde config.settings para toda la sesión de pytest, rompiendo test_push_api.py. Corregido difiriendo el import dentro de la función (convención ya usada por el resto de la suite).
+
+Validación:
+
+validar_arquitectura.py con ARCHITECTURE_ALLOW_TEST_CHANGES=1 (necesario porque agregué/modifiqué tests): Gobernanza PASS. Único fallo restante: 6 errores preexistentes en flows/restaurant_flow.json (transiciones faltantes), sin relación con este trabajo, no tocado.
+pytest tests/: 20 failed, 87 passed — exactamente el mismo baseline (mismos 20 nombres de test) más mis 3 tests nuevos pasando. Cero regresiones, cero errores nuevos.
+Lints limpios en los 5 archivos tocados.
+Recordatorio: reinicia el proceso del bot para que tome el cambio.
+
+
+
+
+
+## resp cursor ##
+
+
+Resumen para notas de versión — límites de envío WhatsApp (Twilio/Meta):
+
+Problema resuelto
+El bot se quedaba "mudo" con un mismo cliente cuando se enviaban varios mensajes seguidos muy rápido (confirmaciones, alertas admin, botones). Dos causas distintas:
+
+Límite de Meta por par (mismo número emisor↔receptor): ~1 msg/6s. Se disparaba sin aviso local (nada quedaba logueado).
+Límite de canal de Twilio (ErrorCode 63018, "Rate limit exceeded for Channel"): llega de forma asíncrona (vía callback de estado), después de que Twilio ya aceptó el envío.
+Qué se implementó
+1. Pacing por destinatario (evita el límite de Meta) Antes de cada envío real a Twilio, se espera un intervalo mínimo desde el último mensaje a ESE MISMO número. Números distintos nunca se bloquean entre sí (locks independientes por número).
+
+Nueva variable: TWILIO_MIN_SECONDS_PER_RECIPIENT (default 6.5).
+Aplica tanto a mensajes normales (infrastructure/twilio_client.py) como a confirmaciones/alertas admin (AdminService._send_whatsapp).
+2. Detección explícita de códigos Meta (131056, 130429, 131048): se loguean claro y se corta el reintento sincrónico inmediatamente, en vez de colgar la respuesta del webhook con reintentos largos.
+
+3. Reintento asíncrono para el error 63018 (canal saturado) Se reutilizó la tabla pending_button_fallbacks como "outbox": si un mensaje se marca failed/undelivered después de aceptado, se agenda un reintento en segundo plano.
+
+1er fallo → reintenta a los TWILIO_FIRST_RETRY_SECONDS_PER_TRY (default 10).
+2do fallo → reintenta a los TWILIO_SECOND_RETRY_SECONDS_PER_TRY (default 5).
+3er fallo → se abandona (se loguea, no reintenta más).
+Éxito en cualquier punto → borra el registro, no reintenta de más.
+Corre en un hilo de fondo (start_retry_scheduler, iniciado junto con el resto de servicios en chatbot/runtime.py).
+4. Extensión del outbox a confirmaciones/alertas importantes Antes solo cubría botones/listas interactivas. Ahora también cubre:
+
+Alerta al admin de "nuevo pedido".
+Confirmación al cliente cuando el admin aprueba.
+Aprobar/rechazar pedido desde la app Flutter. Para mensajes de texto plano el "fallback" es literal: reintenta el mismo texto (no una versión alterna como en botones).
+Archivos tocados
+infrastructure/twilio_client.py — pacing, detección de códigos Meta, outbox de botones.
+chatbot/app/services/admin_service.py — pacing + outbox en _send_whatsapp.
+services/notification_service.py — pasa business_id explícito en aprobar/rechazar desde la app.
+services/button_fallback_service.py — lógica de reintento (due_for_retry, record_attempt_result, scheduler).
+config/settings.py — las 3 variables nuevas.
+models/pending_button_fallback.py + scripts/migrate_button_fallback_retry.py — columnas attempts/next_retry_at.
+api/routes/whatsapp.py, chatbot/runtime.py — enganche del scheduler.
+Nuevas variables de entorno (.env)
+TWILIO_MIN_SECONDS_PER_RECIPIENT=6.5
+TWILIO_FIRST_RETRY_SECONDS_PER_TRY=10
+TWILIO_SECOND_RETRY_SECONDS_PER_TRY=5
+(Todas tienen default si no se ponen en .env, pero conviene dejarlas explícitas para poder ajustarlas sin tocar código.)
+
+Validación
+Tests nuevos: pacing (test_twilio_pacing.py), reintento de outbox (test_button_fallback_retry.py), outbox de admin (test_outbox_admin_service.py).
+Suite completa comparada contra baseline: sin regresiones nuevas.
+Confirmado en tu prueba real: pedido largo completo sin bloqueos con otro número de carga alta.
+Limitación conocida (documentada como ponytail en el código)
+El pacing y los reintentos son en memoria del proceso — se resetean si el bot se reinicia, y no se comparten entre múltiples instancias/procesos. Si algún día se despliega en más de un worker/proceso, hace falta un store compartido (ej. Redis) para que el pacing sea correcto entre procesos.
+
+
+
+
+
+
+#############################################
+
+
+
+
+
+
+
+

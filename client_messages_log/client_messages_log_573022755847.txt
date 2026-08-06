@@ -1722,3 +1722,291 @@ Chatbot: *🍛 Platos Principales*
 👇 *Oprime Elegir producto para añadirlo a tu pedido.*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
+################################################################
+
+Cliente: 📖 Ver menú
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x11 - $165
+
+💰 Valor total: *$165*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ➕ Añadir más
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*🍛 Platos Principales*
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: __cat__🍛 Platos Principales
+
+
+-------------------------------
+
+Chatbot: *🍛 Platos Principales*
+
+• Bandeja Paisa - *$15*
+
+👇 *Oprime Elegir producto para añadirlo a tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: item-1785944049812
+
+
+-------------------------------
+
+Chatbot: ✅ *Producto seleccionado*
+
+🍽️ *Bandeja Paisa*
+💰 Precio: *$15 c/u*
+
+👇 *Oprime una opción para indicar cuántas unidades quieres.*
+
+#################################################################
+################################################################
+
+Cliente: 1
+
+
+-------------------------------
+
+Chatbot: ✅ *Tu pedido está actualizado*
+
+
+🧾 *RESUMEN DEL PEDIDO*
+────────────────
+- Bandeja Paisa x12 - $180
+
+💰 Valor total: *$180*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: ✅ *Confirma tu pedido*
+
+
+🧾 *MI PEDIDO*
+────────────────
+- Bandeja Paisa x12 - $180
+
+💰 Valor total: *$180*
+────────────────
+
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar pedido
+
+
+-------------------------------
+
+Chatbot: 🚚 *Entrega de tu pedido*
+
+Elige si lo recibes en casa o lo recoges en el local.
+
+👇 *Oprime una opción para continuar.*
+
+#################################################################
+################################################################
+
+Cliente: 🏠 Domicilio
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: ✏️ Modificar
+
+
+-------------------------------
+
+Chatbot: 📍 *Escribe la dirección de entrega.*
+
+Incluye barrio, apartamento o cualquier referencia útil.
+
+👇 *Escribe tu dirección.*
+
+#################################################################
+################################################################
+
+Cliente: Calle 9N #11E-53 Barrio Guiaimaral
+
+
+-------------------------------
+
+Chatbot: 📍 *Dirección de entrega*
+
+Calle 9N #11E-53 Barrio Guiaimaral
+
+👇 *¿Es correcta?*
+
+#################################################################
+################################################################
+
+Cliente: ✅ Confirmar
+
+
+-------------------------------
+
+Chatbot: 💳 *Método de pago*
+
+👇 *Oprime una opción.*
+
+#################################################################
+################################################################
+
+Cliente: Transferencia
+
+
+-------------------------------
+
+Chatbot: 💵 *Pago por transferencia*
+
+💰 *Total a pagar: $180*
+
+
+📋 *Sigue estos 3 pasos:*
+
+1️⃣ 💳 *Elige un método de pago*
+· Nequi: 300 123 4567
+· Daviplata: 300 123 4567
+· Bancolombia Ahorros: 123-456789-00
+Titular: Camilo Rodriguez
+
+2️⃣ 📲 *Transfiere exactamente $180*
+
+3️⃣ 📸 *Envía el comprobante por este chat*
+
+✅ *¡Casi listo! Solo toca el botón para confirmar.*
+
+
+👇 *Oprime "Comprobante enviado" para registrar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: Comprobante enviado
+
+
+-------------------------------
+
+Chatbot: ✅ *¡Pedido recibido!*
+
+Tu pedido quedó registrado y está pendiente de confirmación.
+
+🧾 *DETALLES DEL PEDIDO*
+────────────────
+🆔 Pedido: *ORD-F3B56205*
+💰 Total: *$180*
+🚚 Entrega: *Calle 9N #11E-53 Barrio Guiaimaral*
+────────────────
+
+👨‍🍳 *Nuestro equipo lo revisará y te confirmaremos en unos minutos.*
+
+#################################################################

@@ -127,7 +127,9 @@ def send_whatsapp_message(to_number: str, body: str) -> str | None:
             "TWILIO_WHATSAPP_FROM looks like sandbox; production should use Business number."
         )
     try:
-        _pace_recipient(to_number)
+        # Pacing happens inside admin._send_whatsapp itself (shared with the
+        # order-confirmation / admin-alert callers that hit it directly) —
+        # do not pace here too, or every send waits double.
         from chatbot.runtime import get_bot_context
 
         admin = get_bot_context(start_background=False).admin_service

@@ -168,7 +168,7 @@ def approve_order_from_app(
         }
 
     body_text = f"✅ ¡Tu pedido *{order_id}* fue confirmado!\n\n🚚Estamos preparando tu pedido para llevártelo a casa."
-    if not admin._send_whatsapp(customer, body_text):
+    if not admin._send_whatsapp(customer, body_text, business_id=bid):
         return {
             "ok": False,
             "message": f"Pedido {oid} confirmado en BD, pero no se pudo enviar WhatsApp al cliente.",
@@ -221,5 +221,6 @@ def reject_order_from_app(
         admin._send_whatsapp(
             customer,
             f"Lo sentimos, tu pedido *{oid}* no pudo ser confirmado.{extra}",
+            business_id=bid,
         )
     return {"ok": True, "message": f"Pedido {oid} rechazado."}

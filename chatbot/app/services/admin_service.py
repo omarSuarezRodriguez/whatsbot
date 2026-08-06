@@ -280,7 +280,9 @@ class AdminService:
         }
         return hints.get(code, "Ver Twilio Console → Monitor → Logs.")
 
-    def _send_whatsapp(self, to_number: str, body: str) -> str | None:
+    def _send_whatsapp(
+        self, to_number: str, body: str, *, business_id: str = ""
+    ) -> str | None:
         self._last_twilio_error_code = None
         if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_FROM):
             logger.info("Twilio outbound not configured. Admin message: %s", body[:120])
@@ -305,6 +307,14 @@ class AdminService:
             from twilio.rest import Client
 
             from config.settings import twilio_status_callback_url
+
+            # Same per-recipient pacing as infrastructure/twilio_client.py — this
+            # sender used to bypass it entirely (separate Twilio client), which
+            # left order confirmations/admin alerts exposed to the exact Meta
+            # pair-rate-limit burst that pacing exists to prevent.
+            from infrastructure.twilio_client import _pace_recipient
+
+            _pace_recipient(to_number)
 
             # ponytail: bounded timeout — bare Client() has none and can hang a
             # worker forever on a Twilio network blip (see infrastructure/twilio_client.py).
@@ -345,7 +355,10 @@ class AdminService:
                 message.sid,
                 status,
             )
-            return message.sid or None
+            sid = message.sid or None
+            if sid:
+                self._register_delivery_fallback(sid, to_number, body, business_id)
+            return sid
         except Exception as exc:
             code = getattr(exc, "code", None)
             if code:
@@ -359,6 +372,38 @@ class AdminService:
                 hint,
             )
             return None
+
+    @staticmethod
+    def _register_delivery_fallback(
+        sid: str, to_number: str, body: str, business_id: str
+    ) -> None:
+        """Outbox row so this send gets the same async-failure retry as
+        interactive messages (services/button_fallback_service.py) — this
+        Twilio call is accepted synchronously but can still be marked failed
+        later via the status callback (e.g. 63018), same as any other send.
+        The fallback text here is literally the same body: there's no
+        "interactive vs text" distinction for a plain WhatsApp message, the
+        retry is just "send this again".
+        """
+        bid = (business_id or "").strip()
+        if not bid:
+            try:
+                from chatbot.business_context import get_active_business_id
+
+                bid = get_active_business_id() or ""
+            except Exception:
+                bid = ""
+        if not bid:
+            # No business context available (e.g. called outside a webhook
+            # request without an explicit business_id) — can't scope the
+            # outbox row, skip rather than guess DEFAULT_BUSINESS_ID.
+            return
+        try:
+            from infrastructure.twilio_client import register_button_fallback
+
+            register_button_fallback(sid, bid, to_number, body)
+        except Exception:
+            logger.exception("Could not register delivery fallback for sid=%s", sid)
 
     def _send_whatsapp_async(self, to_number: str, body: str) -> None:
         thread = threading.Thread(

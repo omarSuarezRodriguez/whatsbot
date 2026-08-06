@@ -83,3 +83,138 @@ Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
 👇 *Oprime Hacer pedido para comenzar tu pedido.*
 
 #################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################
+################################################################
+
+Cliente: hola
+
+
+-------------------------------
+
+Chatbot: MENSAJE_CUSTOM_FASE7 vacio
+
+#################################################################
+################################################################
+
+Cliente: menu
+
+
+-------------------------------
+
+Chatbot: 📖 *Nuestro menú*
+
+Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
+
+*Platos*
+• Sopa Gateway BD - *$5*
+
+👇 *Oprime Hacer pedido para comenzar tu pedido.*
+
+#################################################################

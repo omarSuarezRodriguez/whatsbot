@@ -38,7 +38,7 @@ def reset_context():
 def whatsapp_log(monkeypatch):
     log: list[tuple[str, str]] = []
 
-    def _fake_send(_self, to_number: str, body: str) -> bool:
+    def _fake_send(_self, to_number: str, body: str, **_kwargs) -> bool:
         log.append((to_number, body))
         return True
 
@@ -152,7 +152,7 @@ def test_approve_from_app_reports_twilio_failure(whatsapp_log):
         status="pending",
     )
 
-    def _fail_send(_self, _to: str, _body: str) -> bool:
+    def _fail_send(_self, _to: str, _body: str, **_kwargs) -> bool:
         return False
 
     with patch(
