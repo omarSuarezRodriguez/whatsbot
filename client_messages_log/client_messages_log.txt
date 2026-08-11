@@ -36284,3 +36284,17 @@ Tu pedido quedó registrado y está pendiente de confirmación.
 👨‍🍳 *Nuestro equipo lo revisará y te confirmaremos en unos minutos.*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################

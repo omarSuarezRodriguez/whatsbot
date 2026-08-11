@@ -32146,3 +32146,17 @@ Descubre nuestros platos preparados con el auténtico sabor colombiano. 🔥
 👇 *Oprime Hacer pedido para comenzar tu pedido.*
 
 #################################################################
+################################################################
+
+Cliente: Hola
+
+
+-------------------------------
+
+Chatbot: 👋 *Bienvenido a El Fogón Colombiano* 🔥
+
+Sabores de nuestra tierra, preparados con tradición y servidos como en casa. 🥘🌽
+
+👇 ¿Qué se te antoja hoy? *Oprime una opción*
+
+#################################################################
